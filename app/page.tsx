@@ -65,11 +65,12 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[80vh] w-full overflow-hidden">
         <Image
-          src="/hero-image.jpg"
-          alt="Hero image"
-          fill
-          className="object-cover"
           priority
+          className="object-cover"
+          src="/placeholder.svg?height=800&width=1600"
+          alt="Hero image"
+          width={1600}
+          height={800}
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">

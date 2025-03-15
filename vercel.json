@@ -1,6 +1,8 @@
 {
-  "buildCommand": "cd veliano && npm run build",
-  "outputDirectory": "veliano/.next",
-  "devCommand": "cd veliano && npm run dev",
-  "installCommand": "cd veliano && npm install"
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
 } 

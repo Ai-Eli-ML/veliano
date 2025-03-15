@@ -1,16 +1,17 @@
 import { cache } from 'react'
 import { z } from 'zod'
-import { PostgrestSingleResponse, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { PostgrestSingleResponse } from '@supabase/supabase-js'
 import { createClientSupabaseClient, supabaseAdmin, handleSupabaseError } from './supabase'
-import { Database } from '@/types/supabase'
+import type { Database } from '@/types/supabase'
+
+type DbResult<T> = T extends PromiseLike<infer U> ? U : never
+type DbResultOk<T> = T extends PromiseLike<{ data: infer U }> ? U : never
 
 // Caching layer for frequently accessed data
 export const getCachedUser = cache(async (userId: string) => {
   const supabase = createClientSupabaseClient()
   const response = await supabase.from('users').select('*').eq('id', userId).single()
-  const [data, error] = await handleSupabaseError(
-    Promise.resolve(response) as Promise<PostgrestSingleResponse<any>>
-  )
+  const [data, error] = await handleSupabaseError(response)
   
   if (error) {
     console.error('Error fetching cached user:', error)
@@ -23,9 +24,7 @@ export const getCachedUser = cache(async (userId: string) => {
 export const getCachedCategories = cache(async () => {
   const supabase = createClientSupabaseClient()
   const response = await supabase.from('categories').select('*').order('name')
-  const [data, error] = await handleSupabaseError(
-    Promise.resolve(response) as Promise<PostgrestSingleResponse<any>>
-  )
+  const [data, error] = await handleSupabaseError(response)
   
   if (error) {
     console.error('Error fetching cached categories:', error)
@@ -73,9 +72,7 @@ export async function validateAndUpdateProfile(userId: string, data: unknown) {
       .select()
       .single()
     
-    const [result, error] = await handleSupabaseError(
-      Promise.resolve(response) as Promise<PostgrestSingleResponse<any>>
-    )
+    const [result, error] = await handleSupabaseError(response)
     
     return { success: !error, data: result, error }
   } catch (error) {
@@ -95,20 +92,19 @@ export async function validateAndUpdateProfile(userId: string, data: unknown) {
 }
 
 // Real-time subscription helper
-export function createRealtimeSubscription(
+export function createRealtimeSubscription<T>(
   table: string,
-  callback: (payload: any) => void,
+  callback: (payload: T) => void,
   event: 'INSERT' | 'UPDATE' | 'DELETE' | '*' = '*'
 ) {
   const supabase = createClientSupabaseClient()
   
-  // Using any for payload type to avoid constraints errors
   return supabase
     .channel('table_db_changes')
     .on(
-      'postgres_changes' as any, // Type assertion to bypass strict type checking
+      'postgres_changes' as any,
       { event, schema: 'public', table },
-      callback
+      (payload: T) => callback(payload)
     )
     .subscribe()
 } 
