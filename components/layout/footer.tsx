@@ -72,12 +72,12 @@ export default function Footer() {
             <h3 className="mb-4 text-lg font-semibold">Customer Service</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/shipping" className="text-gray-400 hover:text-white">
+                <Link href="/shipping-delivery" className="text-gray-400 hover:text-white">
                   Shipping & Delivery
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-400 hover:text-white">
+                <Link href="/returns-exchanges" className="text-gray-400 hover:text-white">
                   Returns & Exchanges
                 </Link>
               </li>
