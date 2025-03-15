@@ -2,43 +2,75 @@ import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// Simple performance monitoring
+const startTime = Symbol('startTime')
+
 export async function middleware(req: NextRequest) {
+  // Measure performance of middleware
+  const start = Date.now()
+  ;(req as any)[startTime] = start
+  
+  // Create supabase middleware client
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
+  // Get user session
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
+  // URLs for redirects
+  const loginUrl = new URL("/account/login", req.url)
+  const homeUrl = new URL("/", req.url)
+  const currentPath = req.nextUrl.pathname
+  
+  // Save original URL as redirect parameter
+  if (currentPath !== '/account/login') {
+    loginUrl.searchParams.set("redirect", currentPath)
+  }
+
   // Authentication check for protected routes
-  if (
-    !session &&
-    req.nextUrl.pathname.startsWith("/account") &&
-    !req.nextUrl.pathname.startsWith("/account/login") &&
-    !req.nextUrl.pathname.startsWith("/account/register") &&
-    !req.nextUrl.pathname.startsWith("/account/forgot-password") &&
-    !req.nextUrl.pathname.startsWith("/account/reset-password")
-  ) {
-    const redirectUrl = new URL("/account/login", req.url)
-    redirectUrl.searchParams.set("redirect", req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+  const isAuthRoute = 
+    currentPath.startsWith("/account") && 
+    !currentPath.startsWith("/account/login") &&
+    !currentPath.startsWith("/account/register") &&
+    !currentPath.startsWith("/account/forgot-password") &&
+    !currentPath.startsWith("/account/reset-password")
+    
+  // Login check
+  if (isAuthRoute && !session) {
+    return NextResponse.redirect(loginUrl)
+  }
+  
+  // Checkout route protection
+  if (currentPath.startsWith("/checkout") && !session) {
+    return NextResponse.redirect(loginUrl)
   }
 
-  // Admin check for admin routes
-  if (req.nextUrl.pathname.startsWith("/admin")) {
+  // Admin route protection
+  if (currentPath.startsWith("/admin")) {
+    // Redirect to login if no session
     if (!session) {
-      const redirectUrl = new URL("/account/login", req.url)
-      redirectUrl.searchParams.set("redirect", req.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
+      return NextResponse.redirect(loginUrl)
     }
 
-    const { data: profile } = await supabase.from("users").select("is_admin").eq("id", session.user.id).single()
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from("users")
+      .select("is_admin")
+      .eq("id", session.user.id)
+      .single()
 
+    // Redirect non-admins to home
     if (!profile?.is_admin) {
-      return NextResponse.redirect(new URL("/", req.url))
+      return NextResponse.redirect(homeUrl)
     }
   }
-
+  
+  // Add timing metrics to response headers for monitoring
+  const responseTime = Date.now() - start
+  res.headers.set('Server-Timing', `middleware;dur=${responseTime}`)
+  
   return res
 }
 

@@ -4,14 +4,46 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 import type { cookies } from "next/headers"
 
-// Make sure environment variables are available
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Make sure environment variables are available and throw clear errors if they're not
+console.log('Debug - Environment Variables:')
+console.log('NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+console.log('SUPABASE_SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL')
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY')
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing environment variable: SUPABASE_SERVICE_ROLE_KEY')
+}
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+// Error handling wrapper for Supabase calls
+export async function handleSupabaseError<T>(
+  promise: Promise<{ data: T; error: any }>
+): Promise<[T | null, Error | null]> {
+  try {
+    const { data, error } = await promise
+    if (error) return [null, new Error(error.message)]
+    return [data, null]
+  } catch (error) {
+    console.error('Supabase error:', error)
+    return [null, error instanceof Error ? error : new Error(String(error))]
+  }
+}
 
 // For client components
 export function createClientSupabaseClient() {
-  // Using the type-safe approach with createClientComponentClient
-  return createClientComponentClient<Database>()
+  return createClientComponentClient<Database>({
+    supabaseUrl,
+    supabaseKey: supabaseAnonKey,
+  })
 }
 
 // For server components
@@ -24,6 +56,12 @@ export function createServerSupabaseClient() {
 export const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
 )
 
 // Types

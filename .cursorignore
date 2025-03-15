@@ -1,17 +1,13 @@
 # Dependency directories
 node_modules/
-.next/
-.vercel/
-out/
+
 
 # Environment files
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
 # Debug logs
-npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
@@ -20,7 +16,7 @@ dist/
 build/
 
 # Cache
-.eslintcache
+
 .cache/
 .npm/
 
@@ -39,8 +35,6 @@ coverage/
 *.sw?
 
 # Supabase
-supabase/.branches/
-supabase/.temp/
 
 # Stripe
 .stripe/
