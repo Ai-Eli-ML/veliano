@@ -1,0 +1,34 @@
+{
+  "name": "custom-gold-grillz",
+  "version": "1.0.0",
+  "description": "Custom Gold Grillz e-commerce site with Next.js, Supabase, and Stripe",
+  "cursorSettings": {
+    "formatOnSave": true,
+    "lintOnSave": true,
+    "indentSize": 2,
+    "tabSize": 2,
+    "insertSpaces": true,
+    "detectIndentation": true,
+    "trimTrailingWhitespace": true,
+    "insertFinalNewline": true
+  },
+  "fileAssociations": {
+    "*.css": "tailwindcss",
+    "*.module.css": "css",
+    "*.json": "json",
+    "*.md": "markdown",
+    "*.ts": "typescript",
+    "*.tsx": "typescriptreact",
+    "*.js": "javascript",
+    "*.jsx": "javascriptreact"
+  },
+  "recommendations": [
+    "tailwindcss.intellisense",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "stripe.vscode-stripe"
+  ]
+}
+
