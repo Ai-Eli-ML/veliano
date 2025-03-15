@@ -33,14 +33,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider defaultTheme="light">
+    <html lang="en" suppressHydrationWarning className="dark">
+      <body className={`${inter.className} bg-black text-white min-h-screen`}>
+        <ThemeProvider defaultTheme="dark">
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>
                 <AnalyticsProvider>
-                  <div className="flex min-h-screen flex-col">
+                  <div className="flex min-h-screen flex-col bg-black">
                     <Header />
                     <main className="flex-1">{children}</main>
                     <Footer />
