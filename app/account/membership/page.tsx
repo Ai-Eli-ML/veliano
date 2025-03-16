@@ -1,3 +1,5 @@
+"use client"
+
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { getUserMembership } from "@/actions/membership"

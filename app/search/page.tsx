@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"

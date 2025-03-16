@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next"
 import { CheckoutForm } from "@/components/checkout/checkout-form"
 import { CheckoutSummary } from "@/components/checkout/checkout-summary"

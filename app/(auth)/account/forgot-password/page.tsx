@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import ForgotPasswordForm from "@/components/auth/forgot-password-form"

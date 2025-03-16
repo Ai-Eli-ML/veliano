@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import RegisterForm from "@/components/auth/register-form"

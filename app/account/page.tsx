@@ -1,3 +1,5 @@
+"use client"
+
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { getAuthUser } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

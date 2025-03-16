@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { CartProvider } from "@/components/providers/cart-provider"
@@ -12,10 +11,8 @@ import { Toaster } from "@/components/ui/sonner"
 import Header from "@/components/layout/header"
 import Footer from "@/components/layout/footer"
 import "./globals.css"
-import { useEffect } from "react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { initClientPerformance } from "@/middleware/performance"
-import Head from "next/head"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,11 +34,34 @@ export const metadata = {
   ],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    initClientPerformance()
-  }, [])
+function ClientLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider defaultTheme="dark">
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <AnalyticsProvider>
+              <ErrorBoundary>
+                <div className="flex min-h-screen flex-col bg-black">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+              </ErrorBoundary>
+              <Toaster />
+            </AnalyticsProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  )
+}
 
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
@@ -68,24 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.className} bg-black text-white min-h-screen`}>
-        <ThemeProvider defaultTheme="dark">
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <AnalyticsProvider>
-                  <ErrorBoundary>
-                    <div className="flex min-h-screen flex-col bg-black">
-                      <Header />
-                      <main className="flex-1">{children}</main>
-                      <Footer />
-                    </div>
-                  </ErrorBoundary>
-                  <Toaster />
-                </AnalyticsProvider>
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
