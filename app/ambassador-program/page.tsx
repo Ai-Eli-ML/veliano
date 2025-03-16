@@ -1,4 +1,10 @@
+export const metadata = export const metadata = {
+  title: "Ambassador Program",
+  description: "Join our Ambassador Program and earn commissions by promoting our products",
+}
+
 "use client"
+
 
 import Link from "next/link"
 import Image from "next/image"
@@ -7,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle, ArrowRight, Instagram, TwitterIcon as TikTok, Youtube } from "lucide-react"
 
-export const metadata = {
   title: "Ambassador Program",
   description: "Join our Ambassador Program and earn commissions by promoting our products",
 }

@@ -1,4 +1,3 @@
-"use client"
 
 import type { Metadata } from "next"
 import { getProducts, getCategories } from "@/lib/products"
@@ -10,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ProductsHeader } from "@/components/product/products-header"
 import { Pagination } from "@/components/ui/pagination"
 
-export const metadata: Metadata = {
   title: "All Products",
   description: "Browse our collection of premium custom gold grillz and jewelry",
 }

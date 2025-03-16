@@ -1,4 +1,10 @@
+export const metadata = export const metadata = {
+  title: "Order History",
+  description: "View your order history and track your purchases",
+}
+
 "use client"
+
 
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
@@ -9,7 +15,6 @@ import Link from "next/link"
 import { Eye, Package } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-export const metadata = {
   title: "Order History",
   description: "View your order history and track your purchases",
 }

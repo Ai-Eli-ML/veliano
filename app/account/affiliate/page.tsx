@@ -1,4 +1,10 @@
+export const metadata = export const metadata = {
+  title: "Affiliate Dashboard",
+  description: "Manage your affiliate account and track your earnings",
+}
+
 "use client"
+
 
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
@@ -14,7 +20,6 @@ import { AffiliateLinks } from "@/components/affiliate/affiliate-links"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-export const metadata = {
   title: "Affiliate Dashboard",
   description: "Manage your affiliate account and track your earnings",
 }

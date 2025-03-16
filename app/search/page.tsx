@@ -1,4 +1,3 @@
-"use client"
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -13,7 +12,6 @@ interface SearchPageProps {
   }
 }
 
-export const metadata: Metadata = {
   title: "Search Results",
   description: "Search for products in our catalog",
 }

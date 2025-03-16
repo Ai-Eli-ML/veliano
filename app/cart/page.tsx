@@ -1,4 +1,3 @@
-"use client"
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -6,7 +5,6 @@ import { CartContent } from "@/components/cart/cart-content"
 import { CartSummary } from "@/components/cart/cart-summary"
 import { Button } from "@/components/ui/button"
 
-export const metadata: Metadata = {
   title: "Shopping Cart",
   description: "View and manage items in your shopping cart",
 }

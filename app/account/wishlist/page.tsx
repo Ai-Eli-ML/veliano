@@ -1,9 +1,7 @@
-"use client"
 
 import type { Metadata } from "next"
 import { WishlistContent } from "@/components/wishlist/wishlist-content"
 
-export const metadata: Metadata = {
   title: "Wishlist",
   description: "View and manage your saved items",
 }

@@ -1,4 +1,3 @@
-"use client"
 
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { getAuthUser } from "@/lib/auth"

@@ -1,4 +1,3 @@
-"use client"
 
 import { redirect, notFound } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"

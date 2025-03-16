@@ -1,4 +1,10 @@
+export const metadata = export const metadata = {
+  title: "Membership Status",
+  description: "View your membership tier and benefits",
+}
+
 "use client"
+
 
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
@@ -10,7 +16,6 @@ import { formatCurrency, formatDate } from "@/lib/utils"
 import Link from "next/link"
 import { ArrowLeft, Award, Check } from "lucide-react"
 
-export const metadata = {
   title: "Membership Status",
   description: "View your membership tier and benefits",
 }

@@ -1,4 +1,10 @@
+export const metadata = export const metadata = {
+  title: "Ambassador Dashboard",
+  description: "Manage your ambassador account and track your earnings",
+}
+
 "use client"
+
 
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
@@ -15,7 +21,6 @@ import { AmbassadorContent } from "@/components/ambassador/ambassador-content"
 import Link from "next/link"
 import { ArrowLeft, Award } from "lucide-react"
 
-export const metadata = {
   title: "Ambassador Dashboard",
   description: "Manage your ambassador account and track your earnings",
 }
