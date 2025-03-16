@@ -26,16 +26,11 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    memoryBasedWorkersCount: true,
+    webVitalsAttribution: ['CLS', 'LCP'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
-  },
-  // Enable SWC minification for improved performance
-  swcMinify: true,
-  // Increase memory limit for build process
-  experimental: {
-    memoryBasedWorkersCount: true,
-    webVitalsAttribution: ['CLS', 'LCP'],
   },
   // Configure headers for security and caching
   async headers() {
