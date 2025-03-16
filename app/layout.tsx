@@ -19,7 +19,7 @@ import Head from "next/head"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: {
     default: "Custom Gold Grillz | Premium Gold Teeth & Jewelry",
     template: "%s | Custom Gold Grillz",
