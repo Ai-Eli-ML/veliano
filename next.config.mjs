@@ -19,6 +19,11 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  // Use the new JSX transform
+  reactStrictMode: true,
+  experimental: {
+    // Add any experimental features you need here
+  },
 }
 
 export default nextConfig;

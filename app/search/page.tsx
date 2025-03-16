@@ -2,18 +2,11 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { ProductGrid } from "@/components/products/product-grid"
-import { ProductFilters } from "@/components/products/product-filters"
-import { ProductSort } from "@/components/products/product-sort"
-import { Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Pagination } from "@/components/ui/pagination"
 
 interface SearchPageProps {
   searchParams: {
     q?: string
-    category?: string
-    minPrice?: string
-    maxPrice?: string
-    sort?: string
     page?: string
   }
 }
@@ -24,137 +17,64 @@ export const metadata: Metadata = {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q, category, minPrice, maxPrice, sort, page = "1" } = searchParams
-
-  if (!q) {
-    notFound()
-  }
-
-  const supabase = createServerSupabaseClient()
-
-  // Build the query
-  let query = supabase
-    .from("products")
-    .select(
-      `
-      *,
-      images:product_images(*),
-      variants:product_variants(*),
-      categories:product_categories(
-        categories:categories(id, name, slug)
-      )
-    `,
-      { count: "exact" },
-    )
-    .eq("is_published", true)
-    .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
-
-  // Apply filters
-  if (category) {
-    const { data: categoryData } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", category)
-      .single();
-
-    if (categoryData) {
-      const { data: categoryProducts } = await supabase
-        .from("product_categories")
-        .select("product_id")
-        .eq("category_id", categoryData.id);
-
-      if (categoryProducts && categoryProducts.length > 0) {
-        query = query.in("id", categoryProducts.map(cp => cp.product_id));
-      }
-    }
-  }
-
-  if (minPrice) {
-    query = query.gte("price", Number.parseFloat(minPrice))
-  }
-
-  if (maxPrice) {
-    query = query.lte("price", Number.parseFloat(maxPrice))
-  }
-
-  // Apply sorting
-  switch (sort) {
-    case "price_asc":
-      query = query.order("price", { ascending: true })
-      break
-    case "price_desc":
-      query = query.order("price", { ascending: false })
-      break
-    case "newest":
-      query = query.order("created_at", { ascending: false })
-      break
-    case "featured":
-      query = query.eq("featured", true).order("created_at", { ascending: false })
-      break
-    default:
-      query = query.order("created_at", { ascending: false })
-  }
-
-  // Apply pagination
+  const query = searchParams?.q || ""
+  const page = searchParams?.page ? parseInt(searchParams.page) : 1
   const limit = 12
-  const currentPage = Number.parseInt(page)
-  const from = (currentPage - 1) * limit
-  const to = from + limit - 1
-  query = query.range(from, to)
 
-  // Execute the query
-  const { data, error, count } = await query
+  try {
+    const supabase = createServerSupabaseClient()
+    
+    // Get total count first
+    const { count } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .ilike("name", `%${query}%`)
 
-  if (error) {
-    console.error("Error fetching search results:", error)
+    // Then get paginated results
+    const { data: products, error } = await supabase
+      .from("products")
+      .select(`
+        *,
+        product_images(*),
+        product_categories(category_id)
+      `)
+      .ilike("name", `%${query}%`)
+      .range((page - 1) * limit, page * limit - 1)
+      .order("created_at", { ascending: false })
+
+    if (error) throw error
+
+    const totalPages = count ? Math.ceil(count / limit) : 0
+
     return (
-      <div className="container py-10">
-        <h1 className="mb-6 text-3xl font-bold">Search Results for "{q}"</h1>
-        <p>An error occurred while fetching search results. Please try again.</p>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">
+          {count === 0
+            ? `No results found for "${query}"`
+            : `Search results for "${query}"`}
+        </h1>
+        
+        <ProductGrid products={products || []} />
+        
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={count || 0}
+            />
+          </div>
+        )}
+      </div>
+    )
+  } catch (error) {
+    console.error("Error searching products:", error)
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-4">Search Results</h1>
+        <p className="text-red-500">Error loading search results. Please try again later.</p>
       </div>
     )
   }
-
-  // Transform the data to match our Product type
-  const products = data.map((product: any) => ({
-    ...product,
-    categories: product.categories.map((item: any) => item.categories),
-  }))
-
-  // Fetch categories for filters
-  const { data: categories } = await supabase.from("categories").select("*").order("name", { ascending: true })
-
-  return (
-    <div className="container py-10">
-      <h1 className="mb-6 text-3xl font-bold">Search Results for "{q}"</h1>
-
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-[250px_1fr]">
-        {/* Filters Sidebar */}
-        <div>
-          <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-            <ProductFilters categories={categories || []} />
-          </Suspense>
-        </div>
-
-        {/* Products */}
-        <div>
-          <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <p className="text-muted-foreground">
-              Showing {products.length} of {count || 0} results
-            </p>
-            <ProductSort />
-          </div>
-
-          <Suspense fallback={<Skeleton className="h-[800px] w-full" />}>
-            <ProductGrid
-              products={products}
-              currentPage={currentPage}
-              totalPages={count ? Math.ceil(count / limit) : 0}
-            />
-          </Suspense>
-        </div>
-      </div>
-    </div>
-  )
 }
 

@@ -1,9 +1,10 @@
 "use client"
 
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export function ProductSort() {
+function ProductSortContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -42,6 +43,19 @@ export function ProductSort() {
         </SelectContent>
       </Select>
     </div>
+  )
+}
+
+export function ProductSort() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center space-x-2">
+        <span className="text-sm font-medium">Sort by:</span>
+        <div className="h-10 w-[180px] animate-pulse rounded-md bg-muted"></div>
+      </div>
+    }>
+      <ProductSortContent />
+    </Suspense>
   )
 }
 

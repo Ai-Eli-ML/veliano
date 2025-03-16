@@ -3,57 +3,91 @@
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Suspense } from "react"
+import { Loader2 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
-import { ArrowRight } from "lucide-react"
 
-export function CartSummary() {
-  const { items, totalItems, subtotal } = useCart()
-
-  // Calculate shipping (free over $100)
-  const shippingCost = subtotal() >= 100 ? 0 : 10
-
-  // Estimate tax (for display purposes)
-  const estimatedTax = subtotal() * 0.07
-
-  // Calculate total
-  const total = subtotal() + shippingCost + estimatedTax
-
+function CartSummaryContent() {
+  const { subtotal, totalItems } = useCart()
+  const total = subtotal()
+  const hasShipping = total < 100
+  const shipping = hasShipping ? 10 : 0
+  const tax = total * 0.08 // 8% tax rate
+  const finalTotal = total + shipping + tax
+  
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Subtotal ({totalItems()} items)</span>
-          <span className="font-medium">{formatCurrency(subtotal())}</span>
+          <span>Subtotal</span>
+          <span className="font-medium">{formatCurrency(total)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span>Shipping</span>
-          <span className="font-medium">{shippingCost === 0 ? "Free" : formatCurrency(shippingCost)}</span>
+          <span className="font-medium">
+            {hasShipping ? formatCurrency(shipping) : "Free"}
+          </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>Estimated Tax</span>
-          <span className="font-medium">{formatCurrency(estimatedTax)}</span>
+          <span>Tax (8%)</span>
+          <span className="font-medium">{formatCurrency(tax)}</span>
         </div>
       </div>
 
       <div className="border-t pt-4">
         <div className="flex justify-between font-medium">
           <span>Total</span>
-          <span>{formatCurrency(total)}</span>
+          <span>{formatCurrency(finalTotal)}</span>
         </div>
       </div>
 
-      <Button asChild className="w-full metallic-button" disabled={items.length === 0}>
-        <Link href="/checkout" className="flex items-center justify-center gap-2">
-          Proceed to Checkout
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+      <Button asChild className="w-full metallic-button">
+        <Link href="/checkout">Proceed to Checkout ({totalItems()} items)</Link>
       </Button>
 
       <div className="mt-4 text-center text-xs text-muted-foreground">
         <p>Secure checkout powered by Stripe</p>
-        <p className="mt-1">Free shipping on orders over $100</p>
+        <p className="mt-1">
+          {hasShipping ? (
+            <>Add ${formatCurrency(100 - total)} more for free shipping</>
+          ) : (
+            "Free shipping applied"
+          )}
+        </p>
       </div>
     </div>
+  )
+}
+
+export function CartSummary() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4 animate-pulse">
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <div className="h-4 w-16 bg-muted rounded" />
+            <div className="h-4 w-20 bg-muted rounded" />
+          </div>
+          <div className="flex justify-between">
+            <div className="h-4 w-16 bg-muted rounded" />
+            <div className="h-4 w-32 bg-muted rounded" />
+          </div>
+          <div className="flex justify-between">
+            <div className="h-4 w-16 bg-muted rounded" />
+            <div className="h-4 w-24 bg-muted rounded" />
+          </div>
+        </div>
+        <div className="border-t pt-4">
+          <div className="flex justify-between">
+            <div className="h-5 w-16 bg-muted rounded" />
+            <div className="h-5 w-24 bg-muted rounded" />
+          </div>
+        </div>
+        <div className="h-10 w-full bg-muted rounded" />
+      </div>
+    }>
+      <CartSummaryContent />
+    </Suspense>
   )
 }
 

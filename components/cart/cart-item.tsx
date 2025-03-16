@@ -5,28 +5,41 @@ import Link from "next/link"
 import { useCart, type CartItem as CartItemType } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Trash2, Plus, Minus } from "lucide-react"
-import { useState } from "react"
+import { Trash2, Plus, Minus, Loader2 } from "lucide-react"
+import { Suspense, useState, useTransition } from "react"
 import { formatCurrency } from "@/lib/utils"
 
 interface CartItemProps {
   item: CartItemType
 }
 
-export function CartItem({ item }: CartItemProps) {
+function CartItemContent({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart()
   const [quantity, setQuantity] = useState(item.quantity)
+  const [isPending, startTransition] = useTransition()
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const handleQuantityChange = (value: number) => {
-    if (value < 1) return
-    if (value > 10) return
-
+    if (value < 1 || value > 10) return
+    
+    // Optimistic update
     setQuantity(value)
-    updateQuantity(item.id, value)
+    startTransition(() => {
+      updateQuantity(item.id, value)
+    })
   }
 
   const handleRemove = () => {
+    setIsRemoving(true)
     removeItem(item.id)
+  }
+
+  if (isRemoving) {
+    return (
+      <div className="flex h-24 items-center justify-center rounded-lg border p-4">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -49,7 +62,7 @@ export function CartItem({ item }: CartItemProps) {
           <Link href={`/products/${item.productId}`} className="font-medium hover:underline">
             {item.name}
           </Link>
-          <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>
+          <span className="font-medium">{formatCurrency(item.price * quantity)}</span>
         </div>
 
         <div className="mt-1 text-sm text-muted-foreground">
@@ -70,7 +83,7 @@ export function CartItem({ item }: CartItemProps) {
               size="icon"
               className="h-8 w-8 rounded-r-none"
               onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || isPending}
             >
               <Minus className="h-3 w-3" />
             </Button>
@@ -81,13 +94,14 @@ export function CartItem({ item }: CartItemProps) {
               value={quantity}
               onChange={(e) => handleQuantityChange(Number.parseInt(e.target.value) || 1)}
               className="h-8 w-12 rounded-none border-x-0 text-center"
+              disabled={isPending}
             />
             <Button
               variant="outline"
               size="icon"
               className="h-8 w-8 rounded-l-none"
               onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={quantity >= 10}
+              disabled={quantity >= 10 || isPending}
             >
               <Plus className="h-3 w-3" />
             </Button>
@@ -99,13 +113,30 @@ export function CartItem({ item }: CartItemProps) {
             size="sm"
             className="h-8 px-2 text-muted-foreground hover:text-destructive"
             onClick={handleRemove}
+            disabled={isPending}
           >
-            <Trash2 className="mr-1 h-4 w-4" />
+            {isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-1 h-4 w-4" />
+            )}
             Remove
           </Button>
         </div>
       </div>
     </div>
+  )
+}
+
+export function CartItem(props: CartItemProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex h-24 items-center justify-center rounded-lg border p-4">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </div>
+    }>
+      <CartItemContent {...props} />
+    </Suspense>
   )
 }
 

@@ -1,21 +1,21 @@
 "use client"
 
 import type React from "react"
-
+import { Suspense, useState } from "react"
 import { useCart } from "@/hooks/use-cart"
 import { CartItem } from "@/components/cart/cart-item"
 import { CartEmpty } from "@/components/cart/cart-empty"
 import { CartSummary } from "@/components/cart/cart-summary"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ShoppingCart } from "lucide-react"
-import { useState } from "react"
+import { ShoppingCart, Loader2 } from "lucide-react"
+import { ErrorBoundary } from "react-error-boundary"
 
 interface CartSheetProps {
   children?: React.ReactNode
 }
 
-export function CartSheet({ children }: CartSheetProps) {
+function CartSheetContent({ children }: CartSheetProps) {
   const { items, totalItems } = useCart()
   const [open, setOpen] = useState(false)
 
@@ -57,6 +57,34 @@ export function CartSheet({ children }: CartSheetProps) {
         )}
       </SheetContent>
     </Sheet>
+  )
+}
+
+function CartError({ error }: { error: Error }) {
+  return (
+    <div className="flex h-[50vh] flex-col items-center justify-center space-y-4">
+      <div className="text-center">
+        <h2 className="text-lg font-semibold">Something went wrong</h2>
+        <p className="text-sm text-muted-foreground">{error.message}</p>
+      </div>
+      <Button variant="outline" onClick={() => window.location.reload()}>
+        Try again
+      </Button>
+    </div>
+  )
+}
+
+export function CartSheet(props: CartSheetProps) {
+  return (
+    <ErrorBoundary FallbackComponent={CartError}>
+      <Suspense fallback={
+        <Button variant="ghost" size="icon" className="relative" aria-label="Loading cart">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </Button>
+      }>
+        <CartSheetContent {...props} />
+      </Suspense>
+    </ErrorBoundary>
   )
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { ProductCategory } from "@/types/product"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ interface ProductFiltersProps {
   currentCategory?: ProductCategory
 }
 
-export function ProductFilters({ categories, currentCategory }: ProductFiltersProps) {
+function ProductFiltersContent({ categories, currentCategory }: ProductFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -177,6 +177,27 @@ export function ProductFilters({ categories, currentCategory }: ProductFiltersPr
         </AccordionItem>
       </Accordion>
     </div>
+  )
+}
+
+export function ProductFilters({ categories, currentCategory }: ProductFiltersProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium">Filters</h2>
+          </div>
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 w-24 rounded bg-muted" />
+            <div className="h-40 rounded bg-muted" />
+            <div className="h-40 rounded bg-muted" />
+          </div>
+        </div>
+      }
+    >
+      <ProductFiltersContent categories={categories} currentCategory={currentCategory} />
+    </Suspense>
   )
 }
 

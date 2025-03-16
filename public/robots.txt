@@ -1,0 +1,20 @@
+# Veliano E-commerce Store robots.txt
+
+# Allow all crawlers
+User-agent: *
+
+# Prevent crawling of private/admin pages
+Disallow: /account/
+Disallow: /admin/
+Disallow: /checkout/
+Disallow: /api/
+
+# Allow crawling of product and category pages
+Allow: /products/
+Allow: /categories/
+Allow: /search
+Allow: /about
+Allow: /contact
+
+# Sitemap location
+Sitemap: https://veliano.com/sitemap.xml 

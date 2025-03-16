@@ -1,80 +1,101 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { NextResponse, type NextRequest } from "next/server"
+import type { Database } from "@/types/supabase"
 
 // Simple performance monitoring
 const startTime = Symbol('startTime')
 
-export async function middleware(req: NextRequest) {
-  // Measure performance of middleware
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.delete({
+            name,
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
   const start = Date.now()
-  ;(req as any)[startTime] = start
-  
-  // Create supabase middleware client
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
 
-  // Get user session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
 
-  // URLs for redirects
-  const loginUrl = new URL("/account/login", req.url)
-  const homeUrl = new URL("/", req.url)
-  const currentPath = req.nextUrl.pathname
-  
-  // Save original URL as redirect parameter
-  if (currentPath !== '/account/login') {
-    loginUrl.searchParams.set("redirect", currentPath)
-  }
-
-  // Authentication check for protected routes
-  const isAuthRoute = 
-    currentPath.startsWith("/account") && 
-    !currentPath.startsWith("/account/login") &&
-    !currentPath.startsWith("/account/register") &&
-    !currentPath.startsWith("/account/forgot-password") &&
-    !currentPath.startsWith("/account/reset-password")
-    
-  // Login check
-  if (isAuthRoute && !session) {
-    return NextResponse.redirect(loginUrl)
-  }
-  
-  // Checkout route protection
-  if (currentPath.startsWith("/checkout") && !session) {
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Admin route protection
-  if (currentPath.startsWith("/admin")) {
-    // Redirect to login if no session
-    if (!session) {
-      return NextResponse.redirect(loginUrl)
+    if (error) {
+      throw error
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from("users")
-      .select("is_admin")
-      .eq("id", session.user.id)
-      .single()
+    // Check if we're on a protected route
+    const isProtectedRoute = (
+      request.nextUrl.pathname.startsWith("/account") &&
+      !request.nextUrl.pathname.startsWith("/account/login") &&
+      !request.nextUrl.pathname.startsWith("/account/register") &&
+      !request.nextUrl.pathname.startsWith("/account/forgot-password")
+    ) ||
+      request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname.startsWith("/checkout")
 
-    // Redirect non-admins to home
-    if (!profile?.is_admin) {
-      return NextResponse.redirect(homeUrl)
+    // If it's a protected route and there's no session, redirect to login
+    if (isProtectedRoute && !session) {
+      const redirectUrl = new URL("/account/login", request.url)
+      redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
     }
+
+    // If it's an admin route, check if the user is an admin
+    if (request.nextUrl.pathname.startsWith("/admin")) {
+      if (!session?.user?.id) {
+        return NextResponse.redirect(new URL("/", request.url))
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("is_admin")
+        .eq("id", session.user.id)
+        .single()
+
+      if (!profile?.is_admin) {
+        return NextResponse.redirect(new URL("/", request.url))
+      }
+    }
+
+    // Add server timing header
+    const end = Date.now()
+    response.headers.set("Server-Timing", `auth;dur=${end - start}`)
+
+    return response
+  } catch (error) {
+    console.error("Auth error:", error)
+    return response
   }
-  
-  // Add timing metrics to response headers for monitoring
-  const responseTime = Date.now() - start
-  res.headers.set('Server-Timing', `middleware;dur=${responseTime}`)
-  
-  return res
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/admin/:path*", "/checkout/:path*"],
+  matcher: [
+    "/account/:path*",
+    "/admin/:path*",
+    "/checkout/:path*",
+  ],
 }
 

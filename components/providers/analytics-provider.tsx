@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-
+import { Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import Script from "next/script"
 import { useEffect } from "react"
 import { pageview, GA_TRACKING_ID } from "@/lib/analytics"
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+function AnalyticsContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -44,6 +44,14 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       />
       {children}
     </>
+  )
+}
+
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <AnalyticsContent>{children}</AnalyticsContent>
+    </Suspense>
   )
 }
 

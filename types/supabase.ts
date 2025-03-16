@@ -744,6 +744,82 @@ export interface Database {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          id: string
+          page: string
+          load_time: number
+          ttfb: number
+          fcp: number
+          lcp: number
+          cls: number
+          fid: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          page: string
+          load_time: number
+          ttfb: number
+          fcp: number
+          lcp: number
+          cls: number
+          fid: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          page?: string
+          load_time?: number
+          ttfb?: number
+          fcp?: number
+          lcp?: number
+          cls?: number
+          fid?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          id: string
+          error_message: string
+          error_stack: string | null
+          user_id: string | null
+          path: string
+          browser: string
+          os: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          error_message: string
+          error_stack?: string | null
+          user_id?: string | null
+          path: string
+          browser: string
+          os: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          error_message?: string
+          error_stack?: string | null
+          user_id?: string | null
+          path?: string
+          browser?: string
+          os?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -63,16 +63,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[80vh] w-full overflow-hidden">
-        <Image
-          priority
-          className="object-cover"
-          src="/placeholder.svg?height=800&width=1600"
-          alt="Hero image"
-          width={1600}
-          height={800}
-        />
-        <div className="absolute inset-0 bg-black/40" />
+      <section className="relative h-[80vh] w-full overflow-hidden bg-black">
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
           <h1 className="gold-text mb-6 text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
             Premium Custom Gold Grillz

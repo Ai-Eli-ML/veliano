@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -24,7 +24,7 @@ const formSchema = z
     path: ["confirmPassword"],
   })
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const { signUp } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -44,28 +44,20 @@ export default function RegisterForm() {
     setIsLoading(true)
 
     try {
-      const { error, success } = await signUp(values.email, values.password, {
+      await signUp(values.email, values.password, {
         full_name: values.fullName,
       })
 
-      if (success) {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to confirm your account",
-        })
-        router.push("/account/login")
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: error?.message || "Please check your information and try again",
-        })
-      }
-    } catch (error) {
+      toast({
+        title: "Registration successful",
+        description: "Please check your email to confirm your account",
+      })
+      router.push("/account/login")
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error?.message || "Please check your information and try again",
       })
     } finally {
       setIsLoading(false)
@@ -138,6 +130,34 @@ export default function RegisterForm() {
         </Button>
       </form>
     </Form>
+  )
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        </div>
+        <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+      </div>
+    }>
+      <RegisterFormContent />
+    </Suspense>
   )
 }
 

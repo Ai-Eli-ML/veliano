@@ -5,36 +5,60 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Get initials from name
-export function getInitials(name: string): string {
-  if (!name) return ""
-
-  const parts = name.split(" ").filter(Boolean)
-
-  if (parts.length === 0) return ""
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
-}
-
-// Format currency
-export function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amount)
 }
 
-// Format date
-export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }
-
-  const dateToFormat = typeof date === "string" ? new Date(date) : date
-
-  return new Intl.DateTimeFormat("en-US", options || defaultOptions).format(dateToFormat)
+export function getInitials(name: string): string {
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 }
 
+export function formatDate(date: string | Date, options: Intl.DateTimeFormatOptions = {}): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    ...options
+  }).format(new Date(date))
+}
+
+// Add debounce utility for search functionality
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout
+
+  return function executedFunction(...args: Parameters<T>) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+export function formatPrice(price: number | string) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+  }).format(Number(price))
+}
+
+export function absoluteUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SITE_URL}${path}`
+}

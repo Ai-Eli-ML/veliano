@@ -4,35 +4,34 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-import { createClientSupabaseClient } from "@/lib/supabase"
-import { Loader2 } from "lucide-react"
+import { createBrowserSupabaseClient } from "@/lib/supabase-client"
 
-const formSchema = z
-  .object({
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  })
+const formSchema = z.object({
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+})
 
-export default function ResetPasswordForm() {
-  const supabase = createClientSupabaseClient()
-  const { toast } = useToast()
+export function ResetPasswordForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const supabase = createBrowserSupabaseClient()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       password: "",
-      confirmPassword: "",
     },
   })
 
@@ -45,23 +44,14 @@ export default function ResetPasswordForm() {
       })
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Failed to reset password",
-          description: error.message || "Please try again",
-        })
-      } else {
-        toast({
-          title: "Password reset successful",
-          description: "Your password has been updated. You can now login with your new password.",
-        })
-        router.push("/account/login")
+        throw error
       }
+
+      router.push("/account/login?message=Password updated successfully")
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to reset password",
-        description: "An unexpected error occurred. Please try again.",
+      console.error("Error resetting password:", error)
+      form.setError("password", {
+        message: "Error resetting password. Please try again.",
       })
     } finally {
       setIsLoading(false)
@@ -70,7 +60,7 @@ export default function ResetPasswordForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="password"
@@ -78,36 +68,23 @@ export default function ResetPasswordForm() {
             <FormItem>
               <FormLabel>New Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input
+                  type="password"
+                  placeholder="Enter your new password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm New Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full metallic-button" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resetting password...
-            </>
-          ) : (
-            "Reset Password"
-          )}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Updating..." : "Update Password"}
         </Button>
       </form>
     </Form>
   )
 }
+
+export default ResetPasswordForm;
 

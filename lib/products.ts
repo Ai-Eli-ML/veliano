@@ -1,6 +1,7 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
-import { supabaseAdmin } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase-server"
 import type { Product, ProductCategory, ProductFilterOptions } from "@/types/product"
+import { unstable_noStore as noStore } from 'next/cache'
 
 // Fetch a single product by slug
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -39,123 +40,73 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 // Fetch products with filtering options
-export async function getProducts(options: ProductFilterOptions = {}): Promise<{
-  products: Product[]
-  total: number
-  page: number
-  totalPages: number
-}> {
-  const { category, minPrice, maxPrice, sort = "newest", page = 1, limit = 12, search } = options
+export async function getProducts({
+  category,
+  minPrice,
+  maxPrice,
+  sort = "newest",
+  page = 1,
+  search,
+  limit = 12,
+}: GetProductsParams = {}) {
+  noStore()
+  const supabase = createServerSupabaseClient()
+  
+  // Calculate offset
+  const offset = (page - 1) * limit
 
-  try {
-    const supabase = createServerSupabaseClient()
+  // Start building query
+  let query = supabase
+    .from('products')
+    .select('*, category:categories(*)', { count: 'exact' })
+    .eq('is_archived', false)
 
-    // Start building the query
-    let query = supabase
-      .from("products")
-      .select(
-        `
-        *,
-        images:product_images(*),
-        variants:product_variants(*),
-        categories:product_categories(
-          categories:categories(id, name, slug)
-        )
-      `,
-        { count: "exact" },
-      )
-      .eq("is_published", true)
+  // Apply filters
+  if (category) {
+    query = query.eq('categories.slug', category)
+  }
+  if (minPrice) {
+    query = query.gte('price', minPrice)
+  }
+  if (maxPrice) {
+    query = query.lte('price', maxPrice)
+  }
+  if (search) {
+    query = query.ilike('name', `%${search}%`)
+  }
 
-    // Apply filters
-    if (category) {
-      // First get the category ID
-      const { data: categoryData } = await supabase
-        .from("categories")
-        .select("id")
-        .eq("slug", category)
-        .single()
+  // Apply sorting
+  switch (sort) {
+    case 'price_asc':
+      query = query.order('price', { ascending: true })
+      break
+    case 'price_desc':
+      query = query.order('price', { ascending: false })
+      break
+    case 'newest':
+      query = query.order('created_at', { ascending: false })
+      break
+    case 'featured':
+      query = query.eq('is_featured', true).order('created_at', { ascending: false })
+      break
+    default:
+      query = query.order('created_at', { ascending: false })
+  }
 
-      if (categoryData) {
-        // Then get the product IDs in that category
-        const { data: productIds } = await supabase
-          .from("product_categories")
-          .select("product_id")
-          .eq("category_id", categoryData.id)
+  // Apply pagination
+  query = query.range(offset, offset + limit - 1)
 
-        if (productIds) {
-          query = query.in("id", productIds.map(p => p.product_id))
-        }
-      }
-    }
+  const { data: products, error, count } = await query
 
-    if (minPrice !== undefined) {
-      query = query.gte("price", minPrice)
-    }
+  if (error) {
+    console.error('Error fetching products:', error)
+    throw new Error('Failed to fetch products')
+  }
 
-    if (maxPrice !== undefined) {
-      query = query.lte("price", maxPrice)
-    }
-
-    if (search) {
-      query = query.ilike("name", `%${search}%`)
-    }
-
-    // Apply sorting
-    switch (sort) {
-      case "price_asc":
-        query = query.order("price", { ascending: true })
-        break
-      case "price_desc":
-        query = query.order("price", { ascending: false })
-        break
-      case "newest":
-        query = query.order("created_at", { ascending: false })
-        break
-      case "featured":
-        query = query.eq("featured", true).order("created_at", { ascending: false })
-        break
-      default:
-        query = query.order("created_at", { ascending: false })
-    }
-
-    // Apply pagination
-    const from = (page - 1) * limit
-    const to = from + limit - 1
-    query = query.range(from, to)
-
-    // Execute the query
-    const { data, error, count } = await query
-
-    if (error) {
-      console.error("Error fetching products:", error)
-      return {
-        products: [],
-        total: 0,
-        page,
-        totalPages: 0,
-      }
-    }
-
-    // Transform the data to match our Product type
-    const products = data.map((product: any) => ({
-      ...product,
-      categories: product.categories.map((item: any) => item.categories),
-    })) as unknown as Product[]
-
-    return {
-      products,
-      total: count || 0,
-      page,
-      totalPages: count ? Math.ceil(count / limit) : 0,
-    }
-  } catch (error) {
-    console.error("Error in getProducts:", error)
-    return {
-      products: [],
-      total: 0,
-      page,
-      totalPages: 0,
-    }
+  return {
+    products: products as Product[],
+    total: count ?? 0,
+    totalPages: count ? Math.ceil(count / limit) : 0,
   }
 }
 
@@ -325,75 +276,20 @@ function getMockFeaturedProducts(limit = 4): Product[] {
 
 // Fetch all categories
 export async function getCategories(): Promise<ProductCategory[]> {
-  try {
-    const supabase = createServerSupabaseClient()
+  noStore()
+  const supabase = createServerSupabaseClient()
+  
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name')
 
-    const { data, error } = await supabase.from("categories").select("*").order("name", { ascending: true })
-
-    if (error) {
-      console.error("Error fetching categories:", error)
-      return getMockCategories()
-    }
-
-    return data as ProductCategory[]
-  } catch (error) {
-    console.error("Error in getCategories:", error)
-    return getMockCategories()
+  if (error) {
+    console.error('Error fetching categories:', error)
+    throw new Error('Failed to fetch categories')
   }
-}
 
-// Mock function to provide sample categories
-function getMockCategories(): ProductCategory[] {
-  return [
-    {
-      id: "cat1",
-      name: "Grillz",
-      slug: "grillz",
-      description: "Custom gold grillz for your teeth",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: null,
-    },
-    {
-      id: "cat2",
-      name: "Jewelry",
-      slug: "jewelry",
-      description: "Premium gold jewelry collection",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: null,
-    },
-    {
-      id: "cat3",
-      name: "Single Tooth",
-      slug: "single-tooth",
-      description: "Single tooth grillz",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: "cat1",
-    },
-    {
-      id: "cat4",
-      name: "Bottom Grillz",
-      slug: "bottom",
-      description: "Bottom row grillz",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: "cat1",
-    },
-    {
-      id: "cat5",
-      name: "Chains",
-      slug: "chains",
-      description: "Gold chains",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: "cat2",
-    },
-    {
-      id: "cat6",
-      name: "Pendants",
-      slug: "pendants",
-      description: "Gold pendants",
-      image_url: "/placeholder.svg?height=400&width=400",
-      parent_id: "cat2",
-    },
-  ]
+  return categories as ProductCategory[]
 }
 
 // Fetch a category by slug
@@ -676,5 +572,29 @@ export async function deleteProduct(id: string) {
     console.error("Error in deleteProduct:", error)
     throw error
   }
+}
+
+// Update getProduct function
+export async function getProduct(slug: string) {
+  const { data: product, error } = await createServerSupabaseClient()
+    .from("products")
+    .select(`
+      *,
+      product_images(*),
+      product_categories(category_id)
+    `)
+    .eq("slug", slug)
+    .single()
+
+  if (error) {
+    console.error("Error fetching product:", error)
+    return null
+  }
+
+  // Transform the data to match our Product type
+  return {
+    ...product,
+    categories: product.categories.map((item: any) => item.categories),
+  } as unknown as Product
 }
 

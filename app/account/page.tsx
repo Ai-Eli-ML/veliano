@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { getAuthUser } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,25 +9,14 @@ import Link from "next/link"
 import { UserCircle, Package, CreditCard, Settings, LogOut, Heart } from "lucide-react"
 
 export default async function AccountPage() {
+  const { user, profile } = await getAuthUser()
   const supabase = createServerSupabaseClient()
-
-  // Check if user is authenticated
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect("/account/login")
-  }
-
-  // Fetch user profile
-  const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
 
   // Fetch recent orders
   const { data: recentOrders } = await supabase
     .from("orders")
     .select("*")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(5)
 
@@ -47,7 +36,7 @@ export default async function AccountPage() {
                 </Avatar>
                 <div className="text-center">
                   <h2 className="text-xl font-bold">{profile?.full_name || "User"}</h2>
-                  <p className="text-sm text-muted-foreground">{session.user.email}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
               </div>
             </CardContent>
@@ -120,7 +109,7 @@ export default async function AccountPage() {
                       <h3 className="mb-2 font-medium">Contact Information</h3>
                       <div className="space-y-1">
                         <p>{profile?.full_name || "Not provided"}</p>
-                        <p>{session.user.email}</p>
+                        <p>{user.email}</p>
                         <Button variant="link" className="mt-2 h-auto p-0 text-primary">
                           <Link href="/account/settings">Edit</Link>
                         </Button>
@@ -251,16 +240,18 @@ export default async function AccountPage() {
                             <Button variant="outline" size="sm">
                               Edit
                             </Button>
-                            <Button variant="outline" size="sm" className="text-red-500">
+                            <Button variant="outline" size="sm">
                               Delete
                             </Button>
                           </div>
                         </>
                       ) : (
-                        <>
-                          <p className="mb-4">No default shipping address</p>
-                          <Button size="sm">Add Address</Button>
-                        </>
+                        <div>
+                          <p className="mb-4">No default shipping address set.</p>
+                          <Button variant="outline" size="sm">
+                            Add Address
+                          </Button>
+                        </div>
                       )}
                     </div>
 
@@ -282,16 +273,18 @@ export default async function AccountPage() {
                             <Button variant="outline" size="sm">
                               Edit
                             </Button>
-                            <Button variant="outline" size="sm" className="text-red-500">
+                            <Button variant="outline" size="sm">
                               Delete
                             </Button>
                           </div>
                         </>
                       ) : (
-                        <>
-                          <p className="mb-4">No default billing address</p>
-                          <Button size="sm">Add Address</Button>
-                        </>
+                        <div>
+                          <p className="mb-4">No default billing address set.</p>
+                          <Button variant="outline" size="sm">
+                            Add Address
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>

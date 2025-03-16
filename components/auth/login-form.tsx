@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -17,7 +17,7 @@ const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 })
 
-export default function LoginForm() {
+function LoginFormContent() {
   const { signIn } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -37,26 +37,14 @@ export default function LoginForm() {
     setIsLoading(true)
 
     try {
-      const { error, success } = await signIn(values.email, values.password)
-
-      if (success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back to Custom Gold Grillz",
-        })
-        router.push(redirectTo)
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: error?.message || "Please check your credentials and try again",
-        })
-      }
-    } catch (error) {
+      await signIn(values.email, values.password)
+      router.push(redirectTo)
+    } catch (error: any) {
+      console.error("Login error:", error)
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error?.message || "Invalid email or password. Please try again.",
       })
     } finally {
       setIsLoading(false)
@@ -103,6 +91,20 @@ export default function LoginForm() {
         </Button>
       </form>
     </Form>
+  )
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="h-10 w-full animate-pulse rounded-md bg-muted"></div>
+        <div className="h-10 w-full animate-pulse rounded-md bg-muted"></div>
+        <div className="h-10 w-full animate-pulse rounded-md bg-muted"></div>
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   )
 }
 
