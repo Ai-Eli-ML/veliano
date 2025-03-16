@@ -1,7 +1,8 @@
+import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/ssr"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface DashboardStats {
@@ -21,7 +22,7 @@ export default function AdminDashboard() {
     recentOrders: []
   })
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
 
   useEffect(() => {
     async function fetchStats() {

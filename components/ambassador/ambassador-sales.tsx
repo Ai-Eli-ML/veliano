@@ -1,10 +1,11 @@
+import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/ssr"
 import { Loader2 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -16,7 +17,7 @@ interface AmbassadorSalesProps {
 }
 
 export function AmbassadorSales({ ambassador }: AmbassadorSalesProps) {
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
   const [orders, setOrders] = useState<Order[]>([])
   const [chartData, setChartData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)

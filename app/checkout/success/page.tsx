@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { Suspense, useEffect, useState } from "react"

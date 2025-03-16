@@ -1,8 +1,9 @@
+import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/ssr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -58,7 +59,7 @@ export default function AffiliateDetailsPage({ params }: { params: { id: string 
   const router = useRouter()
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
 
   useEffect(() => {
     fetchAffiliate()

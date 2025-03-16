@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/client"
 import { createClientSupabaseClient, supabaseAdmin, handleSupabaseError } from './supabase'
 import { getCachedUser } from './supabase-utils'
 import { Database } from '@/types/supabase'

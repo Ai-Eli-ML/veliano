@@ -1,7 +1,8 @@
+import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { Component, ErrorInfo, ReactNode } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/ssr"
 
 interface Props {
   children: ReactNode
@@ -26,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo)
 
     try {
-      const supabase = createClientComponentClient()
+      const supabase = createClient()
 
       await supabase.from("error_logs").insert({
         error_message: error.message,
