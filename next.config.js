@@ -1,7 +1,6 @@
+import { withSentryConfig } from "@sentry/nextjs"
+
 /** @type {import('next').NextConfig} */
-
-const { withSentryConfig } = require("@sentry/nextjs")
-
 const nextConfig = {
   images: {
     domains: ['veliano.com'],
@@ -141,4 +140,4 @@ const sentryWebpackPluginOptions = {
 }
 
 // Export configuration with Sentry
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions) 
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions) 
