@@ -1,161 +1,173 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check } from "lucide-react"
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard"
+import { Copy, ExternalLink } from "lucide-react"
+import { useState } from "react"
 
-interface AffiliateLinksProps {
-  affiliateCode: string
-}
-
-export function AffiliateLinks({ affiliateCode }: AffiliateLinksProps) {
-  const [_, copyToClipboard] = useCopyToClipboard()
-  const [isCopied, setIsCopied] = useState(false)
-  const [customUrl, setCustomUrl] = useState("")
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"
-  const defaultAffiliateLink = `${baseUrl}?ref=${affiliateCode}`
-  const customAffiliateLink = customUrl ? `${customUrl}?ref=${affiliateCode}` : defaultAffiliateLink
-
-  const popularLinks = [
-    { name: "Homepage", url: `${baseUrl}?ref=${affiliateCode}` },
-    { name: "Grillz Collection", url: `${baseUrl}/products/grillz?ref=${affiliateCode}` },
-    { name: "Jewelry Collection", url: `${baseUrl}/products/jewelry?ref=${affiliateCode}` },
-    { name: "Top Sellers", url: `${baseUrl}/products?sort=featured&ref=${affiliateCode}` },
+export function AffiliateLinks() {
+  const [copied, setCopied] = useState<string | null>(null)
+  
+  // In a real app, this would come from the user's profile
+  const affiliateCode = "USER123"
+  const baseUrl = "https://veliano.com"
+  
+  const links = [
+    {
+      id: "homepage",
+      name: "Homepage",
+      url: `${baseUrl}/?ref=${affiliateCode}`,
+      description: "Link to our homepage with your affiliate code",
+    },
+    {
+      id: "products",
+      name: "All Products",
+      url: `${baseUrl}/products?ref=${affiliateCode}`,
+      description: "Link to our products page with your affiliate code",
+    },
+    {
+      id: "bestsellers",
+      name: "Best Sellers",
+      url: `${baseUrl}/products/bestsellers?ref=${affiliateCode}`,
+      description: "Link to our best selling products with your affiliate code",
+    },
+    {
+      id: "new",
+      name: "New Arrivals",
+      url: `${baseUrl}/products/new?ref=${affiliateCode}`,
+      description: "Link to our newest products with your affiliate code",
+    },
   ]
-
-  const handleCopy = async (text: string) => {
-    const success = await copyToClipboard(text)
-    if (success) {
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    }
+  
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(id)
+    setTimeout(() => setCopied(null), 2000)
   }
 
   return (
-    <Tabs defaultValue="links">
-      <TabsList>
-        <TabsTrigger value="links">Popular Links</TabsTrigger>
-        <TabsTrigger value="custom">Custom Link</TabsTrigger>
-        <TabsTrigger value="banners">Banners & Assets</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="links">
-        <Card>
-          <CardHeader>
-            <CardTitle>Popular Affiliate Links</CardTitle>
-            <CardDescription>Share these links with your audience to earn commissions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {popularLinks.map((link, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col gap-2 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <h3 className="font-medium">{link.name}</h3>
-                    <p className="text-sm text-muted-foreground truncate">{link.url}</p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Affiliate Code</CardTitle>
+          <CardDescription>
+            Use this code in your marketing materials
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Input
+              value={affiliateCode}
+              readOnly
+              className="font-mono"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => copyToClipboard(affiliateCode, "code")}
+            >
+              {copied === "code" ? (
+                <span className="text-xs">Copied!</span>
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Marketing Links</CardTitle>
+          <CardDescription>
+            Pre-generated links with your affiliate code
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="links" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="links">Quick Links</TabsTrigger>
+              <TabsTrigger value="custom">Custom Link</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="links" className="space-y-4">
+              {links.map((link) => (
+                <div key={link.id} className="flex flex-col space-y-2">
+                  <Label>{link.name}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={link.url}
+                      readOnly
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(link.url, link.id)}
+                    >
+                      {copied === link.id ? (
+                        <span className="text-xs">Copied!</span>
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      asChild
+                    >
+                      <a href={link.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => handleCopy(link.url)} className="shrink-0">
-                    {isCopied ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" /> Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" /> Copy Link
-                      </>
-                    )}
-                  </Button>
+                  <p className="text-xs text-muted-foreground">{link.description}</p>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="custom">
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Custom Affiliate Link</CardTitle>
-            <CardDescription>Generate an affiliate link for any page on our website</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="custom-url" className="mb-2 block text-sm font-medium">
-                  Enter Page URL
-                </label>
-                <div className="flex gap-2">
+            </TabsContent>
+            
+            <TabsContent value="custom">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Enter any URL from our website</Label>
                   <Input
-                    id="custom-url"
-                    placeholder={baseUrl}
-                    value={customUrl}
-                    onChange={(e) => setCustomUrl(e.target.value)}
+                    placeholder="https://veliano.com/products/category/shoes"
+                    className="font-mono"
                   />
-                  <Button variant="outline" onClick={() => setCustomUrl("")}>
-                    Reset
-                  </Button>
                 </div>
-              </div>
-
-              <div className="rounded-md border p-4">
-                <h3 className="mb-2 font-medium">Your Affiliate Link</h3>
-                <div className="flex items-center gap-2">
-                  <Input value={customAffiliateLink} readOnly />
-                  <Button variant="outline" onClick={() => handleCopy(customAffiliateLink)} className="shrink-0">
-                    {isCopied ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" /> Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" /> Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="banners">
-        <Card>
-          <CardHeader>
-            <CardTitle>Marketing Materials</CardTitle>
-            <CardDescription>Download banners and other marketing assets to promote our products</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 sm:grid-cols-2">
-              {[1, 2, 3, 4].map((banner) => (
-                <div key={banner} className="space-y-2">
-                  <div className="aspect-[2/1] overflow-hidden rounded-md border bg-muted">
-                    <img
-                      src={`/placeholder.svg?height=250&width=500&text=Banner+${banner}`}
-                      alt={`Affiliate Banner ${banner}`}
-                      className="h-full w-full object-cover"
+                
+                <div className="space-y-2">
+                  <Label>Generated affiliate link</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={`${baseUrl}/products/example?ref=${affiliateCode}`}
+                      readOnly
+                      className="font-mono text-xs"
                     />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Banner {banner}</span>
-                    <Button variant="outline" size="sm">
-                      Download
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(`${baseUrl}/products/example?ref=${affiliateCode}`, "custom")}
+                    >
+                      {copied === "custom" ? (
+                        <span className="text-xs">Copied!</span>
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+                
+                <Button>Generate Link</Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

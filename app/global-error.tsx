@@ -1,11 +1,7 @@
 "use client"
-
-'use client'
-
-import * as Sentry from '@sentry/nextjs'
-import { useEffect } from 'react'
-import Error from 'next/error'
-
+ 
+import { useEffect } from "react"
+ 
 export default function GlobalError({
   error,
   reset,
@@ -14,36 +10,23 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    Sentry.captureException(error)
+    console.error(error)
   }, [error])
-
+ 
   return (
     <html>
       <body>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="max-w-md w-full space-y-8 p-8">
-            <div className="text-center">
-              <h2 className="mt-6 text-3xl font-bold">Something went wrong</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                We've logged the error and will look into it. Please try refreshing the page.
-              </p>
-              {process.env.NODE_ENV === "development" && error && (
-                <pre className="mt-4 p-4 bg-muted rounded text-xs overflow-x-auto">
-                  {error.message}
-                  {"\n"}
-                  {error.stack}
-                </pre>
-              )}
-              <button
-                onClick={() => reset()}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Try again
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">Something went wrong!</h1>
+          <p className="mb-8 text-lg">We apologize for the inconvenience. Please try again later.</p>
+          <button
+            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            onClick={() => reset()}
+          >
+            Try again
+          </button>
         </div>
       </body>
     </html>
   )
-} 
+}

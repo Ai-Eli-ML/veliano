@@ -1,0 +1,64 @@
+---
+description: Project Structure and Organization Guide
+globs: **/*
+alwaysApply: false
+---
+ # Project Structure Reference
+
+This document outlines the organization of our codebase and provides references to important directories and files.
+
+## Root Level Organization
+
+- `app/` - Next.js App Router pages and layouts
+- `components/` - Reusable UI components
+- `lib/` - Utility functions and business logic
+- `types/` - TypeScript type definitions
+- `public/` - Static assets
+- `scripts/` - Utility scripts and automation tools
+- `.cursor/` - Documentation and project guidelines
+- `config/` - Configuration files
+
+## Documentation
+
+All project documentation is organized in the following locations:
+
+- `.cursor/` - Project guides, checklists, and development standards
+  - `admin-portal-guide.md` - Guide for the admin portal implementation
+  - `supabase-integration-guide.md` - Database schema and integration details
+  - `project-plan.md` - Overall project roadmap and status
+  - `DEPLOY.md` - Deployment procedures and environment setup
+  - `CURSOR-DEBUGGING-GUIDE.md` - Debugging strategies for Next.js 15
+
+- `.cursor/completed-tasks/` - Archived documentation for completed tasks
+  - `migration-plan.md` - Completed Next.js 15 migration plan
+  - `remaining-issues.md` - Resolved issues tracking
+  - `next15-debugging-summary.md` - Summary of resolved Next.js 15 issues
+
+## Scripts Organization
+
+- `scripts/` - All utility and automation scripts
+  - `fix-*.sh` - Scripts for addressing specific code issues
+  - `update-*.sh` - Scripts for updating code patterns
+  - `deploy.sh` - Deployment script
+  - `pre-deploy-check.sh` - Pre-deployment verification
+
+- `scripts/logs/` - Logs from script executions
+  - `*-fixes-log.txt` - Logs detailing fixes applied by scripts
+
+## Special Files
+
+- `middleware.ts` - Next.js middleware for auth and routing (root level)
+- `instrumentation.ts` - Performance monitoring and error tracking (root level)
+
+## Environment and Configuration
+
+- `.env.*` - Environment variables (root level)
+- `.env-files/` - Backup copies of environment files
+- `config/` - Configuration files like tailwind, tsconfig, etc.
+
+## How to Reference These Files
+
+When communicating with AI assistants:
+1. Reference documentation with @ symbol: `@admin-portal-guide.md`
+2. Reference scripts with path: `scripts/fix-server-imports.sh`
+3. Reference logs: `scripts/logs/import-syntax-fixes-log.txt`

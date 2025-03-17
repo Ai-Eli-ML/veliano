@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Veliano Jewelry E-commerce
+
+A custom jewelry e-commerce platform specializing in custom grillz, built with Next.js 15, TypeScript, and Supabase.
+
+## Current Status
+
+The project is in Phase 1: Fix Current Issues. We are actively working on:
+
+1. Fixing 404 errors on navigation paths
+2. Resolving Vercel deployment issues
+
+See [Project Plan](.cursor/project-plan.md) for detailed roadmap.
 
 ## Getting Started
 
-First, run the development server:
+First, clone the repository and install dependencies:
+
+```bash
+git clone <repository-url>
+cd veliano
+npm install
+```
+
+Copy the environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your own values.
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/` - Next.js App Router pages and layouts
+- `components/` - Reusable UI components
+- `lib/` - Utility functions and business logic
+- `types/` - TypeScript type definitions
+- `public/` - Static assets
+- `scripts/` - Utility scripts and automation tools
+- `.cursor/` - Documentation and project guidelines
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Run development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Lint the codebase
+- `npm run test` - Run tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Utility Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The project includes several utility scripts to help with development:
 
-## Deploy on Vercel
+- `scripts/check-navigation.js` - Identify potential 404 errors by scanning routes and links
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To run a utility script:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+node scripts/check-navigation.js
+```
+
+## Testing Navigation
+
+To debug 404 errors and navigation issues:
+
+1. Run the navigation check script:
+   ```bash
+   node scripts/check-navigation.js
+   ```
+
+2. Review the generated report in `reports/navigation-check.json`
+
+3. Check the tracker file `.cursor/navigation-issues.md` for status of fixes
+
+## Deployment
+
+The project is deployed on Vercel. For deployment instructions, see [Deployment Guide](.cursor/DEPLOY.md).
+
+To check deployment issues:
+
+1. Review Vercel deployment logs in the Vercel dashboard
+2. Use the [Vercel Deployment Checklist](.cursor/vercel-deployment-checklist.md) to systematically fix issues
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 App Router
+- **Styling**: shadcn/ui with Tailwind CSS
+- **Data Fetching**: Server Components and Server Actions
+- **Database**: Supabase (pending integration in Phase 2)
+- **Authentication**: Supabase Auth (pending integration in Phase 2)
+- **Payment Processing**: Stripe (pending integration in Phase 3)
+
+## Documentation
+
+- [Project Plan](.cursor/project-plan.md) - Overall project roadmap
+- [Deployment Guide](.cursor/DEPLOY.md) - Deployment procedures
+- [Navigation Issues Tracker](.cursor/navigation-issues.md) - 404 issues tracking
+- [Vercel Deployment Checklist](.cursor/vercel-deployment-checklist.md) - Deployment issue tracking
+- [Admin Portal Documentation](README-ADMIN-PORTAL.md) - Admin portal documentation

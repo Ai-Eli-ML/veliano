@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ products: [] })
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   try {
     // First, get the category ID if a category is specified

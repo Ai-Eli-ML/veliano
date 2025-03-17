@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const formData = await request.formData()
   const email = String(formData.get('email'))
   const password = String(formData.get('password'))
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
   const next = requestUrl.searchParams.get('next') ?? '/'
 
   if (code) {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   await supabase.auth.signOut()
   
   return NextResponse.json({}, { status: 200 })

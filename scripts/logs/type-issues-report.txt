@@ -1,0 +1,79 @@
+Type Issues Report - Sun Mar 16 16:31:37 EDT 2025
+===============================
+
+
+Types defined but never used:
+./lib/supabase-utils.ts: DbResult is potentially unused
+./lib/supabase-utils.ts: DbResultOk is potentially unused
+./lib/seed-data.ts: ProductCategory is potentially unused
+./lib/supabase.ts: SupabaseClient is potentially unused
+./lib/supabase.ts: UserProfile is potentially unused
+./lib/supabase-helpers.ts: CartItem is potentially unused
+./types/membership.ts: UserMembership is potentially unused
+./types/affiliate.ts: AffiliateProfile is potentially unused
+./types/affiliate.ts: AffiliateStats is potentially unused
+./types/affiliate.ts: AffiliateTransaction is potentially unused
+./types/product.ts: Product is potentially unused
+./types/product.ts: ProductFilterOptions is potentially unused
+./types/review.ts: ProductReview is potentially unused
+./types/review.ts: ReviewStats is potentially unused
+./types/ambassador.ts: AmbassadorProfile is potentially unused
+./types/ambassador.ts: AmbassadorStats is potentially unused
+./types/order.ts: Order is potentially unused
+./types/index.ts: ErrorLog is potentially unused
+
+
+Interfaces defined but never used:
+./app/account/orders/[id]/page.tsx: DatabaseOrder is potentially unused
+./app/page.tsx: Product is potentially unused
+./types/env.d.ts: ProcessEnv is potentially unused
+./types/index.ts: AffiliateWithRelations is potentially unused
+./types/index.ts: AmbassadorSettings is potentially unused
+./types/index.ts: DashboardStats is potentially unused
+./types/index.ts: Payout is potentially unused
+./types/index.ts: ProductWithVariants is potentially unused
+./types/index.ts: ProfileWithOrders is potentially unused
+./types/supabase.ts: Database is potentially unused
+
+
+Components imported but potentially unused:
+./app/ambassador-program/page.tsx: Button is imported but might be unused
+./app/ambassador-program/page.tsx: Card is imported but might be unused
+./app/ambassador-program/page.tsx: CardContent is imported but might be unused
+./app/ambassador-program/page.tsx: CardDescription is imported but might be unused
+./app/ambassador-program/page.tsx: CardHeader is imported but might be unused
+./app/ambassador-program/page.tsx: CardTitle is imported but might be unused
+./app/ambassador-program/page.tsx: Tabs is imported but might be unused
+./app/ambassador-program/page.tsx: TabsContent is imported but might be unused
+./app/ambassador-program/page.tsx: TabsList is imported but might be unused
+./app/ambassador-program/page.tsx: TabsTrigger is imported but might be unused
+./app/checkout/success/loading.tsx: Card is imported but might be unused
+./app/checkout/success/loading.tsx: CardContent is imported but might be unused
+./app/checkout/success/loading.tsx: CardDescription is imported but might be unused
+./app/checkout/success/loading.tsx: CardFooter is imported but might be unused
+./app/checkout/success/loading.tsx: CardHeader is imported but might be unused
+./app/checkout/success/loading.tsx: CardTitle is imported but might be unused
+./app/cart/page.tsx: Button is imported but might be unused
+./app/account/ambassador/page.tsx: Card is imported but might be unused
+./app/account/ambassador/page.tsx: CardContent is imported but might be unused
+./app/account/ambassador/page.tsx: CardHeader is imported but might be unused
+./app/account/ambassador/page.tsx: CardTitle is imported but might be unused
+./app/account/affiliate/page.tsx: Card is imported but might be unused
+./app/account/affiliate/page.tsx: CardContent is imported but might be unused
+./app/account/affiliate/page.tsx: CardHeader is imported but might be unused
+./app/account/affiliate/page.tsx: CardTitle is imported but might be unused
+./app/account/orders/page.tsx: Tabs is imported but might be unused
+./app/account/orders/page.tsx: TabsContent is imported but might be unused
+./app/account/orders/page.tsx: TabsList is imported but might be unused
+./app/account/orders/page.tsx: TabsTrigger is imported but might be unused
+./app/account/membership/page.tsx: Tabs is imported but might be unused
+./app/account/membership/page.tsx: TabsContent is imported but might be unused
+./app/account/membership/page.tsx: TabsList is imported but might be unused
+./app/account/membership/page.tsx: TabsTrigger is imported but might be unused
+./components/ambassador/ambassador-sales.tsx: CardDescription is imported but might be unused
+
+
+Database-related issues:
+./lib/supabase-helpers.ts: Table 'Row' referenced but not defined in types/supabase.ts
+./lib/supabase-helpers.ts: Table 'cart_items' referenced but not defined in types/supabase.ts
+./lib/supabase-helpers.ts: Table 'carts' referenced but not defined in types/supabase.ts

@@ -1,0 +1,56 @@
+---
+description: Development standards and practices
+globs: **/*.tsx", "**/*.ts", "**/*.js", "**/*.jsx
+alwaysApply: false
+---
+ # Development Standards and Best Practices
+
+This document outlines our development standards and best practices to maintain code quality and consistency.
+
+## Next.js 15 Specific Standards
+
+- Use the App Router for all new route development
+- Implement Server Components by default, only use Client Components when necessary
+- Use Server Actions for form submissions and data mutations
+- Follow proper async/await patterns for Web APIs (cookies, headers)
+- Use middleware for authentication and protection patterns
+
+## TypeScript Standards
+
+- Use TypeScript for all new code
+- Define explicit types for function parameters and return values
+- Use interfaces for complex objects and type aliases for simple types
+- Avoid `any` type wherever possible
+- Use proper type imports and exports
+
+## Supabase Integration
+
+- Use the repository pattern for database access
+- Follow Row Level Security (RLS) policies for data protection
+- Create proper TypeScript types for database schema
+- Use Server Components for database queries
+- Implement proper error handling for database operations
+
+## Code Organization
+
+- Use functional components instead of class components
+- Follow the single responsibility principle
+- Keep components small and focused
+- Use custom hooks for shared logic
+- Separate business logic from UI components
+
+## Performance Optimization
+
+- Implement proper loading states for async operations
+- Use image optimization for all images
+- Implement code splitting with dynamic imports
+- Minimize client-side JavaScript
+- Use proper caching strategies for static content
+
+## Deployment
+
+- Use Vercel for deployment
+- Set up proper environment variables
+- Implement pre-deployment checks
+- Follow the deployment checklist in `.cursor/DEPLOY.md`
+- Monitor performance after deployment

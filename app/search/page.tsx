@@ -1,80 +1,38 @@
+"use client"
 
-import type { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
-import { ProductGrid } from "@/components/products/product-grid"
+import { useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
 import { Pagination } from "@/components/ui/pagination"
+import { ProductGrid } from "@/components/product/product-grid"
+import { Skeleton } from "@/components/ui/skeleton"
+import SearchResults from "@/components/search/search-results"
 
-interface SearchPageProps {
-  searchParams: {
-    q?: string
-    page?: string
-  }
+export default function SearchPage() {
+  return (
+    <div className="container px-4 py-8 md:px-6 md:py-12 lg:py-16">
+      <Suspense fallback={<SearchPageSkeleton />}>
+        <SearchResults />
+      </Suspense>
+    </div>
+  )
 }
 
-  title: "Search Results",
-  description: "Search for products in our catalog",
-}
-
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query = searchParams?.q || ""
-  const page = searchParams?.page ? parseInt(searchParams.page) : 1
-  const limit = 12
-
-  try {
-    const supabase = createServerSupabaseClient()
-    
-    // Get total count first
-    const { count } = await supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .ilike("name", `%${query}%`)
-
-    // Then get paginated results
-    const { data: products, error } = await supabase
-      .from("products")
-      .select(`
-        *,
-        product_images(*),
-        product_categories(category_id)
-      `)
-      .ilike("name", `%${query}%`)
-      .range((page - 1) * limit, page * limit - 1)
-      .order("created_at", { ascending: false })
-
-    if (error) throw error
-
-    const totalPages = count ? Math.ceil(count / limit) : 0
-
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">
-          {count === 0
-            ? `No results found for "${query}"`
-            : `Search results for "${query}"`}
-        </h1>
-        
-        <ProductGrid products={products || []} />
-        
-        {totalPages > 1 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              totalItems={count || 0}
-            />
+function SearchPageSkeleton() {
+  return (
+    <div>
+      <div className="flex flex-col gap-4 pb-8">
+        <Skeleton className="h-10 w-2/3" />
+        <Skeleton className="h-5 w-1/3" />
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="aspect-square" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-1/2" />
           </div>
-        )}
+        ))}
       </div>
-    )
-  } catch (error) {
-    console.error("Error searching products:", error)
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">Search Results</h1>
-        <p className="text-red-500">Error loading search results. Please try again later.</p>
-      </div>
-    )
-  }
+    </div>
+  )
 }
-

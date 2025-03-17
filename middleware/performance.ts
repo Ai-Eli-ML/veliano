@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createMiddlewareSupabaseClient } from "@/lib/supabase/server"
 
 export async function performanceMiddleware(request: NextRequest) {
   const start = performance.now()
@@ -12,7 +12,7 @@ export async function performanceMiddleware(request: NextRequest) {
   const ttfb = response.headers.get("x-response-time") || "0"
 
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createMiddlewareSupabaseClient((name) => request.cookies.get(name)?.value)
     const url = new URL(request.url)
 
     // Store performance metrics
@@ -20,7 +20,6 @@ export async function performanceMiddleware(request: NextRequest) {
       page: url.pathname,
       load_time: loadTime,
       ttfb: parseFloat(ttfb),
-      // Client-side metrics will be updated via API
       fcp: 0,
       lcp: 0,
       cls: 0,
@@ -58,8 +57,10 @@ export function initClientPerformance() {
   new PerformanceObserver((entryList) => {
     let clsValue = 0
     for (const entry of entryList.getEntries()) {
-      if (!entry.hadRecentInput) {
-        clsValue += entry.value
+      // Cast to LayoutShift type for CLS
+      const layoutShift = entry as unknown as { hadRecentInput: boolean; value: number }
+      if (!layoutShift.hadRecentInput) {
+        clsValue += layoutShift.value
       }
     }
     reportMetric("cls", clsValue)
@@ -68,7 +69,9 @@ export function initClientPerformance() {
   // Create a PerformanceObserver to monitor FID
   new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
-      reportMetric("fid", entry.processingStart - entry.startTime)
+      // Cast to FirstInputEntry type for FID
+      const firstInput = entry as unknown as { processingStart: number; startTime: number }
+      reportMetric("fid", firstInput.processingStart - firstInput.startTime)
     }
   }).observe({ type: "first-input", buffered: true })
 }

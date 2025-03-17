@@ -5,7 +5,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 
 // Fetch a single product by slug
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   try {
     // Fetch the product
@@ -50,7 +50,7 @@ export async function getProducts({
   limit = 12,
 }: GetProductsParams = {}) {
   noStore()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   
   // Calculate offset
   const offset = (page - 1) * limit
@@ -277,7 +277,7 @@ function getMockFeaturedProducts(limit = 4): Product[] {
 // Fetch all categories
 export async function getCategories(): Promise<ProductCategory[]> {
   noStore()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   
   const { data: categories, error } = await supabase
     .from('categories')
@@ -295,7 +295,7 @@ export async function getCategories(): Promise<ProductCategory[]> {
 // Fetch a category by slug
 export async function getCategoryBySlug(slug: string): Promise<ProductCategory | null> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     const { data, error } = await supabase.from("categories").select("*").eq("slug", slug).single()
 
@@ -317,7 +317,7 @@ export async function getCategoryBySlug(slug: string): Promise<ProductCategory |
 // Fetch related products
 export async function getRelatedProducts(productId: string, categoryId: string, limit = 4): Promise<Product[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     // First get the product IDs in the category
     const { data: productIds } = await supabase

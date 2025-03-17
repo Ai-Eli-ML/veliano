@@ -14,7 +14,7 @@ const updateOrderSchema = z.object({
 })
 
 export async function updateOrderStatus(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated and is admin
   const {

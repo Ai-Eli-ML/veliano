@@ -17,7 +17,7 @@ const applySchema = z.object({
 })
 
 export async function applyForAffiliateProgram(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -107,7 +107,7 @@ export async function applyForAffiliateProgram(formData: FormData) {
 }
 
 export async function getAffiliateProfile() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -140,7 +140,7 @@ export async function getAffiliateProfile() {
 }
 
 export async function getAffiliateStats() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {

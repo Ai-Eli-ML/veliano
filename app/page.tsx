@@ -1,190 +1,357 @@
+"use client"
 
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
-import ProductCard from "@/components/products/product-card"
+import Image from "next/image"
+import { ArrowRight, Star, Package, Clock, ShieldCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
 // Mock function to provide sample featured products
-function getMockFeaturedProducts(limit = 4) {
+const getFeaturedProducts = () => {
   return [
     {
-      id: "1",
-      name: "10K Gold Single Tooth Grill",
-      slug: "10k-gold-single-tooth-grill",
-      price: 199.99,
-      compare_at_price: 249.99,
-      images: [{ url: "/placeholder.svg?height=400&width=400" }],
-      categories: [{ slug: "grillz" }]
+      id: "prod_1",
+      name: "Diamond Eternity Ring",
+      price: 3999.99,
+      category: "Rings",
+      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1470&auto=format&fit=crop",
+      isFeatured: true,
+      isNew: true,
+      rating: 4.9,
+      reviewCount: 42
     },
     {
-      id: "2",
-      name: "14K Gold 6 Teeth Bottom Grill",
-      slug: "14k-gold-6-teeth-bottom-grill",
-      price: 599.99,
-      compare_at_price: 699.99,
-      images: [{ url: "/placeholder.svg?height=400&width=400" }],
-      categories: [{ slug: "grillz" }]
+      id: "prod_2",
+      name: "Sapphire Tennis Bracelet",
+      price: 2499.99,
+      category: "Bracelets",
+      image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?q=80&w=1588&auto=format&fit=crop",
+      isFeatured: true,
+      isNew: false,
+      rating: 4.8,
+      reviewCount: 36
     },
     {
-      id: "3",
-      name: "18K Gold Cuban Link Chain",
-      slug: "18k-gold-cuban-link-chain",
-      price: 1299.99,
-      compare_at_price: 1499.99,
-      images: [{ url: "/placeholder.svg?height=400&width=400" }],
-      categories: [{ slug: "jewelry" }]
+      id: "prod_3",
+      name: "Rose Gold Necklace",
+      price: 1899.99,
+      category: "Necklaces",
+      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1587&auto=format&fit=crop",
+      isFeatured: true,
+      isNew: true,
+      rating: 4.7,
+      reviewCount: 58
     },
     {
-      id: "4",
-      name: "Diamond Pendant",
-      slug: "diamond-pendant",
-      price: 899.99,
-      compare_at_price: 999.99,
-      images: [{ url: "/placeholder.svg?height=400&width=400" }],
-      categories: [{ slug: "jewelry" }]
+      id: "prod_4",
+      name: "Platinum Watch",
+      price: 7999.99,
+      category: "Watches",
+      image: "https://images.unsplash.com/photo-1619946794135-5bc917a27793?q=80&w=1587&auto=format&fit=crop",
+      isFeatured: true,
+      isNew: false,
+      rating: 5.0,
+      reviewCount: 23
     }
-  ];
+  ]
 }
 
-// Define the product type
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  compare_at_price?: number;
-  images: { url: string }[];
-  categories: { slug: string }[];
+// Mock function to provide sample collections
+const getCollections = () => {
+  return [
+    {
+      id: "col_1",
+      name: "Summer Elegance",
+      description: "Light and vibrant pieces for the summer season.",
+      image: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?q=80&w=1564&auto=format&fit=crop"
+    },
+    {
+      id: "col_2",
+      name: "Classic Diamond",
+      description: "Timeless diamond pieces for every occasion.",
+      image: "https://images.unsplash.com/photo-1585644156286-f4b0c0977454?q=80&w=1587&auto=format&fit=crop"
+    },
+    {
+      id: "col_3",
+      name: "Royal Sapphire",
+      description: "Luxurious sapphire jewelry fit for royalty.",
+      image: "https://images.unsplash.com/photo-1618403088890-3d9ff6f4c8b1?q=80&w=1528&auto=format&fit=crop"
+    }
+  ]
 }
 
-export default async function HomePage() {
-  const featuredProducts = getMockFeaturedProducts(4)
-
+export default function HomePage() {
+  const featuredProducts = getFeaturedProducts()
+  const collections = getCollections()
+  
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative h-[80vh] w-full overflow-hidden bg-black">
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-          <h1 className="gold-text mb-6 text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
-            Premium Custom Gold Grillz
-          </h1>
-          <p className="mb-8 max-w-2xl text-xl text-white">
-            Handcrafted luxury for your smile. Custom-fitted and made with the finest materials.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg" className="metallic-button">
-              <Link href="/products/grillz">Shop Grillz</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="bg-black/50 text-white hover:bg-black/70">
-              <Link href="/products/jewelry">Shop Jewelry</Link>
-            </Button>
+    <div className="flex flex-col min-h-screen">
+      {/* Hero section */}
+      <section className="relative h-[80vh]">
+        <Image
+          src="https://images.unsplash.com/photo-1581394579918-1d91306f8b8a?q=80&w=2070&auto=format&fit=crop"
+          alt="Luxury jewelry showcase"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/20 flex items-center">
+          <div className="container px-4 mx-auto">
+            <div className="max-w-2xl space-y-6">
+              <h1 className="text-4xl md:text-6xl font-bold text-white">
+                Timeless Elegance, Exceptional Craftsmanship
+              </h1>
+              <p className="text-xl text-white/90">
+                Discover our exclusive collection of luxury jewelry and watches, 
+                meticulously crafted for those who appreciate the extraordinary.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" asChild>
+                  <Link href="/products">
+                    Shop Collection
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10" asChild>
+                  <Link href="/about">
+                    Our Story
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-
-      {/* Featured Products */}
-      <section className="py-16">
-        <div className="container">
-          <h2 className="mb-12 text-center text-3xl font-bold">Featured Products</h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts && featuredProducts.length > 0
-              ? featuredProducts.map((product) => {
-                  // Get the primary category for the product URL
-                  const primaryCategory = product.categories && product.categories.length > 0 ? product.categories[0] : null
-                  const productUrl = primaryCategory
-                    ? `/products/${primaryCategory.slug}/${product.slug}`
-                    : `/products/uncategorized/${product.slug}`
-
-                  // Get the primary image
-                  const primaryImage =
-                    product.images && product.images.length > 0
-                      ? product.images[0].url
-                      : "/placeholder.svg?height=400&width=400"
-
-                  return (
-                    <ProductCard
-                      key={product.id}
-                      id={product.id}
-                      name={product.name}
-                      slug={product.slug}
-                      price={product.price}
-                      compareAtPrice={product.compare_at_price}
-                      imageSrc={primaryImage}
-                      category={primaryCategory?.slug || "uncategorized"}
-                      url={productUrl}
-                    />
-                  )
-                })
-              : [1, 2, 3, 4].map((item) => (
-                  <div key={item} className="product-card group rounded-lg border p-4 transition-all">
-                    <div className="relative mb-4 aspect-square overflow-hidden rounded-md">
-                      <Image
-                        src={`/placeholder.svg?height=400&width=400`}
-                        alt={`Featured product ${item}`}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
-                      />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">Premium Gold Grill</h3>
-                    <p className="mb-2 text-sm text-muted-foreground">Custom 10K Gold 6 Teeth Set</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold">$599.99</span>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                    </div>
+      
+      {/* Featured categories */}
+      <section className="py-16 bg-muted/40">
+        <div className="container px-4 mx-auto">
+          <h2 className="text-3xl font-bold mb-10 text-center">
+            Shop by Category
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {['Rings', 'Necklaces', 'Bracelets', 'Watches'].map((category) => (
+              <Link 
+                key={category} 
+                href={`/categories/${category.toLowerCase()}`}
+                className="group"
+              >
+                <div className="rounded-lg overflow-hidden bg-muted aspect-square relative">
+                  <Image
+                    src={`https://source.unsplash.com/random/300x300/?jewelry,${category.toLowerCase()}`}
+                    alt={category}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/30 flex items-end p-4">
+                    <h3 className="text-xl font-medium text-white">{category}</h3>
                   </div>
-                ))}
+                </div>
+              </Link>
+            ))}
           </div>
-          <div className="mt-12 text-center">
-            <Button asChild className="metallic-button">
+        </div>
+      </section>
+      
+      {/* Featured products */}
+      <section className="py-16">
+        <div className="container px-4 mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+            <h2 className="text-3xl font-bold">Featured Products</h2>
+            <Button variant="ghost" className="flex items-center" asChild>
               <Link href="/products">
-                View All Products <ArrowRight className="ml-2 h-4 w-4" />
+                View All <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <Link
+                key={product.id}
+                href={`/products/${product.id}`}
+                className="group"
+              >
+                <div className="space-y-3">
+                  <div className="relative rounded-lg overflow-hidden bg-muted">
+                    <AspectRatio ratio={1/1}>
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    </AspectRatio>
+                    {product.isNew && (
+                      <Badge className="absolute top-2 right-2 bg-primary hover:bg-primary">
+                        New
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium text-lg group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">
+                        ${product.price.toLocaleString()}
+                      </p>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Star className="h-3.5 w-3.5 fill-primary text-primary mr-1" />
+                        <span>{product.rating}</span>
+                        <span className="ml-1">({product.reviewCount})</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
-
-      {/* Why Choose Us */}
-      <section className="bg-black py-16 text-white">
-        <div className="container">
-          <h2 className="gold-text mb-12 text-center text-3xl font-bold">Why Choose Us</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/20 p-4">
-                <svg className="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z" />
-                </svg>
+      
+      {/* Collections */}
+      <section className="py-16 bg-muted/40">
+        <div className="container px-4 mx-auto">
+          <h2 className="text-3xl font-bold mb-10 text-center">
+            Curated Collections
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {collections.map((collection) => (
+              <Card key={collection.id} className="overflow-hidden">
+                <div className="relative h-56">
+                  <Image
+                    src={collection.image}
+                    alt={collection.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{collection.name}</h3>
+                  <p className="text-muted-foreground mb-4">{collection.description}</p>
+                  <Button variant="outline" asChild>
+                    <Link href={`/collections/${collection.id}`}>
+                      Explore
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Testimonials */}
+      <section className="py-16">
+        <div className="container px-4 mx-auto">
+          <h2 className="text-3xl font-bold mb-10 text-center">
+            What Our Customers Say
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Emily Watson",
+                avatar: "https://randomuser.me/api/portraits/women/34.jpg",
+                review: "The craftsmanship of my engagement ring is exceptional. I've received countless compliments on the design and quality."
+              },
+              {
+                name: "James Anderson",
+                avatar: "https://randomuser.me/api/portraits/men/54.jpg",
+                review: "I purchased a watch for my 10th anniversary, and I couldn't be happier. The attention to detail and customer service were outstanding."
+              },
+              {
+                name: "Sarah Miller",
+                avatar: "https://randomuser.me/api/portraits/women/67.jpg",
+                review: "Veliano's pieces are truly timeless. I've been collecting their jewelry for years, and each piece holds its beauty and value."
+              }
+            ].map((testimonial, index) => (
+              <Card key={index} className="relative pt-8">
+                <div className="absolute -top-6 left-6">
+                  <div className="rounded-full border-4 border-background w-12 h-12 overflow-hidden">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+                <CardContent className="pt-4">
+                  <div className="flex mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground mb-4">"{testimonial.review}"</p>
+                  <Separator className="mb-4" />
+                  <p className="font-medium">{testimonial.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Features */}
+      <section className="py-16 bg-primary/5">
+        <div className="container px-4 mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: <Package className="h-10 w-10 text-primary" />,
+                title: "Free Shipping",
+                description: "Free worldwide shipping on all orders over $500."
+              },
+              {
+                icon: <ShieldCheck className="h-10 w-10 text-primary" />,
+                title: "Lifetime Warranty",
+                description: "All our pieces come with a lifetime warranty."
+              },
+              {
+                icon: <Clock className="h-10 w-10 text-primary" />,
+                title: "30-Day Returns",
+                description: "Not satisfied? Return within 30 days for a full refund."
+              },
+              {
+                icon: <Star className="h-10 w-10 text-primary" />,
+                title: "Expert Craftsmanship",
+                description: "Each piece is handcrafted by master jewelers."
+              }
+            ].map((feature, index) => (
+              <div key={index} className="flex flex-col items-center text-center">
+                <div className="mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
               </div>
-              <h3 className="mb-2 text-xl font-semibold">Premium Quality</h3>
-              <p className="text-gray-300">
-                We use only the finest materials, including 10K, 14K, and 18K gold, ensuring durability and a luxurious
-                finish.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/20 p-4">
-                <svg className="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-4-9h8v2H8v-2zm0-4h8v2H8V9zm2-4h4v2h-4V5z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-xl font-semibold">Custom Fitted</h3>
-              <p className="text-gray-300">
-                Each piece is custom-made to fit your teeth perfectly, ensuring comfort and a natural look.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-primary/20 p-4">
-                <svg className="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm-5-7h10v2H7v-2zm0-3h10v2H7v-2zm0-3h10v2H7V7z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-xl font-semibold">Satisfaction Guaranteed</h3>
-              <p className="text-gray-300">
-                We stand behind our products with a satisfaction guarantee and excellent customer service.
-              </p>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Newsletter */}
+      <section className="py-16 bg-primary text-white">
+        <div className="container px-4 mx-auto text-center">
+          <div className="max-w-xl mx-auto space-y-4">
+            <h2 className="text-3xl font-bold">Join Our Newsletter</h2>
+            <p className="text-white/80">
+              Subscribe to receive updates on new collections, exclusive offers, and jewelry care tips.
+            </p>
+            <div className="flex gap-2 flex-col sm:flex-row">
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="flex-1 px-4 py-2 rounded-md border border-white/20 bg-white/10 text-white placeholder:text-white/60"
+              />
+              <Button variant="secondary">
+                Subscribe
+              </Button>
             </div>
           </div>
         </div>
@@ -192,4 +359,3 @@ export default async function HomePage() {
     </div>
   )
 }
-

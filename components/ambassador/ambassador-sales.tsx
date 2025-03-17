@@ -1,11 +1,10 @@
-import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { createClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client"
 import { Loader2 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -31,17 +30,69 @@ export function AmbassadorSales({ ambassador }: AmbassadorSalesProps) {
           return
         }
 
-        const { data: orders, error: ordersError } = await supabase
+        // First get orders with the ambassador's discount code
+        const { data: ordersData, error: ordersError } = await supabase
           .from("orders")
           .select("*")
-          .eq("referral_code", ambassador.discount_code)
+          .eq("discount_code", ambassador.discount_code)
           .order("created_at", { ascending: false })
 
         if (ordersError) {
           throw ordersError
         }
 
-        setOrders(orders || [])
+        // Then get order items for each order
+        const orderIds = (ordersData || []).map(order => order.id)
+        const { data: orderItemsData, error: orderItemsError } = await supabase
+          .from("order_items")
+          .select("*")
+          .in("order_id", orderIds)
+
+        if (orderItemsError) {
+          throw orderItemsError
+        }
+
+        // Group order items by order_id
+        const orderItemsMap = (orderItemsData || []).reduce((acc, item) => {
+          if (!acc[item.order_id]) {
+            acc[item.order_id] = []
+          }
+          acc[item.order_id].push({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            price: item.price
+          })
+          return acc
+        }, {} as Record<string, { product_id: string; quantity: number; price: number }[]>)
+
+        // Map database orders to Order type
+        const mappedOrders: Order[] = (ordersData || []).map(order => ({
+          id: order.id,
+          created_at: order.created_at,
+          total: order.total_price,
+          email: order.email,
+          referral_code: ambassador.discount_code,
+          status: order.payment_status || 'completed',
+          shipping_address: order.shipping_address ? {
+            line1: (order.shipping_address as any).line1 || '',
+            line2: (order.shipping_address as any).line2,
+            city: (order.shipping_address as any).city || '',
+            state: (order.shipping_address as any).state || '',
+            postal_code: (order.shipping_address as any).postal_code || '',
+            country: (order.shipping_address as any).country || ''
+          } : undefined,
+          billing_address: order.billing_address ? {
+            line1: (order.billing_address as any).line1 || '',
+            line2: (order.billing_address as any).line2,
+            city: (order.billing_address as any).city || '',
+            state: (order.billing_address as any).state || '',
+            postal_code: (order.billing_address as any).postal_code || '',
+            country: (order.billing_address as any).country || ''
+          } : undefined,
+          items: orderItemsMap[order.id] || []
+        }))
+
+        setOrders(mappedOrders)
       } catch (error) {
         console.error("Error fetching orders:", error)
         setError("Failed to load orders")

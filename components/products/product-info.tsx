@@ -173,7 +173,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 const variantForOption = product.variants.find((v) => v.option1_value === option)
                 const isSelected = variant?.option1_value === option
                 const isAvailable =
-                  variantForOption?.inventory_quantity === null || variantForOption?.inventory_quantity! > 0
+                  variantForOption?.inventory_quantity === null || 
+                  (variantForOption?.inventory_quantity ?? 0) > 0
 
                 return (
                   <button

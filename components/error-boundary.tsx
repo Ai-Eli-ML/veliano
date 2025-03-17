@@ -1,8 +1,7 @@
-import { createClient } from "@/lib/supabase/client"
 "use client"
 
 import { Component, ErrorInfo, ReactNode } from "react"
-import { createClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client"
 
 interface Props {
   children: ReactNode

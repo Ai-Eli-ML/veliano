@@ -1,5 +1,6 @@
 "use client"
 
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -7,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const requestUrl = new URL(request.url)
   
   // Create a response with the same headers as the request
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },

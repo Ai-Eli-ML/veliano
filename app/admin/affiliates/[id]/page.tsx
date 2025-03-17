@@ -1,318 +1,474 @@
-
+"use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { useParams, notFound } from "next/navigation"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeading } from "@/components/ui/page-heading"
+import { formatPrice, formatDate } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { toast } from "sonner"
-import { formatCurrency } from "@/lib/utils"
+  ArrowUpRight, 
+  CheckCircle, 
+  Clock, 
+  DollarSign, 
+  Edit, 
+  ExternalLink, 
+  Mail, 
+  Phone, 
+  User, 
+  XCircle 
+} from "lucide-react"
+import { DataTable } from "@/components/ui/data-table"
+import { ColumnDef } from "@tanstack/react-table"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-interface Referral {
-  id: string
-  order_id: string
-  commission_amount: number
-  status: "pending" | "paid" | "cancelled"
-  created_at: string
-  order: {
-    total_amount: number
-    status: string
-  }
-}
-
+// Types that match Supabase structure
 interface Affiliate {
   id: string
   user_id: string
-  code: string
+  name: string
+  email: string
+  phone?: string
+  status: "pending" | "approved" | "rejected"
   commission_rate: number
-  status: "active" | "pending" | "inactive"
+  total_earnings: number
   total_sales: number
-  total_commission: number
   created_at: string
-  profiles: {
-    full_name: string
-    email: string
-    phone: string | null
-  }
-  referrals: Referral[]
+  website?: string
+  bio?: string
+  payment_method?: string
+  payment_details?: string
+  profile_image?: string
 }
 
-const AFFILIATE_STATUSES = ["active", "pending", "inactive"]
-const REFERRAL_STATUSES = ["pending", "paid", "cancelled"]
+interface AffiliateTransaction {
+  id: string
+  affiliate_id: string
+  order_id: string
+  amount: number
+  commission_amount: number
+  status: "pending" | "paid" | "cancelled"
+  created_at: string
+  paid_at?: string
+  customer_name: string
+}
 
-export default function AffiliateDetailsPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
+export default function AffiliateDetailsPage() {
+  const params = useParams()
+  const affiliateId = params.id as string
+  
+  const [isLoading, setIsLoading] = useState(true)
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null)
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [transactions, setTransactions] = useState<AffiliateTransaction[]>([])
 
   useEffect(() => {
-    fetchAffiliate()
-  }, [params.id])
-
-  async function fetchAffiliate() {
-    try {
-      const { data, error } = await supabase
-        .from("affiliates")
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email,
-            phone
-          ),
-          referrals (
-            *,
-            order:orders (
-              total_amount,
-              status
-            )
-          )
-        `)
-        .eq("id", params.id)
-        .single()
-
-      if (error) throw error
-      setAffiliate(data)
-    } catch (error) {
-      console.error("Error fetching affiliate:", error)
-      toast.error("Error loading affiliate")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function updateAffiliateStatus(newStatus: "active" | "pending" | "inactive") {
-    if (!affiliate) return
-
-    try {
-      const { error } = await supabase
-        .from("affiliates")
-        .update({ status: newStatus })
-        .eq("id", affiliate.id)
-
-      if (error) throw error
+    // In a real implementation, this would fetch from Supabase
+    // const fetchAffiliateData = async () => {
+    //   const supabase = await createServerSupabaseClient()
+    //   
+    //   // Get affiliate details
+    //   const { data: affiliateData, error: affiliateError } = await supabase
+    //     .from("affiliates")
+    //     .select("*")
+    //     .eq("id", affiliateId)
+    //     .single()
+    //   
+    //   if (affiliateError) throw affiliateError
+    //   if (!affiliateData) return null
+    //   
+    //   // Get affiliate transactions
+    //   const { data: transactionsData, error: transactionsError } = await supabase
+    //     .from("affiliate_transactions")
+    //     .select("*")
+    //     .eq("affiliate_id", affiliateId)
+    //     .order("created_at", { ascending: false })
+    //   
+    //   if (transactionsError) throw transactionsError
+    //   
+    //   return {
+    //     affiliate: affiliateData,
+    //     transactions: transactionsData || []
+    //   }
+    // }
+    
+    // Simulate API call
+    const fetchAffiliateData = async () => {
+      await new Promise(resolve => setTimeout(resolve, 800))
       
-      setAffiliate({ ...affiliate, status: newStatus })
-      toast.success("Affiliate status updated successfully")
-    } catch (error) {
-      console.error("Error updating affiliate status:", error)
-      toast.error("Error updating affiliate status")
+      // Mock affiliate data
+      const mockAffiliate: Affiliate = {
+        id: affiliateId,
+        user_id: "user123",
+        name: "Sarah Johnson",
+        email: "sarah@example.com",
+        phone: "+1 (555) 123-4567",
+        status: "approved",
+        commission_rate: 10,
+        total_earnings: 2450,
+        total_sales: 24500,
+        created_at: "2025-01-15T10:30:00Z",
+        website: "https://sarahjohnson.com",
+        bio: "Luxury jewelry influencer with 10+ years of experience in the industry.",
+        payment_method: "bank_transfer",
+        payment_details: "Bank of America - Account ending in 4321",
+        profile_image: "/images/avatars/sarah.jpg"
+      }
+      
+      // Mock transactions
+      const mockTransactions: AffiliateTransaction[] = [
+        {
+          id: "trans1",
+          affiliate_id: affiliateId,
+          order_id: "order123",
+          amount: 5000,
+          commission_amount: 500,
+          status: "paid",
+          created_at: "2025-03-10T14:30:00Z",
+          paid_at: "2025-03-15T09:00:00Z",
+          customer_name: "Emma Wilson"
+        },
+        {
+          id: "trans2",
+          affiliate_id: affiliateId,
+          order_id: "order456",
+          amount: 7500,
+          commission_amount: 750,
+          status: "paid",
+          created_at: "2025-03-05T11:15:00Z",
+          paid_at: "2025-03-15T09:00:00Z",
+          customer_name: "Michael Brown"
+        },
+        {
+          id: "trans3",
+          affiliate_id: affiliateId,
+          order_id: "order789",
+          amount: 12000,
+          commission_amount: 1200,
+          status: "pending",
+          created_at: "2025-03-01T16:45:00Z",
+          customer_name: "David Clark"
+        }
+      ]
+      
+      return {
+        affiliate: mockAffiliate,
+        transactions: mockTransactions
+      }
     }
-  }
-
-  async function updateReferralStatus(referralId: string, newStatus: "pending" | "paid" | "cancelled") {
-    try {
-      const { error } = await supabase
-        .from("referrals")
-        .update({ status: newStatus })
-        .eq("id", referralId)
-
-      if (error) throw error
-      fetchAffiliate()
-      toast.success("Referral status updated successfully")
-    } catch (error) {
-      console.error("Error updating referral status:", error)
-      toast.error("Error updating referral status")
+    
+    fetchAffiliateData()
+      .then(data => {
+        if (!data || !data.affiliate) {
+          notFound()
+        }
+        setAffiliate(data.affiliate)
+        setTransactions(data.transactions)
+        setIsLoading(false)
+      })
+      .catch(error => {
+        console.error("Error fetching affiliate data:", error)
+        setIsLoading(false)
+      })
+  }, [affiliateId])
+  
+  // Define columns for transactions table
+  const columns: ColumnDef<AffiliateTransaction>[] = [
+    {
+      accessorKey: "order_id",
+      header: "Order ID",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.original.order_id}</div>
+      )
+    },
+    {
+      accessorKey: "customer_name",
+      header: "Customer",
+      cell: ({ row }) => row.original.customer_name
+    },
+    {
+      accessorKey: "amount",
+      header: "Sale Amount",
+      cell: ({ row }) => formatPrice(row.original.amount)
+    },
+    {
+      accessorKey: "commission_amount",
+      header: "Commission",
+      cell: ({ row }) => formatPrice(row.original.commission_amount)
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status
+        return (
+          <Badge
+            variant={
+              status === "paid" ? "success" :
+              status === "pending" ? "outline" : "destructive"
+            }
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Badge>
+        )
+      }
+    },
+    {
+      accessorKey: "created_at",
+      header: "Date",
+      cell: ({ row }) => formatDate(row.original.created_at)
     }
-  }
-
-  if (loading) {
-    return <div>Loading...</div>
+  ]
+  
+  if (isLoading) {
+    return (
+      <div className="container max-w-screen-xl py-8">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-1/3" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+        
+        <div className="mt-8 grid gap-8">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    )
   }
 
   if (!affiliate) {
-    return <div>Affiliate not found</div>
+    return notFound()
   }
-
-  const pendingCommission = affiliate.referrals
-    .filter(ref => ref.status === "pending")
-    .reduce((sum, ref) => sum + ref.commission_amount, 0)
-
-  const paidCommission = affiliate.referrals
-    .filter(ref => ref.status === "paid")
-    .reduce((sum, ref) => sum + ref.commission_amount, 0)
-
+  
   return (
-    <div className="space-y-6">
+    <div className="container max-w-screen-xl py-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Affiliate Details</h1>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/admin/affiliates")}
-        >
-          Back to Affiliates
+        <PageHeading 
+          title={`Affiliate: ${affiliate.name}`} 
+          description={`Manage affiliate account and view performance`} 
+        />
+        
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Mail className="mr-2 h-4 w-4" />
+            Contact
+          </Button>
+          <Button size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Details
         </Button>
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="mt-8 grid gap-8 lg:grid-cols-3">
+        {/* Affiliate Profile Card */}
+        <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Affiliate account details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Name</span>
-              <span>{affiliate.profiles.full_name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email</span>
-              <span>{affiliate.profiles.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Phone</span>
-              <span>{affiliate.profiles.phone || "Not provided"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Affiliate Code</span>
-              <code className="rounded bg-muted px-2 py-1">
-                {affiliate.code}
-              </code>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Commission Rate</span>
-              <span>{(affiliate.commission_rate * 100).toFixed(0)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Status</span>
-              <Select
-                value={affiliate.status}
-                onValueChange={(value: "active" | "pending" | "inactive") => 
-                  updateAffiliateStatus(value)
+          <CardContent className="space-y-6">
+            <div className="flex flex-col items-center space-y-3">
+              <Avatar className="h-24 w-24">
+                {affiliate.profile_image ? (
+                  <AvatarImage src={affiliate.profile_image} alt={affiliate.name} />
+                ) : null}
+                <AvatarFallback>{affiliate.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              
+              <div className="text-center">
+                <h3 className="text-xl font-bold">{affiliate.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Joined {formatDate(affiliate.created_at)}
+                </p>
+              </div>
+              
+              <Badge
+                variant={
+                  affiliate.status === "approved" ? "success" :
+                  affiliate.status === "pending" ? "outline" : "destructive"
                 }
+                className="px-3 py-1"
               >
-                <SelectTrigger className="w-[110px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AFFILIATE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {affiliate.status.charAt(0).toUpperCase() + affiliate.status.slice(1)}
+              </Badge>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{affiliate.email}</span>
+              </div>
+              
+              {affiliate.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{affiliate.phone}</span>
+            </div>
+              )}
+              
+              {affiliate.website && (
+                <div className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  <a 
+                    href={affiliate.website} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {affiliate.website.replace(/^https?:\/\//, '')}
+                  </a>
+            </div>
+              )}
+            </div>
+            
+            {affiliate.bio && (
+              <div>
+                <h4 className="mb-1 font-medium">Bio</h4>
+                <p className="text-sm text-muted-foreground">{affiliate.bio}</p>
+            </div>
+            )}
+            
+            <div>
+              <h4 className="mb-1 font-medium">Payment Information</h4>
+              <p className="text-sm text-muted-foreground">
+                {affiliate.payment_method ? (
+                  <>
+                    <span className="capitalize">{affiliate.payment_method.replace('_', ' ')}</span>
+                    {affiliate.payment_details && (
+                      <>: {affiliate.payment_details}</>
+                    )}
+                  </>
+                ) : (
+                  "No payment method set"
+                )}
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Performance Stats */}
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Performance Metrics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total Sales</span>
-              <span className="font-medium">${affiliate.total_sales.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total Commission</span>
-              <span className="font-medium">${affiliate.total_commission.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Pending Commission</span>
-              <span className="font-medium">${pendingCommission.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Paid Commission</span>
-              <span className="font-medium">${paidCommission.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total Referrals</span>
-              <span className="font-medium">{affiliate.referrals.length}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Referral History</CardTitle>
+            <CardTitle>Performance</CardTitle>
+            <CardDescription>Affiliate sales and earnings</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Order Amount</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Order Status</TableHead>
-                  <TableHead>Payment Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {affiliate.referrals.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      No referrals found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  affiliate.referrals.map((referral) => (
-                    <TableRow key={referral.id}>
-                      <TableCell>{referral.order_id}</TableCell>
-                      <TableCell>
-                        {new Date(referral.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        ${referral.order.total_amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        ${referral.commission_amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            referral.order.status === "completed"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {referral.order.status.charAt(0).toUpperCase() + 
-                            referral.order.status.slice(1)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={referral.status}
-                          onValueChange={(value: "pending" | "paid" | "cancelled") => 
-                            updateReferralStatus(referral.id, value)
-                          }
-                        >
-                          <SelectTrigger className="w-[110px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {REFERRAL_STATUSES.map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Total Sales</span>
+                </div>
+                <p className="mt-2 text-2xl font-bold">{formatPrice(affiliate.total_sales)}</p>
+              </div>
+              
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center gap-2">
+                  <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Total Earnings</span>
+            </div>
+                <p className="mt-2 text-2xl font-bold">{formatPrice(affiliate.total_earnings)}</p>
+            </div>
+              
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Commission Rate</span>
+            </div>
+                <p className="mt-2 text-2xl font-bold">{affiliate.commission_rate}%</p>
+            </div>
+            </div>
+            
+            <Alert className="mt-6">
+              <AlertTitle className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                Active Affiliate
+              </AlertTitle>
+              <AlertDescription>
+                This affiliate is approved and actively generating sales. Their referral link is active.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Transactions Tab */}
+      <div className="mt-8">
+        <Tabs defaultValue="transactions">
+          <TabsList>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="payouts">Payouts</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="transactions" className="mt-4">
+            <Card>
+          <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+                <CardDescription>
+                  All sales generated by this affiliate
+                </CardDescription>
+          </CardHeader>
+          <CardContent>
+                {transactions.length > 0 ? (
+                  <DataTable columns={columns} data={transactions} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Clock className="h-12 w-12 text-muted-foreground/60" />
+                    <h3 className="mt-4 text-lg font-medium">No transactions yet</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      This affiliate hasn't generated any sales yet.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="payouts" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payout History</CardTitle>
+                <CardDescription>
+                  Commission payments to this affiliate
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <DollarSign className="h-12 w-12 text-muted-foreground/60" />
+                  <h3 className="mt-4 text-lg font-medium">Payouts Coming Soon</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    This feature is under development and will be available soon.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="settings" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Affiliate Settings</CardTitle>
+                <CardDescription>
+                  Manage affiliate account settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Edit className="h-12 w-12 text-muted-foreground/60" />
+                  <h3 className="mt-4 text-lg font-medium">Settings Coming Soon</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Advanced settings management will be available soon.
+                  </p>
+                </div>
+          </CardContent>
+        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

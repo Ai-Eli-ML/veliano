@@ -51,14 +51,60 @@ export function debounce<T extends (...args: any[]) => any>(
   }
 }
 
-export function formatPrice(price: number | string) {
-  return new Intl.NumberFormat("en-US", {
+/**
+ * Format a price from cents to a currency string
+ * @param price - Price in cents
+ * @param options - Formatter options
+ * @returns Formatted price string
+ */
+export function formatPrice(
+  price: number,
+  options: {
+    currency?: "USD" | "EUR" | "GBP" | "BDT"
+    notation?: Intl.NumberFormatOptions["notation"]
+  } = {}
+) {
+  const { currency = "USD", notation = "standard" } = options
+
+  const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-  }).format(Number(price))
+    currency,
+    notation,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  return formatter.format(price / 100)
 }
 
 export function absoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_SITE_URL}${path}`
+}
+
+/**
+ * Delay execution for the specified milliseconds
+ * @param ms - Milliseconds to delay
+ * @returns Promise that resolves after the delay
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Generate a random ID
+ * @returns Random ID string
+ */
+export function generateId(): string {
+  return Math.random().toString(36).substring(2, 10)
+}
+
+/**
+ * Truncate text to a specified length
+ * @param text - Text to truncate
+ * @param length - Maximum length
+ * @returns Truncated text
+ */
+export function truncateText(text: string, length: number): string {
+  if (text.length <= length) return text
+  return text.slice(0, length) + "..."
 }

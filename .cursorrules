@@ -1,0 +1,45 @@
+{
+  "context": {
+    "projectDescription": "Veliano Jewelry E-commerce application specializing in custom grillz, built with Next.js 15, TypeScript, and Supabase",
+    "priorityDocuments": [
+      ".cursor/project-plan.md",
+      ".cursor/DEPLOY.md",
+      ".cursor/rules/project-structure.mdc"
+    ],
+    "projectPhase": "Phase 1: Fix Current Issues (Priority 1)"
+  },
+  "instructions": [
+    "Always reference the project plan (.cursor/project-plan.md) for guidance on priorities and next steps",
+    "Focus on Phase 1 priorities: fixing 404 errors and Vercel deployment issues",
+    "When working with deployment code, automatically reference the DEPLOY.md guide",
+    "Follow the development standards in .cursor/rules/development-standards.mdc",
+    "Use the project structure guide when navigating or creating new files"
+  ],
+  "currentPriorities": [
+    "Fix 404 Errors by testing all navigation paths and implementing missing pages",
+    "Fix Vercel Deployment by verifying environment variables, checking logs, and testing deployment workflow",
+    "Prepare for Phase 2 (Supabase Integration) after Phase 1 is complete"
+  ],
+  "codeGeneration": {
+    "defaultTechStack": {
+      "frontend": "Next.js 15 App Router",
+      "styling": "shadcn/ui with Tailwind CSS",
+      "dataFetching": "Server Components and Server Actions",
+      "database": "Supabase with repository pattern (will be implemented in Phase 2)",
+      "authentication": "Supabase Auth with middleware protection (will be implemented in Phase 2)"
+    },
+    "bestPractices": [
+      "Implement Server Components by default",
+      "Use TypeScript for all code with explicit types",
+      "Follow functional component patterns",
+      "Prioritize performance optimization",
+      "Include proper error handling"
+    ]
+  },
+  "analysisMode": {
+    "autoReference": true,
+    "deepAnalysis": true,
+    "oneShot": true,
+    "followProjectPlan": true
+  }
+} 

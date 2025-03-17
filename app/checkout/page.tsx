@@ -1,30 +1,58 @@
+"use client"
 
-import type { Metadata } from "next"
 import { CheckoutForm } from "@/components/checkout/checkout-form"
 import { CheckoutSummary } from "@/components/checkout/checkout-summary"
-
-  title: "Checkout",
-  description: "Complete your purchase",
-}
+import { PageHeading } from "@/components/ui/page-heading"
+import { useCart } from "@/hooks/use-cart"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function CheckoutPage() {
-  return (
-    <div className="container py-10">
-      <h1 className="mb-6 text-3xl font-bold">Checkout</h1>
+  const { items, isLoading } = useCart()
+  const { user } = useAuth()
+  const router = useRouter()
+  
+  useEffect(() => {
+    // If cart is empty, redirect to cart page
+    if (!isLoading && (!items || items.length === 0)) {
+      router.push("/cart")
+    }
+  }, [items, isLoading, router])
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <CheckoutForm />
+  if (isLoading) {
+    return (
+      <div className="container max-w-screen-xl py-8">
+        <PageHeading 
+          title="Checkout" 
+          description="Complete your purchase"
+        />
+        <div className="mt-8 flex justify-center">
+          <p>Loading your cart...</p>
         </div>
+      </div>
+    )
+  }
 
-        <div className="lg:col-span-1">
-          <div className="sticky top-24 rounded-lg border p-6">
-            <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
-            <CheckoutSummary />
-          </div>
+  if (!items || items.length === 0) {
+    return null // Will redirect via useEffect
+  }
+
+  return (
+    <div className="container max-w-screen-xl py-8">
+      <PageHeading 
+        title="Checkout" 
+        description="Complete your purchase"
+      />
+      
+      <div className="mt-8 grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <CheckoutForm user={user} />
+        </div>
+        <div className="lg:col-span-2">
+          <CheckoutSummary items={items} />
         </div>
       </div>
     </div>
   )
 }
-

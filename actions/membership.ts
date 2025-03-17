@@ -3,7 +3,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 export async function getUserMembership() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {

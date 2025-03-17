@@ -8,7 +8,7 @@ import type { User } from "@supabase/supabase-js"
 import type { Database } from "@/types/supabase"
 import { createBrowserSupabaseClient } from "@/lib/supabase-client"
 
-type Profile = Database["public"]["Tables"]["users"]["Row"]
+type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 
 interface AuthState {
   user: User | null
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // First try to get the existing profile
       const { data, error } = await supabase
-        .from("users")
+        .from("profiles")
         .select("*")
         .eq("id", userId)
         .single()
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Create a new profile
       const { data: newProfile, error: insertError } = await supabase
-        .from("users")
+        .from("profiles")
         .insert({
           id: userId,
           email: email,
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user && data.user.email) {
         // Create user profile
         const { error: profileError } = await supabase
-          .from("users")
+          .from("profiles")
           .insert({
             id: data.user.id,
             email: data.user.email,

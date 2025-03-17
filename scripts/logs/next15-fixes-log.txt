@@ -1,0 +1,165 @@
+Next.js 15 Fixes Log - Sun Mar 16 16:31:15 EDT 2025
+=============================
+16:31:15 - Step 1: Separating metadata from client components...
+
+16:31:16 - Step 2: Fixing Promise params issues...
+
+16:31:17 - Step 3: Updating Supabase imports...
+
+16:31:31 - Step 4: Fixing metadata format...
+
+16:31:34 - Step 5: Fixing page metadata...
+
+16:31:34 - Step 6: Fixing use client directives...
+
+16:31:36 - Step 7: Fixing double awaits...
+16:31:36 - Fixing double awaits in ./app/account/orders/[id]/page.tsx
+
+16:31:36 - Step 8: Running type audit...
+
+16:31:59 - Step 9: Checking for and fixing metadata imports...
+
+16:32:00 - Step 10: Running TypeScript compiler to check for remaining issues...
+app/(auth)/account/forgot-password/page.tsx(8,14): error TS1005: ';' expected.
+app/(auth)/account/forgot-password/page.tsx(9,1): error TS1109: Expression expected.
+app/(auth)/account/login/page.tsx(8,14): error TS1005: ';' expected.
+app/(auth)/account/login/page.tsx(9,1): error TS1109: Expression expected.
+app/(auth)/account/register/page.tsx(8,14): error TS1005: ';' expected.
+app/(auth)/account/register/page.tsx(9,1): error TS1109: Expression expected.
+app/(auth)/account/reset-password/page.tsx(8,14): error TS1005: ';' expected.
+app/(auth)/account/reset-password/page.tsx(9,1): error TS1109: Expression expected.
+app/account/affiliate/page.tsx(19,14): error TS1005: ';' expected.
+app/account/affiliate/page.tsx(20,1): error TS1109: Expression expected.
+app/account/ambassador/page.tsx(19,14): error TS1005: ';' expected.
+app/account/ambassador/page.tsx(20,1): error TS1109: Expression expected.
+app/account/membership/page.tsx(15,14): error TS1005: ';' expected.
+app/account/membership/page.tsx(16,1): error TS1109: Expression expected.
+app/account/orders/page.tsx(16,14): error TS1005: ';' expected.
+app/account/orders/page.tsx(17,1): error TS1109: Expression expected.
+app/account/wishlist/page.tsx(7,14): error TS1005: ';' expected.
+app/account/wishlist/page.tsx(8,1): error TS1109: Expression expected.
+app/cart/page.tsx(10,14): error TS1005: ';' expected.
+app/cart/page.tsx(11,1): error TS1109: Expression expected.
+app/products/page.tsx(14,14): error TS1005: ';' expected.
+app/products/page.tsx(15,1): error TS1109: Expression expected.
+app/search/page.tsx(17,14): error TS1005: ';' expected.
+app/search/page.tsx(18,1): error TS1109: Expression expected.
+
+16:32:14 - Step 11: Running build to verify fixes...
+
+> veliano@0.1.0 build
+> next build
+
+ ⚠ experimental.turbo.loaders is now deprecated. Please update next.config.js to use experimental.turbo.rules as soon as possible.
+The new option is similar, but the key should be a glob instead of an extension.
+Example: loaders: { ".mdx": ["mdx-loader"] } -> rules: { "*.mdx": ["mdx-loader"] }" }
+See more info here https://nextjs.org/docs/app/api-reference/next-config-js/turbo
+   ▲ Next.js 15.2.2
+   - Environments: .env.local, .env.production, .env
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · clientTraceMetadata
+     ✓ memoryBasedWorkersCount
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./app/account/orders/[id]/page.tsx
+Error:   [31mx[0m You are attempting to export "generateMetadata" from a component marked with "use client", which is disallowed. Either remove the export, or the "use client" directive. Read more: https://
+  [31m|[0m nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m 
+  [31m|[0m 
+    ,-[[36;1;4m/Users/eli/Dev-Enviorment/veliano-hosting/veliano/app/account/orders/[id]/page.tsx[0m:70:1]
+ [2m67[0m |   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+ [2m68[0m | }
+ [2m69[0m | 
+ [2m70[0m | export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    : [35;1m                      ^^^^^^^^^^^^^^^^[0m
+ [2m71[0m |   const { id } = await params
+ [2m72[0m |   return {
+ [2m73[0m |     title: `Order ${id}`,
+    `----
+
+Import trace for requested module:
+./app/account/orders/[id]/page.tsx
+
+./app/account/verify/page.tsx
+Module parse failed: Identifier 'createClient' has already been declared (8:9)
+File was processed with these loaders:
+ * ./node_modules/@sentry/nextjs/build/cjs/config/loaders/wrappingLoader.js
+ * ./node_modules/next/dist/build/webpack/loaders/next-flight-client-module-loader.js
+ * ./node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+You may need an additional loader to handle the result of these loaders.
+| import { Button } from "@/components/ui/button";
+| import { Loader2, CheckCircle, XCircle } from "__barrel_optimize__?names=CheckCircle,Loader2,XCircle!=!lucide-react";
+> import { createClient } from "@/utils/supabase/client";
+| export default function VerifyPage() {
+|     const router = useRouter();
+
+Import trace for requested module:
+./app/account/verify/page.tsx
+
+./app/layout.tsx
+Error:   [31mx[0m You are attempting to export "metadata" from a component marked with "use client", which is disallowed. Either remove the export, or the "use client" directive. Read more: https://nextjs.org/
+  [31m|[0m docs/app/api-reference/directives/use-client
+  [31m|[0m 
+  [31m|[0m 
+    ,-[[36;1;4m/Users/eli/Dev-Enviorment/veliano-hosting/veliano/app/layout.tsx[0m:11:1]
+ [2m 8[0m | 
+ [2m 9[0m | const inter = Inter({ subsets: ["latin"] })
+ [2m10[0m | 
+ [2m11[0m | export const metadata: Metadata = {
+    : [35;1m             ^^^^^^^^[0m
+ [2m12[0m |   title: {
+ [2m13[0m |     default: "Custom Gold Grillz | Premium Gold Teeth & Jewelry",
+ [2m14[0m |     template: "%s | Custom Gold Grillz",
+    `----
+
+Import trace for requested module:
+./app/layout.tsx
+
+./app/products/[category]/page.tsx
+Error:   [31mx[0m You are attempting to export "generateMetadata" from a component marked with "use client", which is disallowed. Either remove the export, or the "use client" directive. Read more: https://
+  [31m|[0m nextjs.org/docs/app/api-reference/directives/use-client
+  [31m|[0m 
+  [31m|[0m 
+    ,-[[36;1;4m/Users/eli/Dev-Enviorment/veliano-hosting/veliano/app/products/[category]/page.tsx[0m:20:1]
+ [2m17[0m |   searchParams: { [key: string]: string | string[] | undefined }
+ [2m18[0m | }
+ [2m19[0m | 
+ [2m20[0m | export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+    : [35;1m                      ^^^^^^^^^^^^^^^^[0m
+ [2m21[0m |   const category = await getCategoryBySlug(params.category)
+ [2m22[0m | 
+ [2m23[0m |   if (!category) {
+    `----
+
+Import trace for requested module:
+./app/products/[category]/page.tsx
+
+./app/(auth)/account/forgot-password/page.tsx
+Error:   [31mx[0m Expected ';', '}' or <eof>
+    ,-[[36;1;4m/Users/eli/Dev-Enviorment/veliano-hosting/veliano/app/(auth)/account/forgot-password/page.tsx[0m:7:1]
+ [2m 4[0m |     import Link from "next/link"
+ [2m 5[0m |     import ForgotPasswordForm from "@/components/auth/forgot-password-form"
+ [2m 6[0m |     
+ [2m 7[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m   title: "Forgot Password",
+ [2m 8[0m | [35;1m|[0m[35;1m-[0m[35;1m>[0m   description: "Reset your Custom Gold Grillz account password",
+    : [35;1m`[0m[35;1m---[0m[33;1m             ^[0m
+    : [35;1m`[0m[35;1m---[0m[35;1m-[0m [35;1mThis is the expression part of an expression statement[0m
+ [2m 9[0m |     }
+ [2m10[0m |     
+ [2m11[0m |     export default function ForgotPasswordPage() {
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/(auth)/account/forgot-password/page.tsx
+
+
+> Build failed because of webpack errors
+16:33:05 - Build completed with errors. Please check the log file for details.
+16:33:05 - All automated fixes complete. Please review the log file: next15-fixes-log.txt
+16:33:05 - Note: Some issues may still require manual fixes.

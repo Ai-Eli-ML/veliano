@@ -1,0 +1,114 @@
+---
+description: Guide for using utility scripts
+globs: **/scripts/**
+alwaysApply: false
+---
+ # Utility Scripts Usage Guide
+
+This document outlines how to use the utility scripts in the scripts directory.
+
+## Location and Organization
+
+All utility scripts are located in the `scripts/` directory and are organized as follows:
+
+- `scripts/` - Root scripts directory
+  - `fix-*.sh` - Scripts for fixing specific code issues
+  - `update-*.sh` - Scripts for updating code patterns
+  - `deploy.sh` - Deployment script
+  - `pre-deploy-check.sh` - Pre-deployment verification
+  - `api-performance-monitor.js` - API performance monitoring
+
+- `scripts/logs/` - Logs from script executions
+  - `*-fixes-log.txt` - Logs detailing fixes applied by scripts
+
+## Core Fix Scripts
+
+### Fixing Next.js 15 Issues
+
+```bash
+# Fix common Next.js 15 issues
+./scripts/fix-next15-issues.sh
+
+# Fix specific async/await patterns
+./scripts/fix-double-awaits.sh
+
+# Fix API Routes
+./scripts/fix-server-imports.sh
+```
+
+### Code Style and Import Fixes
+
+```bash
+# Fix import syntax
+./scripts/fix-import-syntax.sh
+
+# Fix multiline imports
+./scripts/fix-multiline-imports.sh
+
+# Fix duplicate imports
+./scripts/fix-duplicate-imports.sh
+
+# Fix unused imports
+./scripts/fix-unused-imports.sh
+```
+
+### Metadata and Component Fixes
+
+```bash
+# Fix metadata exports
+./scripts/fix-metadata-exports.sh
+
+# Fix metadata files
+./scripts/fix-metadata-files.sh
+
+# Fix client metadata
+./scripts/fix-client-metadata.sh
+
+# Fix "use client" syntax
+./scripts/fix-use-client-syntax.sh
+```
+
+## Deployment Scripts
+
+```bash
+# Run pre-deployment checks
+./scripts/pre-deploy-check.sh
+
+# Deploy the application
+./scripts/deploy.sh
+```
+
+## Performance Monitoring
+
+```bash
+# Monitor API performance
+node scripts/api-performance-monitor.js
+```
+
+## Creating New Scripts
+
+When creating new scripts:
+
+1. Place them in the `scripts/` directory
+2. Use appropriate naming conventions:
+   - `fix-*.sh` for code fixes
+   - `update-*.sh` for code updates
+   - `*-check.sh` for verification scripts
+3. Make the script executable with `chmod +x scripts/your-script.sh`
+4. Add comments explaining the purpose of the script
+5. Include logging to `scripts/logs/` directory
+
+## Viewing Logs
+
+To view logs from script executions:
+
+```bash
+# View logs for specific fixes
+cat scripts/logs/import-syntax-fixes-log.txt
+
+# Search logs for specific patterns
+grep "failed" scripts/logs/*.txt
+
+# Monitor logs in real-time during script execution
+tail -f scripts/logs/current-fix-log.txt
+```

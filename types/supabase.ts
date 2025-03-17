@@ -9,6 +9,102 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      products: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          price: number
+          category_id: string | null
+          stock_quantity: number
+          is_available: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          price: number
+          category_id?: string | null
+          stock_quantity?: number
+          is_available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          price?: number
+          category_id?: string | null
+          stock_quantity?: number
+          is_available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      product_images: {
+        Row: {
+          id: string
+          product_id: string
+          url: string
+          alt_text: string | null
+          is_primary: boolean
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          url: string
+          alt_text?: string | null
+          is_primary?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          url?: string
+          alt_text?: string | null
+          is_primary?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
       affiliates: {
         Row: {
           id: string
@@ -220,60 +316,6 @@ export interface Database {
           }
         ]
       }
-      products: {
-        Row: {
-          id: string
-          name: string
-          description: string | null
-          price: number
-          compare_at_price: number | null
-          cost_price: number | null
-          sku: string | null
-          barcode: string | null
-          inventory_quantity: number | null
-          weight: number | null
-          weight_unit: string | null
-          featured: boolean | null
-          has_variants: boolean | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string | null
-          price: number
-          compare_at_price?: number | null
-          cost_price?: number | null
-          sku?: string | null
-          barcode?: string | null
-          inventory_quantity?: number | null
-          weight?: number | null
-          weight_unit?: string | null
-          featured?: boolean | null
-          has_variants?: boolean | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string | null
-          price?: number
-          compare_at_price?: number | null
-          cost_price?: number | null
-          sku?: string | null
-          barcode?: string | null
-          inventory_quantity?: number | null
-          weight?: number | null
-          weight_unit?: string | null
-          featured?: boolean | null
-          has_variants?: boolean | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       product_variants: {
         Row: {
           id: string
@@ -457,6 +499,42 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      performance_metrics: {
+        Row: {
+          id: string
+          page: string
+          load_time: number
+          ttfb: number
+          fcp: number
+          lcp: number
+          cls: number
+          fid: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          page: string
+          load_time: number
+          ttfb: number
+          fcp?: number
+          lcp?: number
+          cls?: number
+          fid?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          page?: string
+          load_time?: number
+          ttfb?: number
+          fcp?: number
+          lcp?: number
+          cls?: number
+          fid?: number
+          created_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {}

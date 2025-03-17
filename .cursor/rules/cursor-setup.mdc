@@ -1,0 +1,95 @@
+---
+description: Guide for setting up and using Cursor with the project
+globs: **/*.mdc", "**/*.md", ".cursorignore", "cursor.json
+alwaysApply: false
+---
+ # Cursor Setup and Usage Guide
+
+This document outlines how to set up and use Cursor with the organized project structure.
+
+## Key Configuration Files
+
+- `.cursor/` - Directory containing project documentation and rules
+- `cursor.json` - Cursor configuration file
+- `.cursorignore` - Files to ignore in Cursor
+
+## Rule Files
+
+All rule files are located in the `.cursor/rules/` directory:
+
+- `project-structure.mdc` - Project structure reference
+- `development-standards.mdc` - Development standards and best practices
+- `admin-portal-reference.mdc` - Admin portal reference guide
+- `database-schema-reference.mdc` - Database schema reference
+- `scripts-usage-guide.mdc` - Utility scripts usage guide
+
+## Using Documentation in Conversations
+
+When working with AI assistants in Cursor, you can reference documentation files using the @ symbol:
+
+```
+@admin-portal-guide.md
+@supabase-integration-guide.md
+@project-plan.md
+```
+
+This will include the referenced file in the conversation context for the AI assistant.
+
+## Rules Best Practices
+
+1. Use the `.mdc` file extension for rule files
+2. Include a YAML frontmatter with description and globs
+3. Use appropriate glob patterns to target specific files
+4. Organize rules by functional area
+
+Example rule structure:
+
+```
+---
+description: Description of the rule
+globs: ["**/pattern/**"]
+---
+
+# Rule Title
+
+Content of the rule...
+```
+
+## Cursor Settings
+
+Our project has the following Cursor settings in `cursor.json`:
+
+```json
+{
+  "cursorSettings": {
+    "formatOnSave": true,
+    "lintOnSave": true,
+    "indentSize": 2,
+    "tabSize": 2,
+    "insertSpaces": true,
+    "detectIndentation": true,
+    "trimTrailingWhitespace": true,
+    "insertFinalNewline": true
+  }
+}
+```
+
+## Adding New Documentation
+
+When adding new documentation:
+
+1. Place general project documentation in `.cursor/`
+2. Place rule files in `.cursor/rules/`
+3. Place completed/outdated documentation in `.cursor/completed-tasks/`
+4. Update the project structure reference with new files
+
+## Ignoring Files
+
+If you need to exclude files from Cursor, add them to `.cursorignore`:
+
+```
+# Example .cursorignore entries
+node_modules/
+.next/
+.cache/
+```

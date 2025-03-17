@@ -60,4 +60,46 @@ export interface DashboardStats {
   totalCustomers: number
   totalProducts: number
   recentOrders: OrderWithRelations[]
+}
+
+export interface ProductOption {
+  name: string
+  value: string
+}
+
+export interface CartItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  image?: string
+  options?: ProductOption[]
+}
+
+export interface User {
+  id: string
+  email: string
+  name?: string
+  avatar_url?: string
+}
+
+export interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  images: string[]
+  category: string
+  stock?: number
+  sku?: string
+  options?: {
+    name: string
+    values: string[]
+  }[]
+  rating?: number
+  reviews?: number
+  isNew?: boolean
+  isFeatured?: boolean
+  createdAt?: string
+  updatedAt?: string
 } 

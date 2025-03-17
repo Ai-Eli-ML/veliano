@@ -15,54 +15,55 @@ import { ecommerceEvent } from "@/lib/analytics"
 import { Loader2, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { User } from "@supabase/supabase-js"
+import { CheckoutFormData } from "@/types/cart"
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  address: z.string().min(5, {
-    message: "Address must be at least 5 characters.",
-  }),
-  city: z.string().min(2, {
-    message: "City must be at least 2 characters.",
-  }),
-  state: z.string().length(2, {
-    message: "Please enter a valid state code (e.g., NY).",
-  }),
-  postalCode: z.string().regex(/^\d{5}(-\d{4})?$/, {
-    message: "Please enter a valid postal code (e.g., 12345 or 12345-6789).",
-  }),
-  country: z.string().min(2, {
-    message: "Country must be at least 2 characters.",
-  }),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  streetAddress: z.string().min(5, "Street address is required"),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  zipCode: z.string().min(5, "Zip code is required"),
+  country: z.string().min(2, "Country is required"),
+  paymentMethod: z.enum(["creditCard", "paypal"]),
   notes: z.string().optional(),
 })
 
-function CheckoutFormContent() {
+type FormValues = z.infer<typeof formSchema>
+
+interface CheckoutFormProps {
+  user: User | null
+}
+
+function CheckoutFormContent({ user }: CheckoutFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { items, subtotal, clearCart } = useCart()
   const { toast } = useToast()
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      address: "",
+      firstName: "",
+      lastName: "",
+      email: user?.email || "",
+      phone: "",
+      streetAddress: "",
       city: "",
       state: "",
-      postalCode: "",
+      zipCode: "",
       country: "United States",
+      paymentMethod: "creditCard",
       notes: "",
     },
   })
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(data: FormValues) {
     if (items.length === 0) {
       toast({
         variant: "destructive",
@@ -90,15 +91,15 @@ function CheckoutFormContent() {
 
       const session = await createCheckoutSession({
         lineItems,
-        customerEmail: values.email,
+        customerEmail: data.email,
         metadata: {
-          name: values.name,
-          address: values.address,
-          city: values.city,
-          state: values.state,
-          postal_code: values.postalCode,
-          country: values.country,
-          notes: values.notes || "",
+          name: `${data.firstName} ${data.lastName}`,
+          address: data.streetAddress,
+          city: data.city,
+          state: data.state,
+          postal_code: data.zipCode,
+          country: data.country,
+          notes: data.notes || "",
         },
       })
 
@@ -126,32 +127,53 @@ function CheckoutFormContent() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+    <div className="space-y-6 rounded-lg border p-6">
+      <div>
+        <h3 className="text-lg font-medium">Shipping Information</h3>
+        <p className="text-sm text-gray-500">Please enter your shipping details</p>
+      </div>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Contact Information</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
-              name="name"
+              name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>First Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="John" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="email"
@@ -159,23 +181,34 @@ function CheckoutFormContent() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john@example.com" {...field} />
+                    <Input type="email" placeholder="your@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(123) 456-7890" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Shipping Address</h3>
+          
           <FormField
             control={form.control}
-            name="address"
+            name="streetAddress"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Street Address</FormLabel>
                 <FormControl>
                   <Input placeholder="123 Main St" {...field} />
                 </FormControl>
@@ -183,7 +216,8 @@ function CheckoutFormContent() {
               </FormItem>
             )}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <FormField
               control={form.control}
               name="city"
@@ -197,25 +231,27 @@ function CheckoutFormContent() {
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State Code</FormLabel>
+                  <FormLabel>State</FormLabel>
                   <FormControl>
-                    <Input placeholder="NY" maxLength={2} {...field} />
+                    <Input placeholder="NY" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
-              name="postalCode"
+              name="zipCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Postal Code</FormLabel>
+                  <FormLabel>ZIP Code</FormLabel>
                   <FormControl>
                     <Input placeholder="10001" {...field} />
                   </FormControl>
@@ -223,57 +259,93 @@ function CheckoutFormContent() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Country</FormLabel>
-                  <FormControl>
-                    <Input placeholder="United States" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
-        </div>
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Order Notes (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Any special instructions for your order..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full metallic-button" disabled={isSubmitting || items.length === 0}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
-            </>
-          ) : (
-            "Proceed to Payment"
-          )}
-        </Button>
-
-        {items.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center">
-            Your cart is empty. Please add items before proceeding to checkout.
-          </p>
-        )}
-      </form>
-    </Form>
+          
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country</FormLabel>
+                <FormControl>
+                  <Input placeholder="United States" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div>
+            <h3 className="text-lg font-medium">Payment Method</h3>
+            <p className="text-sm text-gray-500">Select your preferred payment method</p>
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="paymentMethod"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="creditCard" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Credit Card
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="paypal" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        PayPal
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Order Notes (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Special delivery instructions or additional information" 
+                    className="resize-none"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processing..." : "Complete Order"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   )
 }
 
-export function CheckoutForm() {
+export function CheckoutForm({ user }: CheckoutFormProps) {
   return (
     <Suspense fallback={
       <div className="space-y-6 animate-pulse">
@@ -305,7 +377,7 @@ export function CheckoutForm() {
         <div className="h-10 w-full bg-muted rounded" />
       </div>
     }>
-      <CheckoutFormContent />
+      <CheckoutFormContent user={user} />
     </Suspense>
   )
 }

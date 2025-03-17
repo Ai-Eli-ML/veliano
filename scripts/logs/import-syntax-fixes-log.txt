@@ -1,0 +1,40 @@
+Import Syntax Fixes Log - Sun Mar 16 16:42:37 EDT 2025
+=================================
+16:42:37 - Starting import syntax fixes...
+16:42:38 - Found broken import block in: ./app/faq/page.tsx
+16:42:38 - Fixed broken import block in: ./app/faq/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/customers/[id]/page.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/customers/[id]/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/customers/page.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/customers/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/products/page.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/products/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/layout.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/layout.tsx
+16:42:38 - Found broken import block in: ./app/admin/affiliates/page.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/affiliates/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/orders/[id]/page.tsx
+16:42:38 - Fixed broken import block in: ./app/admin/orders/[id]/page.tsx
+16:42:38 - Found broken import block in: ./app/admin/orders/page.tsx
+16:42:39 - Fixed broken import block in: ./app/admin/orders/page.tsx
+16:42:39 - Found broken import block in: ./app/admin/monitoring/page.tsx
+16:42:39 - Fixed broken import block in: ./app/admin/monitoring/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/affiliates/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/affiliates/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/customers/[id]/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/customers/[id]/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/customers/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/customers/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/layout.tsx
+16:42:40 - Fixed admin page: ./app/admin/layout.tsx
+16:42:40 - Fixing admin page: ./app/admin/monitoring/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/monitoring/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/orders/[id]/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/orders/[id]/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/orders/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/orders/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/products/[id]/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/products/[id]/page.tsx
+16:42:40 - Fixing admin page: ./app/admin/products/page.tsx
+16:42:40 - Fixed admin page: ./app/admin/products/page.tsx
+16:42:40 - Completed import syntax fixes

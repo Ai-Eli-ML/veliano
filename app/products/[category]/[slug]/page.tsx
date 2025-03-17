@@ -1,82 +1,96 @@
+import Image from "next/image"
+import Link from "next/link"
+import { Star } from "lucide-react"
 
-import type { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { getProductBySlug } from "@/lib/products"
-import ProductGallery from "@/components/products/product-gallery"
-import ProductInfo from "@/components/products/product-info"
-import ProductTabs from "@/components/products/product-tabs"
-import RelatedProducts from "@/components/products/related-products"
-import { Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 
-interface ProductPageProps {
-  params: {
-    category: string
-    slug: string
+export default function ProductPage({
+  params,
+}: {
+  params: { category: string; slug: string }
+}) {
+  const { category, slug } = params
+  
+  // This would be a database or API call in a real app
+  const product = {
+    name: "Diamond Eternity Ring",
+    price: 3999.99,
+    description: "This stunning diamond eternity ring features 2 carats of brilliant-cut diamonds set in 18k white gold.",
+    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1470&auto=format&fit=crop",
+    rating: 4.9,
+    reviewCount: 42
   }
-}
-
-export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductBySlug(params.slug)
-
-  if (!product) {
-    return {
-      title: "Product Not Found",
-      description: "The requested product could not be found",
-    }
-  }
-
-  return {
-    title: product.name,
-    description: product.description || `${product.name} - Custom Gold Grillz`,
-    openGraph: {
-      images: product.images.length > 0 ? [product.images[0].url] : [],
-    },
-  }
-}
-
-export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductBySlug(params.slug)
-
-  if (!product) {
-    notFound()
-  }
-
-  // Check if product belongs to the specified category
-  const categoryMatch = product.categories.some((cat) => cat.slug === params.category)
-
-  if (!categoryMatch) {
-    notFound()
-  }
-
-  // Get the primary category for related products
-  const primaryCategory = product.categories[0]
-
+  
   return (
-    <div className="container py-10">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {/* Product Gallery */}
-        <Suspense fallback={<Skeleton className="aspect-square h-full w-full" />}>
-          <ProductGallery images={product.images} productName={product.name} />
-        </Suspense>
-
-        {/* Product Info */}
-        <ProductInfo product={product} />
+    <div className="container px-4 py-10 mx-auto">
+      <div className="flex items-center space-x-2 text-sm mb-6">
+        <Link href="/" className="text-muted-foreground hover:text-foreground">
+          Home
+        </Link>
+        <span className="text-muted-foreground">/</span>
+        <Link href="/products" className="text-muted-foreground hover:text-foreground">
+          Products
+        </Link>
+        <span className="text-muted-foreground">/</span>
+        <Link 
+          href={`/products/${category}`} 
+          className="text-muted-foreground hover:text-foreground capitalize"
+        >
+          {category}
+        </Link>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-foreground font-medium">{product.name}</span>
       </div>
-
-      {/* Product Tabs (Description, Specifications, Reviews) */}
-      <div className="mt-12">
-        <ProductTabs product={product} />
-      </div>
-
-      {/* Related Products */}
-      <div className="mt-16">
-        <h2 className="mb-6 text-2xl font-bold">You May Also Like</h2>
-        <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-          <RelatedProducts productId={product.id} categoryId={primaryCategory.id} />
-        </Suspense>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="relative rounded-lg overflow-hidden bg-muted">
+          <AspectRatio ratio={1/1}>
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover"
+              priority
+            />
+          </AspectRatio>
+        </div>
+        
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <div className="flex items-center mt-2">
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.floor(product.rating)
+                        ? "fill-primary text-primary"
+                        : "fill-muted text-muted"
+                    }`}
+                  />
+                ))}
+                <span className="ml-2 text-sm text-muted-foreground">
+                  {product.rating} ({product.reviewCount} reviews)
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <span className="text-3xl font-bold">
+              ${product.price.toLocaleString()}
+            </span>
+          </div>
+          
+          <p className="text-muted-foreground">{product.description}</p>
+          
+          <Button size="lg" className="w-full">
+            Add to Cart
+          </Button>
+        </div>
       </div>
     </div>
   )
 }
-

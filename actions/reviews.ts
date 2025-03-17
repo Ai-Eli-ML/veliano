@@ -13,7 +13,7 @@ const reviewSchema = z.object({
 })
 
 export async function submitReview(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -122,7 +122,7 @@ export async function submitReview(formData: FormData) {
 }
 
 export async function markReviewHelpful(reviewId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -172,7 +172,7 @@ export async function markReviewHelpful(reviewId: string) {
 }
 
 export async function deleteReview(reviewId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -262,7 +262,7 @@ export async function deleteReview(reviewId: string) {
 // }
 
 export async function getProductReviews(productId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   try {
     // Get reviews - mock data for now

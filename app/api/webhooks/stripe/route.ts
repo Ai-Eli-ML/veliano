@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { getStripe } from "@/lib/stripe"
 import type Stripe from "stripe"
 
@@ -12,7 +12,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 export async function POST(req: Request) {
   try {
     const body = await req.text()
-    const signature = headers().get("stripe-signature")
+    const headersList = await headers()
+    const signature = headersList.get("stripe-signature")
 
     if (!signature || !webhookSecret) {
       return new NextResponse("Webhook signature or secret missing", { status: 400 })
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
       return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     // Handle the event
     switch (event.type) {

@@ -15,7 +15,7 @@ const applySchema = z.object({
 })
 
 export async function applyForAmbassadorProgram(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -103,7 +103,7 @@ export async function applyForAmbassadorProgram(formData: FormData) {
 }
 
 export async function getAmbassadorProfile() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -145,7 +145,7 @@ export async function getAmbassadorProfile() {
 }
 
 export async function getAmbassadorStats() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {
@@ -264,7 +264,7 @@ export async function getAmbassadorStats() {
 }
 
 export async function updateAmbassadorProfile(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Check if user is authenticated
   const {

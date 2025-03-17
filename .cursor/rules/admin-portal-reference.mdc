@@ -1,0 +1,58 @@
+---
+description: Admin Portal Reference Guide
+globs: **/admin/**
+alwaysApply: false
+---
+ # Admin Portal Reference Guide
+
+This document outlines the structure, components, and development guidelines for the Veliano Admin Portal.
+
+## Key Documentation
+
+- `.cursor/admin-portal-guide.md` - Comprehensive guide for the admin portal
+- `.cursor/README-ADMIN-PORTAL.md` - Technical README for the admin portal
+- `docs/phase1-implementation.md` - Implementation roadmap with admin portal details
+
+## Admin Portal Structure
+
+- `app/admin/` - Root of the admin portal
+  - `layout.tsx` - Main layout with sidebar navigation
+  - `page.tsx` - Dashboard/home page
+  - `custom-orders/` - Custom orders management
+    - `page.tsx` - List of all custom orders
+    - `[id]/page.tsx` - Individual order details
+    - `new/page.tsx` - New order creation form
+
+## UI Components
+
+- `components/ui/` - Shared UI components used in the admin portal
+  - `calendar.tsx` - Calendar component for date selection
+  - `date-picker.tsx` - Date picker with calendar integration
+  - `popover.tsx` - Popover component for UI elements
+
+## Custom Order Workflow
+
+The custom grillz orders follow this workflow:
+
+1. **Order Creation** - Created via the new order form
+2. **Impression Kit** - Kit sent, received, and validated
+3. **Design Phase** - 3D modeling and design approval
+4. **Manufacturing** - Production of the custom item
+5. **Shipping** - Shipping and delivery
+6. **Follow-up** - Post-purchase service
+
+## Data Management
+
+- Customer data is stored in the `customers` table
+- Order data is stored in the `custom_orders` table
+- Order items are stored in the `custom_order_items` table
+- Timeline events are stored in the `order_timeline` table
+
+## Development Guidelines
+
+- Use TypeScript for all components
+- Implement form validation with React Hook Form and Zod
+- Use shadcn/ui components for UI elements
+- Implement proper loading states for async operations
+- Follow the repository pattern for data access
+- Use Server Actions for data mutations
