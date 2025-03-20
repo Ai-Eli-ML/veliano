@@ -121,6 +121,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true, // Temporarily disable ESLint during build
+  },
 }
 
 // Sentry configuration

@@ -16,10 +16,12 @@ export function onRequestError({
     tags: {
       runtime: 'edge',
     },
-    request: {
-      url: request.url,
-      method: request.method,
-      headers: Object.fromEntries(request.headers),
-    },
+    extra: {
+      request: {
+        url: request.url,
+        method: request.method,
+        headers: Object.fromEntries(request.headers),
+      }
+    }
   });
 } 
