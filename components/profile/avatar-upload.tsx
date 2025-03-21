@@ -1,11 +1,12 @@
 "use client"
-import { useSupabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import type { Database } from '@/types/supabase'
 
 export function AvatarUpload({ userId }: { userId: string }) {
   const { toast } = useToast()
-  const supabase = useSupabase()
+  const supabase = createClientComponentClient<Database>()
 
   const handleUpload = async (file: File) => {
     try {
@@ -28,10 +29,10 @@ export function AvatarUpload({ userId }: { userId: string }) {
       toast({ title: "Avatar updated successfully" })
       return data.path
 
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
         variant: "destructive"
       })
       throw error
@@ -54,4 +55,4 @@ export function AvatarUpload({ userId }: { userId: string }) {
       </Button>
     </div>
   )
-} 
+}
