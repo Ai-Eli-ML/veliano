@@ -52,7 +52,7 @@ export const verifyAdminAccess = async (userId: string) => {
     .single()
 
   if (error) {
-    handleSupabaseAdminError(new Error(`Admin verification failed: ${error.message}`))
+    handleSupabaseAdminError(error)
   }
   
   if (!data?.is_admin) {
@@ -66,4 +66,11 @@ export const adminOnlyQuery = <T>(table: string, userId: string) => {
     .from(table)
     .select('*')
     .eq('user_id', userId)
-} 
+}
+
+export const createAdminQuery = <T>(table: string) => {
+  return supabaseAdmin
+    .from(table)
+    .select('*')
+    .returns<T>()
+}
