@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
-import { supabaseAdmin } from '../supabase'
+import type { Database } from '@/types/supabase'
 import { Profile } from '@/types/supabase'
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -10,15 +9,15 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
 }
 
-// Create a Supabase client with admin privileges for server-side operations
+// Create a single admin client instance
 export const supabaseAdmin = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     auth: {
       autoRefreshToken: false,
-      persistSession: false,
-    },
+      persistSession: false
+    }
   }
 )
 
@@ -57,14 +56,10 @@ export const verifyAdminAccess = async (userId: string): Promise<boolean> => {
       .eq('id', userId)
       .single()
 
-    if (error) {
-      console.error('Admin verification failed:', error.message)
-      return false
-    }
-    
+    if (error) throw error
     return !!data?.is_admin
   } catch (error) {
-    console.error('Error in admin verification:', error)
+    console.error('Admin verification failed:', error)
     return false
   }
 }
@@ -74,15 +69,13 @@ export const verifyAdminAccess = async (userId: string): Promise<boolean> => {
  * @throws Error if user lacks admin privileges
  */
 export const adminAction = async <T>(
-  userId: string, 
+  userId: string,
   action: () => Promise<T>
 ): Promise<T> => {
   const isAdmin = await verifyAdminAccess(userId)
-  
   if (!isAdmin) {
-    throw new Error('Unauthorized: Admin privileges required')
+    throw new Error('Unauthorized: Administrator privileges required')
   }
-  
   return action()
 }
 
@@ -107,17 +100,18 @@ export const createAdminQuery = <T>(table: string) => {
  * Logs admin actions for audit purposes
  */
 export const logAdminAction = async (
-  userId: string,
+  adminId: string,
   action: string,
-  details: any
+  details: Record<string, unknown>
 ) => {
   try {
     await supabaseAdmin
-      .from('admin_logs')
+      .from('admin_audit_logs')
       .insert({
-        user_id: userId,
+        admin_id: adminId,
         action,
         details,
+        created_at: new Date().toISOString()
       })
   } catch (error) {
     console.error('Failed to log admin action:', error)
