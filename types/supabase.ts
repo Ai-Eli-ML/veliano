@@ -394,48 +394,31 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          full_name: string
-          email: string
-          phone: string | null
-          address: string | null
-          bio: string | null
-          website: string | null
-          avatar_url: string | null
-          created_at: string
           updated_at: string
+          username: string
+          full_name: string
+          avatar_url: string
+          website: string
+          is_admin: boolean
         }
         Insert: {
           id: string
-          full_name: string
-          email: string
-          phone?: string | null
-          address?: string | null
-          bio?: string | null
-          website?: string | null
-          avatar_url?: string | null
-          created_at?: string
           updated_at?: string
+          username: string
+          full_name?: string
+          avatar_url?: string
+          website?: string
+          is_admin?: boolean
         }
         Update: {
           id?: string
-          full_name?: string
-          email?: string
-          phone?: string | null
-          address?: string | null
-          bio?: string | null
-          website?: string | null
-          avatar_url?: string | null
-          created_at?: string
           updated_at?: string
+          username?: string
+          full_name?: string
+          avatar_url?: string
+          website?: string
+          is_admin?: boolean
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
       }
       referrals: {
         Row: {
@@ -556,10 +539,47 @@ export interface Database {
         }
         Relationships: []
       }
+      addresses: {
+        Row: {
+          id: string
+          user_id: string
+          // ... other fields
+        }
+      }
+      user_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          preferences: {
+            marketingEmails: boolean
+            orderUpdates: boolean
+            newProductAlerts: boolean
+            saleAlerts: boolean
+            darkMode: boolean
+          }
+          created_at: string
+          updated_at: string
+        }
+      }
+      admin_audit_logs: {
+        Row: {
+          id: string
+          admin_id: string
+          action: string
+          details: Json
+          created_at: string
+        }
+      }
     }
-    Views: {}
-    Functions: {}
-    Enums: {}
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
     CompositeTypes: {}
   }
 }
