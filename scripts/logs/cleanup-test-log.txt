@@ -1,0 +1,9 @@
+🧹 Starting cleanup...
+
+🗑️ Cleaning up test products...
+✅ Test products deleted
+
+🗑️ Cleaning up test categories...
+✅ Test categories deleted
+
+✨ Cleanup completed successfully!

@@ -1,0 +1,30 @@
+🔍 Starting schema test...
+
+📁 Creating parent category...
+✅ Parent category created: 13fc466a-8ac7-43c1-a9d5-6a4d29ffd67a
+
+📁 Creating child category...
+✅ Child category created: 83ad8e60-b16e-4458-8bbc-099db3672bee
+
+📦 Creating product...
+✅ Product created: 82e6d08f-a95d-4c90-936e-406ba1890c53
+
+🔄 Creating product variants...
+✅ Product variant created: 5c6789f3-bf0b-48f5-9bc2-579fd8efaf65
+
+🖼️ Creating product images...
+✅ Product image created: 58831986-fc8f-47a2-b2ad-f988b2b9a1cb
+
+👤 Testing public read access...
+✅ Public read access working
+📝 Product data: {
+  name: 'Premium Gold Grill',
+  price: 999.99,
+  compare_at_price: 1299.99,
+  sku: 'GRILL-ql0i2',
+  is_featured: true,
+  inventory_quantity: 5,
+  category: 'Gold Grillz'
+}
+
+✨ All tests passed successfully!

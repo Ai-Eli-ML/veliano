@@ -44,11 +44,12 @@
     ]
   },
   "currentPriorities": [
-    "Implement user profile types and repository",
-    "Set up authentication middleware",
-    "Create user profile components",
-    "Test Supabase authentication flow",
-    "Document user authentication patterns",
+    "Complete Vercel deployment setup and testing",
+    "Implement remaining user profile components",
+    "Set up Supabase RLS policies",
+    "Implement profile image upload with Supabase storage",
+    "Add user preferences management",
+    "Integrate shipping address management",
     "Continue fixing remaining TypeScript issues"
   ],
   "codeGeneration": {

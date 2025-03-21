@@ -167,7 +167,7 @@ export function useAuth() {
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
-                .single()
+      .single()
 
               if (profile) {
                 setUser(profile as UserProfile)

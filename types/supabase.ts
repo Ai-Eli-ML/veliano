@@ -398,6 +398,7 @@ export interface Database {
           address: string | null
           bio: string | null
           website: string | null
+          avatar_url: string | null
           created_at: string
           updated_at: string
         }
@@ -409,6 +410,7 @@ export interface Database {
           address?: string | null
           bio?: string | null
           website?: string | null
+          avatar_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -420,6 +422,7 @@ export interface Database {
           address?: string | null
           bio?: string | null
           website?: string | null
+          avatar_url?: string | null
           created_at?: string
           updated_at?: string
         }

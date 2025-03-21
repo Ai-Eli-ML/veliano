@@ -10,9 +10,37 @@ This document outlines the organization of our codebase and provides references 
 ## Root Level Organization
 
 - `app/` - Next.js App Router pages and layouts
+  - `app/api/auth/` - Authentication endpoints (Phase 2)
+  - `app/(auth)/` - Auth-related pages (Phase 2)
+  - `app/(main)/` - Main application pages (Phase 1)
 - `components/` - Reusable UI components
+  - `components/auth/` - Authentication components (Phase 2)
+  - `components/ui/` - Core UI components (Phase 1)
+    - `toast.tsx` - Toast notification primitive
+    - `use-toast.tsx` - Toast hook and context
+    - `toaster.tsx` - Toast notification renderer
+  - `components/profile/` - User profile management components
+    - `shipping-addresses.tsx` - Shipping address management
+    - `preferences.tsx` - User preferences and notifications
+    - `order-history.tsx` - Order history display
+    - `profile-header.tsx` - User profile header with avatar and user info
+    - `profile-tabs.tsx` - Profile section navigation
+    - `edit-profile-dialog.tsx` - Profile editing modal with avatar support
 - `lib/` - Utility functions and business logic
+  - `lib/supabase/` - Supabase integration (Phase 2)
+  - `lib/utils/` - General utilities (Phase 1)
+  - `lib/repositories/` - Data access layer
+    - `user-repository.ts` - User data management with avatar support
+    - `product-repository.ts` - Product data management
+    - `category-repository.ts` - Category data management
 - `types/` - TypeScript type definitions
+  - `types/supabase.ts` - Database types including user profiles with avatar
+  - `types/user.ts` - User-related types
+  - `types/product.ts` - Product-related types
+- `tests/` - Test files and configurations
+  - `tests/auth/` - Authentication test suites
+    - `auth-flow.test.ts` - Authentication flow tests
+  - `tests/setup.ts` - Test setup and configuration
 - `public/` - Static assets
 - `scripts/` - Utility scripts and automation tools
 - `.cursor/` - Documentation and project guidelines
@@ -23,32 +51,33 @@ This document outlines the organization of our codebase and provides references 
 All project documentation is organized in the following locations:
 
 - `.cursor/` - Project guides, checklists, and development standards
-  - `admin-portal-guide.md` - Guide for the admin portal implementation
-  - `supabase-integration-guide.md` - Database schema and integration details
+  - `rules/` - Project rules and guidelines
+    - `project-structure.mdc` - This file
+    - `phase-transitions.mdc` - Phase transition rules
+    - `development-standards.mdc` - Coding standards
   - `project-plan.md` - Overall project roadmap and status
   - `DEPLOY.md` - Deployment procedures and environment setup
-  - `CURSOR-DEBUGGING-GUIDE.md` - Debugging strategies for Next.js 15
-
-- `.cursor/completed-tasks/` - Archived documentation for completed tasks
-  - `migration-plan.md` - Completed Next.js 15 migration plan
-  - `remaining-issues.md` - Resolved issues tracking
-  - `next15-debugging-summary.md` - Summary of resolved Next.js 15 issues
 
 ## Scripts Organization
 
 - `scripts/` - All utility and automation scripts
-  - `fix-*.sh` - Scripts for addressing specific code issues
-  - `update-*.sh` - Scripts for updating code patterns
-  - `deploy.sh` - Deployment script
-  - `pre-deploy-check.sh` - Pre-deployment verification
+  - `fixes/` - Phase-specific fix scripts
+    - `fix-typescript.sh` - TypeScript fixes
+    - `fix-react.sh` - React/Next.js fixes
+    - `fix-performance.sh` - Performance fixes
+  - `fix-lint-issues.sh` - Main lint fixing script
+  - `check-lint.sh` - Lint checking script
 
 - `scripts/logs/` - Logs from script executions
-  - `*-fixes-log.txt` - Logs detailing fixes applied by scripts
+  - `lint-check-*.log` - Lint check reports
+  - `lint-fixes-*.log` - Fix application logs
 
 ## Special Files
 
 - `middleware.ts` - Next.js middleware for auth and routing (root level)
 - `instrumentation.ts` - Performance monitoring and error tracking (root level)
+- `.eslintrc.js` - ESLint configuration with phase-specific rules
+- `.github/workflows/ci.yml` - CI pipeline with phase-aware checks
 
 ## Environment and Configuration
 
@@ -56,9 +85,39 @@ All project documentation is organized in the following locations:
 - `.env-files/` - Backup copies of environment files
 - `config/` - Configuration files like tailwind, tsconfig, etc.
 
-## How to Reference These Files
+## Phase-Specific Organization
 
-When communicating with AI assistants:
-1. Reference documentation with @ symbol: `@admin-portal-guide.md`
-2. Reference scripts with path: `scripts/fix-server-imports.sh`
-3. Reference logs: `scripts/logs/import-syntax-fixes-log.txt`
+### Phase 1 (Completed)
+- Main application functionality
+- UI components and layouts
+- Current routing and pages
+- Non-Supabase utilities
+- Fixed 404 errors and navigation issues
+- Implemented basic error handling
+
+### Phase 2 (Current)
+- ✅ Authentication system with Supabase Auth
+- ✅ Authentication test suite
+- ✅ Basic user profile types and repository
+- 🔄 Supabase integration
+- 🔄 Protected routes and middleware
+- 🔄 User profile components
+- 🔄 Database functionality
+- 🔄 Profile image upload with Supabase storage
+- 🔄 User preferences management
+- 🔄 Shipping address management
+
+### Test Organization
+
+### Authentication Tests (Completed)
+Located in `tests/auth/`:
+- `auth-flow.test.ts` - Tests for authentication flows
+  - ✅ User signup and login
+  - ✅ Profile creation
+  - ✅ Password reset
+  - ✅ Session management
+  - ✅ Error handling
+  - ✅ Mock Supabase client implementation
+
+### Test Configuration
+- `vitest.config.ts`
