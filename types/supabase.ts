@@ -562,3 +562,20 @@ export interface Database {
   }
 }
 
+// Strongly typed profile definition
+export type Profile = Database['public']['Tables']['profiles']['Row'] & {
+  is_admin: boolean
+  avatar_url: string | null
+}
+
+// Type-safe query pattern
+export const createTypeSafeQuery = <T extends (...args: any[]) => any>(
+  queryFn: T
+) => {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>['data']> => {
+    const { data, error } = await queryFn(...args)
+    if (error) throw new Error(error.message)
+    return data
+  }
+}
+

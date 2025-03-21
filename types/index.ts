@@ -83,7 +83,8 @@ export interface User {
   avatar_url?: string
 }
 
-export interface Product {
+// Frontend display model (separate from database model)
+export interface ProductDisplay {
   id: string
   name: string
   description: string

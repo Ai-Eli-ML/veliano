@@ -44,13 +44,15 @@
     ]
   },
   "currentPriorities": [
+    "Fix remaining TypeScript and linting issues",
+    "Complete type-safety for Supabase integration",
+    "Ensure middleware and authentication types are correct",
     "Complete Vercel deployment setup and testing",
     "Implement remaining user profile components",
     "Set up Supabase RLS policies",
     "Implement profile image upload with Supabase storage",
     "Add user preferences management",
-    "Integrate shipping address management",
-    "Continue fixing remaining TypeScript issues"
+    "Integrate shipping address management"
   ],
   "codeGeneration": {
     "defaultTechStack": {

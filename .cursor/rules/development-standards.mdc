@@ -23,6 +23,21 @@ This document outlines our development standards and best practices to maintain 
 - Avoid `any` type wherever possible
 - Use proper type imports and exports
 
+## Authentication Testing Standards
+
+- Use mock Supabase client for authentication tests
+- Implement proper test doubles for Supabase responses
+- Test all authentication flows:
+  - Sign up
+  - Sign in
+  - Password reset
+  - Session management
+  - Error cases
+- Use proper TypeScript types for test data
+- Follow AAA pattern (Arrange, Act, Assert)
+- Implement proper cleanup in test teardown
+- Use environment variables for test configuration
+
 ## Supabase Integration
 
 - Use the repository pattern for database access

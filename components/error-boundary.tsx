@@ -1,7 +1,7 @@
 "use client"
 
 import { Component, ErrorInfo, ReactNode } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase"
 
 interface Props {
   children: ReactNode
@@ -26,8 +26,6 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo)
 
     try {
-      const supabase = createClient()
-
       await supabase.from("error_logs").insert({
         error_message: error.message,
         error_stack: error.stack || "",

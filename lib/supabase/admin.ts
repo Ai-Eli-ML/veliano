@@ -41,4 +41,29 @@ export const createSafeAdminQuery = <T>(
     }
     return data
   }
+}
+
+// Added RLS bypass and admin verification
+export const verifyAdminAccess = async (userId: string) => {
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    handleSupabaseAdminError(new Error(`Admin verification failed: ${error.message}`))
+  }
+  
+  if (!data?.is_admin) {
+    throw new Error('Administrator privileges required')
+  }
+}
+
+// Secure admin query template
+export const adminOnlyQuery = <T>(table: string, userId: string) => {
+  return supabaseAdmin
+    .from(table)
+    .select('*')
+    .eq('user_id', userId)
 } 

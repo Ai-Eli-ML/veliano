@@ -1,143 +1,138 @@
-import { createClient } from "@/lib/supabase/client"
-import { createClientSupabaseClient, supabaseAdmin, handleSupabaseError } from './supabase'
-import { getCachedUser } from './supabase-utils'
+import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
+import { supabaseAdmin } from './supabase'
 
-type Cart = Database['public']['Tables']['carts']['Row']
-type CartItem = Database['public']['Tables']['cart_items']['Row']
+// Create a client for use in helper functions
+const client = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+// Handle Supabase errors consistently
+export const handleSupabaseError = (error: Error) => {
+  console.error('Supabase Error:', error.message)
+  throw error
+}
 
 // User helpers
 export async function getCurrentUser() {
-  const supabase = createClientSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await client.auth.getSession()
   
   if (!session) {
     return null
   }
   
-  return getCachedUser(session.user.id)
+  const userId = session.user?.id
+  
+  if (!userId) {
+    return null
+  }
+  
+  const { data: profile, error } = await client
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  
+  if (error) {
+    console.error('Error fetching user profile:', error)
+    return null
+  }
+  
+  return { 
+    ...session.user,
+    profile,
+    // For backward compatibility
+    isAdmin: false // Set based on your admin determination logic
+  }
 }
 
+// Check if current user is an admin
 export async function isCurrentUserAdmin() {
   const user = await getCurrentUser()
-  return !!user?.is_admin
+  // Add your admin checking logic here
+  return false // Default to false until admin logic is implemented
 }
 
 // Product helpers
 export async function getProductById(productId: string) {
-  const supabase = createClientSupabaseClient()
-  const response = await supabase
+  const response = await client
     .from('products')
-    .select(`*, product_variants(*), product_images(*), product_categories(category_id)`)
+    .select('*, product_variants(*), product_images(*), product_categories(*)')
     .eq('id', productId)
     .single()
   
   if (response.error) {
-    console.error('Error fetching product:', response.error)
-    return null
+    handleSupabaseError(response.error)
   }
   
   return response.data
 }
 
 export async function getProductsByCategory(categoryId: string) {
-  const supabase = createClientSupabaseClient()
-  const response = await supabase
+  const response = await client
     .from('product_categories')
-    .select(`products(*)`)
-    .eq('category_id', categoryId)
+    .select('products(*)')
+    .eq('id', categoryId)
   
   if (response.error) {
-    console.error('Error fetching products by category:', response.error)
-    return []
+    handleSupabaseError(response.error)
   }
   
   return response.data?.flatMap(item => {
-    // Use optional chaining to safely access potentially undefined properties
-    const products = item?.products || []
-    return Array.isArray(products) ? products : [products]
+    return item.products || []
   }) || []
 }
 
 // Cart helpers
 export async function getUserCart() {
-  const supabase = createClientSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await client.auth.getSession()
   
   if (!session) {
     return null
   }
   
-  // First, check if user has a cart
-  const cartResponse = await supabase
-    .from('carts')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .eq('status', 'active')
-    .single()
+  const userId = session.user?.id
   
-  if (cartResponse.error) {
-    // Create a new cart if one doesn't exist
-    if (cartResponse.error.message.includes('No rows found')) {
-      const newCartResponse = await supabase
-        .from('carts')
-        .insert({ user_id: session.user.id, status: 'active' })
-        .select()
-        .single()
-      
-      if (newCartResponse.error) {
-        console.error('Error creating cart:', newCartResponse.error)
-        return null
-      }
-      
-      return {
-        cart: newCartResponse.data,
-        items: []
-      }
-    }
-    
-    console.error('Error fetching cart:', cartResponse.error)
+  if (!userId) {
     return null
   }
   
-  // Get cart items
-  const itemsResponse = await supabase
-    .from('cart_items')
-    .select(`*, products(*)`)
-    .eq('cart_id', cartResponse.data.id)
+  const response = await client
+    .from('carts')
+    .select('*, cart_items(*)')
+    .eq('user_id', userId)
+    .single()
   
-  if (itemsResponse.error) {
-    console.error('Error fetching cart items:', itemsResponse.error)
-    return {
-      cart: cartResponse.data,
-      items: []
-    }
+  if (response.error) {
+    handleSupabaseError(response.error)
   }
   
-  return {
-    cart: cartResponse.data,
-    items: itemsResponse.data || []
-  }
+  return response.data
 }
 
 // Order helpers
 export async function getUserOrders() {
-  const supabase = createClientSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await client.auth.getSession()
   
   if (!session) {
     return []
   }
   
-  const response = await supabase
+  const userId = session.user?.id
+  
+  if (!userId) {
+    return []
+  }
+  
+  const response = await client
     .from('orders')
-    .select(`*, order_items(*, products(*))`)
-    .eq('user_id', session.user.id)
+    .select('*, order_items(*)')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
   
   if (response.error) {
-    console.error('Error fetching orders:', response.error)
-    return []
+    handleSupabaseError(response.error)
   }
   
   return response.data || []
@@ -151,12 +146,10 @@ export async function getAdminStats() {
     throw new Error('Unauthorized: Admin access required')
   }
   
-  // Since we don't know the exact RPC method, we're using any type here
-  const response = await (supabaseAdmin as any).rpc('get_admin_stats')
+  const response = await supabaseAdmin.rpc('get_admin_stats')
   
   if (response.error) {
-    console.error('Error fetching admin stats:', response.error)
-    return null
+    handleSupabaseError(response.error)
   }
   
   return response.data
@@ -175,7 +168,7 @@ export async function getAdminOrders(
   
   let query = supabaseAdmin
     .from('orders')
-    .select(`*, users(id, email, full_name), order_items(*, products(*))`, { 
+    .select(`*, profiles(id, email, full_name), order_items(*, products(*))`, { 
       count: 'exact' 
     })
     .range((page - 1) * pageSize, page * pageSize - 1)
@@ -188,8 +181,7 @@ export async function getAdminOrders(
   const response = await query
   
   if (response.error) {
-    console.error('Error fetching admin orders:', response.error)
-    return { data: [], count: 0 }
+    handleSupabaseError(response.error)
   }
   
   return {

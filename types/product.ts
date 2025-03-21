@@ -7,6 +7,7 @@ export interface ProductImage {
   url: string
   alt_text: string | null
   display_order: number
+  position?: number
   created_at: string
   updated_at: string
 }
@@ -51,6 +52,9 @@ export interface Product {
   inventory_quantity: number
   is_available: boolean
   is_featured: boolean
+  has_variants?: boolean
+  is_published?: boolean
+  featured?: boolean
   category_id: string | null
   created_at: string
   updated_at: string

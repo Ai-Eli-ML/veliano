@@ -1,5 +1,12 @@
 # Next.js 15 Testing Checklist
 
+## 0. TypeScript and Code Quality (⚠️ IMMEDIATE PRIORITY)
+⚠️ Fix all TypeScript errors blocking deployment
+⚠️ Resolve critical ESLint issues
+⚠️ Ensure type-safety in Supabase integration
+⚠️ Fix authentication and middleware type issues
+⚠️ Address component type errors
+
 ## 1. Authentication Flows (✅ COMPLETED)
 ✅ User registration with mock client
 ✅ User login with mock client
@@ -55,6 +62,7 @@
 
 | Issue | Description | Status | Priority |
 |-------|-------------|--------|----------|
+| TypeScript Errors | Fix remaining TS errors before deployment | ⚠️ Immediate | Critical |
 | Authentication Tests | Implemented mock Supabase client | ✅ Completed | High |
 | Test Isolation | Ensured tests run independently | ✅ Completed | High |
 | Type Safety | Added proper types for auth testing | ✅ Completed | High |
@@ -63,11 +71,11 @@
 | Supabase Storage | Setting up avatar upload | 🔄 In Progress | Medium |
 
 ## Next Steps
-1. Complete protected route middleware implementation
-2. Finish user profile components
-3. Implement Supabase storage for avatars
-4. Set up RLS policies
-5. Complete deployment configuration
+1. Fix all TypeScript and linting errors blocking deployment
+2. Complete type-safety for Supabase integration
+3. Complete protected route middleware implementation
+4. Prepare for Vercel deployment
+5. Implement remaining user profile components
 
 ## Related Documentation
 - [Auth Testing Guide](./auth-testing.md)

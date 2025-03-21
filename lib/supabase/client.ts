@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 
+// Re-export createClient to fix import issues elsewhere
+export { createClient }
+
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
 }
