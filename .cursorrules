@@ -7,7 +7,7 @@
       ".cursor/rules/project-structure.mdc",
       "https://nextjs.org/docs"
     ],
-    "projectPhase": "Phase 1.5 & 2: Supabase Integration and Code Quality"
+    "projectPhase": "Phase 2: User Profiles and Authentication"
   },
   "instructions": [
     "Always reference the project plan (.cursor/project-plan.md) for guidance on priorities and next steps",
@@ -17,15 +17,39 @@
     "Use the project structure guide when navigating or creating new files",
     "Always follow Next.js 15 official documentation structure and conventions",
     "Implement error handling according to Next.js 15 App Router patterns",
-    "Ensure all code changes maintain type safety and pass linting"
+    "Ensure all code changes maintain type safety and pass linting",
+    "Commit changes frequently with clear, descriptive messages following conventional commits"
   ],
+  "commitGuidelines": {
+    "format": "<type>(<scope>): <description>",
+    "types": [
+      "feat",
+      "fix",
+      "refactor",
+      "style",
+      "docs",
+      "test",
+      "chore"
+    ],
+    "rules": [
+      "Use present tense ('add' not 'added')",
+      "First line should be under 72 characters",
+      "Describe both what and why",
+      "Reference issues when relevant"
+    ],
+    "examples": [
+      "feat(auth): implement user profile types and repository",
+      "fix(types): resolve TypeScript errors in email service",
+      "refactor(db): update schema for product variants"
+    ]
+  },
   "currentPriorities": [
-    "Complete product and category model integration with Supabase",
-    "Create and implement user profile types",
-    "Fix remaining TypeScript issues in tandem with Supabase integration",
+    "Implement user profile types and repository",
+    "Set up authentication middleware",
+    "Create user profile components",
     "Test Supabase authentication flow",
-    "Document database schema and API patterns",
-    "Continue addressing UI component issues as encountered"
+    "Document user authentication patterns",
+    "Continue fixing remaining TypeScript issues"
   ],
   "codeGeneration": {
     "defaultTechStack": {
