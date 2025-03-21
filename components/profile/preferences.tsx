@@ -1,51 +1,71 @@
 'use client'
 
-import { useState } from 'react'
-import { UserProfile } from '@/types/user'
-import { UserRepository } from '@/lib/repositories/user-repository'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { UserProfile, UserPreferences } from '@/types/user'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { toast } from '@/components/ui/use-toast'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/components/ui/use-toast'
+import { useSupabase } from '@/lib/supabase/client'
+import { Loader2 } from 'lucide-react'
 
 interface PreferencesProps {
-  profile: UserProfile
+  userId: string
+  initialPreferences?: UserPreferences
 }
 
-export function Preferences({ profile }: PreferencesProps) {
-  const [preferences, setPreferences] = useState(
-    profile.preferences || {
-      marketing_emails: false,
-      order_updates: true,
-      newsletter: false,
+export function UserPreferences({ userId, initialPreferences }: PreferencesProps) {
+  const { toast } = useToast()
+  const supabase = useSupabase()
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const [preferences, setPreferences] = useState<UserPreferences>(
+    initialPreferences || {
+      marketingEmails: false,
+      orderUpdates: true,
+      newProductAlerts: false,
+      saleAlerts: true,
+      darkMode: false,
     }
   )
 
-  const handleToggle = async (key: keyof typeof preferences) => {
+  const handlePreferenceChange = (key: keyof UserPreferences, value: boolean) => {
+    setPreferences(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const savePreferences = async () => {
+    if (!userId) return
+    
     try {
-      const userRepo = UserRepository.getInstance()
-      const updatedPreferences = {
-        ...preferences,
-        [key]: !preferences[key],
-      }
-
-      const success = await userRepo.updatePreferences(profile.id, updatedPreferences)
-
-      if (success) {
-        setPreferences(updatedPreferences)
-        toast({
-          title: 'Preferences updated',
-          description: 'Your preferences have been updated successfully.',
+      setIsSaving(true)
+      
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: userId,
+          preferences: preferences,
+          updated_at: new Date().toISOString()
         })
-      } else {
-        throw new Error('Failed to update preferences')
-      }
-    } catch (error) {
+        
+      if (error) throw error
+      
       toast({
-        title: 'Error',
-        description: 'Failed to update preferences. Please try again.',
-        variant: 'destructive',
+        title: "Preferences saved",
+        description: "Your preferences have been updated"
       })
+      
+    } catch (error: any) {
+      toast({
+        title: "Failed to save preferences",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -53,50 +73,86 @@ export function Preferences({ profile }: PreferencesProps) {
     <Card>
       <CardHeader>
         <CardTitle>Notification Preferences</CardTitle>
-        <CardDescription>
-          Manage how you receive notifications and updates from us.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="marketing_emails" className="flex flex-col space-y-1">
-            <span>Marketing Emails</span>
-            <span className="text-sm text-muted-foreground">
-              Receive emails about new products, sales, and promotions.
-            </span>
-          </Label>
-          <Switch
-            id="marketing_emails"
-            checked={preferences.marketing_emails}
-            onCheckedChange={() => handleToggle('marketing_emails')}
-          />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="marketing-emails" className="flex flex-col space-y-1">
+              <span>Marketing Emails</span>
+              <span className="text-sm text-muted-foreground">
+                Receive emails about new products and promotions
+              </span>
+            </Label>
+            <Switch
+              id="marketing-emails" 
+              checked={preferences.marketingEmails}
+              onCheckedChange={(checked) => 
+                handlePreferenceChange('marketingEmails', checked)
+              }
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="order-updates" className="flex flex-col space-y-1">
+              <span>Order Updates</span>
+              <span className="text-sm text-muted-foreground">
+                Receive notifications about your orders
+              </span>
+            </Label>
+            <Switch
+              id="order-updates" 
+              checked={preferences.orderUpdates}
+              onCheckedChange={(checked) => 
+                handlePreferenceChange('orderUpdates', checked)
+              }
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="new-products" className="flex flex-col space-y-1">
+              <span>New Product Alerts</span>
+              <span className="text-sm text-muted-foreground">
+                Be notified when new products are available
+              </span>
+            </Label>
+            <Switch
+              id="new-products" 
+              checked={preferences.newProductAlerts}
+              onCheckedChange={(checked) => 
+                handlePreferenceChange('newProductAlerts', checked)
+              }
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="sale-alerts" className="flex flex-col space-y-1">
+              <span>Sale Alerts</span>
+              <span className="text-sm text-muted-foreground">
+                Be notified about sales and discounts
+              </span>
+            </Label>
+            <Switch
+              id="sale-alerts" 
+              checked={preferences.saleAlerts}
+              onCheckedChange={(checked) => 
+                handlePreferenceChange('saleAlerts', checked)
+              }
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="order_updates" className="flex flex-col space-y-1">
-            <span>Order Updates</span>
-            <span className="text-sm text-muted-foreground">
-              Receive notifications about your order status and shipping updates.
-            </span>
-          </Label>
-          <Switch
-            id="order_updates"
-            checked={preferences.order_updates}
-            onCheckedChange={() => handleToggle('order_updates')}
-          />
-        </div>
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="newsletter" className="flex flex-col space-y-1">
-            <span>Newsletter</span>
-            <span className="text-sm text-muted-foreground">
-              Subscribe to our monthly newsletter for exclusive content and tips.
-            </span>
-          </Label>
-          <Switch
-            id="newsletter"
-            checked={preferences.newsletter}
-            onCheckedChange={() => handleToggle('newsletter')}
-          />
-        </div>
+        
+        <Button 
+          onClick={savePreferences} 
+          className="w-full"
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : 'Save Preferences'}
+        </Button>
       </CardContent>
     </Card>
   )
