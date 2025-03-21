@@ -1,5 +1,18 @@
 import nodemailer from "nodemailer"
 
+// Define types for order data
+interface OrderEmailData {
+  email: string
+  order_number: string
+  total_price: number
+  created_at: string | Date
+}
+
+interface EmailResponse {
+  success: boolean
+  error?: unknown
+}
+
 // Configure email transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
@@ -11,7 +24,7 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-export async function sendOrderConfirmationEmail(order: any) {
+export async function sendOrderConfirmationEmail(order: OrderEmailData): Promise<EmailResponse> {
   try {
     const { email, order_number, total_price, created_at } = order
 
@@ -70,7 +83,11 @@ export async function sendOrderConfirmationEmail(order: any) {
   }
 }
 
-export async function sendShippingConfirmationEmail(order: any, trackingNumber: string, carrier: string) {
+export async function sendShippingConfirmationEmail(
+  order: Pick<OrderEmailData, 'email' | 'order_number'>,
+  trackingNumber: string,
+  carrier: string
+): Promise<EmailResponse> {
   try {
     const { email, order_number } = order
 

@@ -3,6 +3,69 @@ import { supabaseAdmin } from "@/lib/supabase-server"
 import type { Product, ProductCategory, ProductFilterOptions } from "@/types/product"
 import { unstable_noStore as noStore } from 'next/cache'
 
+// Define types for product-related data
+interface ProductImage {
+  id: string
+  url: string
+  alt_text: string
+  position: number
+}
+
+interface ProductVariant {
+  id: string
+  name: string
+  sku: string
+  price: number
+  compare_at_price: number | null
+  inventory_quantity: number
+  option1_name: string | null
+  option1_value: string | null
+  option2_name: string | null
+  option2_value: string | null
+  option3_name: string | null
+  option3_value: string | null
+}
+
+interface GetProductsParams {
+  category?: string
+  minPrice?: number
+  maxPrice?: number
+  sort?: 'newest' | 'price_asc' | 'price_desc' | 'featured'
+  page?: number
+  search?: string
+  limit?: number
+}
+
+interface ProductsResponse {
+  products: Product[]
+  total: number
+  totalPages: number
+}
+
+interface CategoryWithProducts extends ProductCategory {
+  products: Product[]
+}
+
+// Mock categories for development
+const mockCategories: ProductCategory[] = [
+  {
+    id: "cat1",
+    name: "Grillz",
+    slug: "grillz",
+    description: "Custom fitted gold and diamond grillz",
+    image_url: "/placeholder.svg",
+    parent_id: null,
+  },
+  {
+    id: "cat2",
+    name: "Jewelry",
+    slug: "jewelry",
+    description: "Premium gold and diamond jewelry",
+    image_url: "/placeholder.svg",
+    parent_id: null,
+  },
+]
+
 // Fetch a single product by slug
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = await createServerSupabaseClient()
@@ -31,8 +94,8 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     // Transform the data to match our Product type
     return {
       ...product,
-      categories: product.categories.map((item: any) => item.categories),
-    } as unknown as Product
+      categories: product.categories.map((item: { categories: ProductCategory }) => item.categories),
+    } as Product
   } catch (error) {
     console.error("Error in getProductBySlug:", error)
     return null
@@ -40,16 +103,18 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 // Fetch products with filtering options
-export async function getProducts({
-  category,
-  minPrice,
-  maxPrice,
-  sort = "newest",
-  page = 1,
-  search,
-  limit = 12,
-}: GetProductsParams = {}) {
+export async function getProducts(params: GetProductsParams = {}): Promise<ProductsResponse> {
   noStore()
+  const {
+    category,
+    minPrice,
+    maxPrice,
+    sort = "newest",
+    page = 1,
+    search,
+    limit = 12,
+  } = params
+  
   const supabase = await createServerSupabaseClient()
   
   // Calculate offset
@@ -274,22 +339,25 @@ function getMockFeaturedProducts(limit = 4): Product[] {
   return mockProducts.slice(0, limit)
 }
 
-// Fetch all categories
+// Fetch categories
 export async function getCategories(): Promise<ProductCategory[]> {
-  noStore()
-  const supabase = await createServerSupabaseClient()
-  
-  const { data: categories, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name')
 
-  if (error) {
-    console.error('Error fetching categories:', error)
-    throw new Error('Failed to fetch categories')
+    if (error) {
+      console.error('Error fetching categories:', error)
+      return mockCategories
+    }
+
+    return categories as ProductCategory[]
+  } catch (error) {
+    console.error('Error in getCategories:', error)
+    return mockCategories
   }
-
-  return categories as ProductCategory[]
 }
 
 // Fetch a category by slug

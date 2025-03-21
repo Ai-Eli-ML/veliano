@@ -4,42 +4,90 @@
     "priorityDocuments": [
       ".cursor/project-plan.md",
       ".cursor/DEPLOY.md",
-      ".cursor/rules/project-structure.mdc"
+      ".cursor/rules/project-structure.mdc",
+      "https://nextjs.org/docs"
     ],
-    "projectPhase": "Phase 1: Fix Current Issues (Priority 1)"
+    "projectPhase": "Phase 1.5 & 2: Supabase Integration and Code Quality"
   },
   "instructions": [
     "Always reference the project plan (.cursor/project-plan.md) for guidance on priorities and next steps",
-    "Focus on Phase 1 priorities: fixing 404 errors and Vercel deployment issues",
+    "Implement Supabase integration while maintaining code quality",
     "When working with deployment code, automatically reference the DEPLOY.md guide",
     "Follow the development standards in .cursor/rules/development-standards.mdc",
-    "Use the project structure guide when navigating or creating new files"
+    "Use the project structure guide when navigating or creating new files",
+    "Always follow Next.js 15 official documentation structure and conventions",
+    "Implement error handling according to Next.js 15 App Router patterns",
+    "Ensure all code changes maintain type safety and pass linting"
   ],
   "currentPriorities": [
-    "Fix 404 Errors by testing all navigation paths and implementing missing pages",
-    "Fix Vercel Deployment by verifying environment variables, checking logs, and testing deployment workflow",
-    "Prepare for Phase 2 (Supabase Integration) after Phase 1 is complete"
+    "Complete product and category model integration with Supabase",
+    "Create and implement user profile types",
+    "Fix remaining TypeScript issues in tandem with Supabase integration",
+    "Test Supabase authentication flow",
+    "Document database schema and API patterns",
+    "Continue addressing UI component issues as encountered"
   ],
   "codeGeneration": {
     "defaultTechStack": {
       "frontend": "Next.js 15 App Router",
       "styling": "shadcn/ui with Tailwind CSS",
-      "dataFetching": "Server Components and Server Actions",
-      "database": "Supabase with repository pattern (will be implemented in Phase 2)",
-      "authentication": "Supabase Auth with middleware protection (will be implemented in Phase 2)"
+      "dataFetching": "Server Components and Server Actions with Supabase",
+      "database": "Supabase with repository pattern",
+      "authentication": "Supabase Auth with middleware protection"
     },
     "bestPractices": [
       "Implement Server Components by default",
       "Use TypeScript for all code with explicit types",
       "Follow functional component patterns",
       "Prioritize performance optimization",
-      "Include proper error handling"
+      "Include proper error handling",
+      "Follow Next.js 15 conventions for file naming and directory structure",
+      "Use App Router patterns for routing and layouts",
+      "Implement error boundaries at appropriate levels",
+      "Follow Next.js 15 metadata and SEO best practices",
+      "Use Supabase type-safe queries with error handling"
     ]
+  },
+  "nextjs15Guidelines": {
+    "directoryStructure": {
+      "app": {
+        "description": "Main application directory using App Router",
+        "conventions": [
+          "Use page.tsx for route segments",
+          "Use layout.tsx for shared layouts",
+          "Place error.tsx for client-side error handling",
+          "Place global-error.tsx for root error handling",
+          "Use loading.tsx for suspense boundaries",
+          "Group related routes in folders"
+        ]
+      },
+      "components": {
+        "description": "Reusable UI components",
+        "conventions": [
+          "Use 'use client' directive for client components",
+          "Default to Server Components when possible",
+          "Group by feature or global usage"
+        ]
+      }
+    },
+    "errorHandling": {
+      "conventions": [
+        "Use error.tsx for client-side errors",
+        "Use global-error.tsx for root errors",
+        "Implement reset functionality in error boundaries",
+        "Log errors appropriately in production",
+        "Ensure type safety in error handling components",
+        "Add error tracking with Sentry integration"
+      ]
+    }
   },
   "analysisMode": {
     "autoReference": true,
     "deepAnalysis": true,
     "oneShot": true,
-    "followProjectPlan": true
+    "followProjectPlan": true,
+    "followNextJsDocs": true,
+    "enforceTypeChecks": true,
+    "enforceLinting": true
   }
 } 

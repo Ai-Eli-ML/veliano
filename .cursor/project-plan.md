@@ -13,49 +13,36 @@ Veliano Jewelry is an e-commerce application specializing in custom grillz and j
 - **Payments**: Stripe
 - **Deployment**: Vercel
 
-## Development Phases
+## Project Plan - Updated
 
-### Phase 1: Fix Current Issues (Priority 1) - IN PROGRESS
+### Phase 1.5 & 2 Combined: Code Quality and Supabase Integration
+**Current Focus: Establishing Strong Foundation**
 
-#### 404 Errors - COMPLETED
-- ✅ Identify all missing routes causing 404 errors
-- ✅ Create missing pages for all identified routes
-- ✅ Set up redirects for duplicate routes
-- ✅ Verify all navigation paths work correctly
+#### Immediate Actions (Next 1-2 weeks):
+1. Supabase Integration (Priority)
+   - Set up Supabase client and server-side configurations
+   - Implement database schema and types
+   - Create shared type definitions between frontend and Supabase
+   - Update product and category models to use Supabase
 
-#### Vercel Deployment Issues - IN PROGRESS
-- ✅ Fix environment variable configuration
-- ✅ Resolve duplicate Next.js configuration files
-- ✅ Add proper output configuration for Vercel
-- ✅ Update TypeScript configuration to prevent build errors
-- ⏳ Link project to Vercel
-- ⏳ Test deployment workflow
+2. Concurrent Code Quality Improvements
+   - Fix critical TypeScript errors in Supabase-related files first
+   - Address ESLint errors that impact functionality
+   - Implement proper error handling with Supabase integration
+   - Update navigation and image components as we encounter them
 
-### Phase 2: Supabase Integration (Priority 2)
+3. Authentication and Authorization
+   - Implement Supabase Auth
+   - Set up protected routes and middleware
+   - Create user profiles and roles
 
-#### Database Setup
-- Set up Supabase project
-- Create database schema
-- Implement migrations
-- Set up seed data
-- Configure database monitoring and alerts
-- Set up automated backups
+#### Success Criteria:
+- Functioning Supabase integration
+- Working authentication system
+- Critical TypeScript and ESLint errors resolved
+- Stable build process
 
-#### Authentication
-- Implement Supabase Auth
-- Create authentication middleware
-- Set up protected routes
-- Implement user roles and permissions
-- Add auth failure monitoring
-- Implement suspicious activity detection
-
-#### Data Access Layer
-- Implement repository pattern
-- Create data access services
-- Set up server actions for data mutations
-- Implement optimistic updates
-
-### Phase 3: E-commerce Functionality (Priority 3)
+### Phase 3: Feature Implementation
 
 #### Product Management
 - Complete product listing pages
@@ -198,4 +185,24 @@ Additional documentation can be found in:
 - [Project Structure Guide](.cursor/rules/project-structure.mdc)
 - [Deployment Guide](DEPLOY.md)
 - [404 Error Fixes](.cursor/404-error-fixes.md)
-- [Vercel Deployment Checklist](.cursor/vercel-deployment-checklist.md) 
+- [Vercel Deployment Checklist](.cursor/vercel-deployment-checklist.md)
+
+## Development Standards Update
+
+### TypeScript and ESLint Priority Order:
+1. Supabase integration files
+2. Authentication and user-related files
+3. Product and category management
+4. Component and UI files
+5. Utility functions
+
+### Error Resolution Strategy:
+1. Focus on errors blocking Supabase integration first
+2. Address authentication-related type issues
+3. Fix remaining type and lint errors incrementally
+
+### Code Quality Metrics:
+- Must have proper types for all Supabase interactions
+- Authentication flows must be fully typed
+- Product and category types must align with Supabase schema
+- Components can use temporary type assertions where needed (to be refined later) 

@@ -1,6 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import Image from "next/image";
+import Link from 'next/link'
 import { 
   Card, 
   CardContent, 
@@ -204,18 +205,18 @@ export default function AboutPage() {
             Let us help you bring your vision to life with our expert craftsmanship and personalized service.
           </p>
           <div className="flex justify-center gap-4">
-            <a 
+            <Link 
               href="/products" 
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4"
             >
               Explore Products
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/contact" 
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 py-2 px-4"
             >
               Contact Us
-            </a>
+            </Link>
           </div>
         </section>
       </div>

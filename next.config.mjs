@@ -2,7 +2,6 @@ import { withSentryConfig } from "@sentry/nextjs"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone', // Add standalone output for Vercel deployment
   images: {
     domains: ['veliano.com', 'images.unsplash.com', 'randomuser.me', 'source.unsplash.com'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -18,10 +17,10 @@ const nextConfig = {
   },
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@mantine/core', '@mantine/hooks'],
     turbo: {
-      loaders: {
-        '.svg': ['@svgr/webpack'],
+      rules: {
+        '*.svg': ['@svgr/webpack'],
       },
     },
     serverActions: {
@@ -119,24 +118,24 @@ const nextConfig = {
   generateEtags: true,
   reactStrictMode: true,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true, // Temporarily disable ESLint during build
+    ignoreDuringBuilds: false,
   },
+  // Use standalone output for better error handling
+  output: 'standalone',
 }
 
 // Sentry configuration
 const sentryWebpackPluginOptions = {
   silent: true,
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
   include: '.',
   ignore: ['node_modules', 'webpack.config.js'],
   configFile: 'sentry.properties',
   stripPrefix: ['webpack://_N_E/'],
   urlPrefix: '~/_next',
+  release: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
 }
 
-// Export configuration with Sentry
 export default withSentryConfig(nextConfig, sentryWebpackPluginOptions) 

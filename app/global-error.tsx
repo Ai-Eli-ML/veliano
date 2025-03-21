@@ -1,7 +1,7 @@
 "use client"
- 
-import { useEffect } from "react"
- 
+
+import { Button } from "@/components/ui/button"
+
 export default function GlobalError({
   error,
   reset,
@@ -9,22 +9,41 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  useEffect(() => {
-    console.error(error)
-  }, [error])
- 
   return (
     <html>
       <body>
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-          <h1 className="text-4xl font-bold text-red-600 mb-4">Something went wrong!</h1>
-          <p className="mb-8 text-lg">We apologize for the inconvenience. Please try again later.</p>
-          <button
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            onClick={() => reset()}
-          >
-            Try again
-          </button>
+        <div className="container max-w-screen-xl py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto flex justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-destructive"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            
+            <div className="mt-6">
+              <h1 className="text-3xl font-bold tracking-tight">Something went wrong!</h1>
+              <p className="mt-2 text-lg text-muted-foreground">
+                We apologize for the inconvenience. Please try again.
+              </p>
+            </div>
+            
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <Button onClick={reset}>Try again</Button>
+            </div>
+          </div>
         </div>
       </body>
     </html>
