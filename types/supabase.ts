@@ -1,3 +1,5 @@
+import { PostgrestSingleResponse } from '@supabase/supabase-js'
+
 export type Json =
   | string
   | number
@@ -563,19 +565,19 @@ export interface Database {
 }
 
 // Strongly typed profile definition
-export type Profile = Database['public']['Tables']['profiles']['Row'] & {
-  is_admin: boolean
+export type Profile = {
+  id: string
+  full_name: string | null
   avatar_url: string | null
+  is_admin: boolean
+  created_at: string
+  updated_at: string
 }
 
 // Type-safe query pattern
-export const createTypeSafeQuery = <T extends (...args: any[]) => any>(
-  queryFn: T
-) => {
-  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>['data']> => {
-    const { data, error } = await queryFn(...args)
-    if (error) throw new Error(error.message)
-    return data
-  }
+export const createTypeSafeQuery = <T>(query: Promise<PostgrestSingleResponse<T>>) => {
+  return query.then(({ data, error }) => {
+    if (error) throw error
+    return data as T
+  })
 }
-
