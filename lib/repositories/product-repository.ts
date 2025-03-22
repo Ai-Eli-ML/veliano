@@ -1,245 +1,241 @@
-import { supabase } from '@/lib/supabase/client'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { handleSupabaseError } from '@/lib/supabase/client'
-import type { Database } from '@/types/supabase'
-import type { Product, ProductCategory, ProductImage, ProductVariant } from '@/types/product'
-
-type Tables = Database['public']['Tables']
-type ProductRow = Tables['products']['Row']
-type ProductInsert = Tables['products']['Insert']
-type ProductUpdate = Tables['products']['Update']
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import type {
+  ProductBase,
+  ProductVariant,
+  ProductImage,
+  GrillzSpecification,
+  ProductWithRelations,
+  ProductCreateInput,
+  ProductUpdateInput,
+} from '@/types/product';
 
 export class ProductRepository {
-  // Get a single product by slug
-  static getBySlug = async (slug: string): Promise<Product | null> => {
-    try {
-      const { data, error } = await supabase
+  private static async getClient() {
+    return createServerSupabaseClient();
+  }
+
+  static async createProduct(input: ProductCreateInput): Promise<ProductWithRelations> {
+    const supabase = await this.getClient();
+
+    // Start a transaction
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .insert({
+        name: input.name,
+        slug: input.slug,
+        description: input.description,
+        price: input.price,
+        compare_at_price: input.compare_at_price,
+        featured: input.featured,
+        is_new: input.is_new,
+        in_stock: input.in_stock,
+        stock_quantity: input.stock_quantity,
+        status: input.status,
+        category_id: input.category_id,
+        metadata: input.metadata,
+        seo_title: input.seo_title,
+        seo_description: input.seo_description,
+      })
+      .select()
+      .single();
+
+    if (productError) throw new Error(`Failed to create product: ${productError.message}`);
+
+    // Create variants if provided
+    if (input.variants?.length) {
+      const { error: variantsError } = await supabase
+        .from('product_variants')
+        .insert(
+          input.variants.map(variant => ({
+            ...variant,
+            product_id: product.id,
+          }))
+        );
+
+      if (variantsError) throw new Error(`Failed to create variants: ${variantsError.message}`);
+    }
+
+    // Create images if provided
+    if (input.images?.length) {
+      const { error: imagesError } = await supabase
+        .from('product_images')
+        .insert(
+          input.images.map(image => ({
+            ...image,
+            product_id: product.id,
+          }))
+        );
+
+      if (imagesError) throw new Error(`Failed to create images: ${imagesError.message}`);
+    }
+
+    // Create grillz specification if provided
+    if (input.grillz_specification) {
+      const { error: specError } = await supabase
+        .from('grillz_specifications')
+        .insert({
+          ...input.grillz_specification,
+          product_id: product.id,
+        });
+
+      if (specError) throw new Error(`Failed to create grillz specification: ${specError.message}`);
+    }
+
+    return this.getProductById(product.id);
+  }
+
+  static async updateProduct(
+    id: string,
+    input: ProductUpdateInput
+  ): Promise<ProductWithRelations> {
+    const supabase = await this.getClient();
+
+    const { error } = await supabase
+      .from('products')
+      .update({
+        ...input,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to update product: ${error.message}`);
+
+    return this.getProductById(id);
+  }
+
+  static async getProductById(id: string): Promise<ProductWithRelations> {
+    const supabase = await this.getClient();
+
+    const { data: product, error: productError } = await supabase
         .from('products')
         .select(`
           *,
-          images:product_images(id, url, alt_text, display_order),
           variants:product_variants(*),
-          categories:product_categories!inner(
-            category:categories(*)
-          )
-        `)
-        .eq('is_available', true)
-        .eq('slug', slug)
-        .single()
+        images:product_images(*),
+        grillz_specification:grillz_specifications(*),
+        category:categories(id, name, slug)
+      `)
+      .eq('id', id)
+      .single();
 
-      if (error) {
-        handleSupabaseError(error)
-      }
+    if (productError) throw new Error(`Failed to fetch product: ${productError.message}`);
+    if (!product) throw new Error(`Product not found: ${id}`);
 
-      return data ? this.mapProductData(data) : null
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      return null
-    }
+    return product as unknown as ProductWithRelations;
   }
 
-  // Get products with filtering and pagination
-  static getProducts = async ({
-    categorySlug,
-    minPrice,
-    maxPrice,
-    sort = 'newest',
-    page = 1,
-    limit = 12,
-    search
-  }: {
-    categorySlug?: string
-    minPrice?: number
-    maxPrice?: number
-    sort?: 'newest' | 'price_asc' | 'price_desc' | 'featured'
-    page?: number
-    limit?: number
-    search?: string
+  static async getProducts(options?: {
+    category_id?: string;
+    status?: 'draft' | 'active' | 'archived';
+    featured?: boolean;
+    is_new?: boolean;
+    limit?: number;
+    offset?: number;
   }): Promise<{
-    products: Product[]
-    total: number
-    totalPages: number
-  }> => {
-    try {
+    products: ProductWithRelations[];
+    total: number;
+  }> {
+    const supabase = await this.getClient();
       let query = supabase
         .from('products')
         .select(`
           *,
-          images:product_images(id, url, alt_text, display_order),
           variants:product_variants(*),
-          categories:product_categories!inner(
-            category:categories(*)
-          )
-        `, { count: 'exact' })
-        .eq('is_available', true)
+        images:product_images(*),
+        grillz_specification:grillz_specifications(*),
+        category:categories(id, name, slug)
+      `, { count: 'exact' });
 
-      // Apply filters
-      if (categorySlug) {
-        query = query.eq('categories.category.slug', categorySlug)
-      }
-      if (minPrice) {
-        query = query.gte('price', minPrice)
-      }
-      if (maxPrice) {
-        query = query.lte('price', maxPrice)
-      }
-      if (search) {
-        query = query.ilike('name', `%${search}%`)
+    if (options?.category_id) {
+      query = query.eq('category_id', options.category_id);
       }
 
-      // Apply sorting
-      switch (sort) {
-        case 'price_asc':
-          query = query.order('price', { ascending: true })
-          break
-        case 'price_desc':
-          query = query.order('price', { ascending: false })
-          break
-        case 'newest':
-          query = query.order('created_at', { ascending: false })
-          break
-        case 'featured':
-          query = query.eq('is_featured', true)
-          break
+    if (options?.status) {
+      query = query.eq('status', options.status);
       }
 
-      // Apply pagination
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-      query = query.range(from, to)
+    if (options?.featured !== undefined) {
+      query = query.eq('featured', options.featured);
+    }
 
-      const { data, error, count } = await query
+    if (options?.is_new !== undefined) {
+      query = query.eq('is_new', options.is_new);
+    }
 
-      if (error) {
-        handleSupabaseError(error)
-      }
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    if (options?.offset) {
+      query = query.range(options.offset, (options.offset + (options.limit || 10)) - 1);
+    }
+
+    const { data: products, error, count } = await query;
+
+    if (error) throw new Error(`Failed to fetch products: ${error.message}`);
 
       return {
-        products: data?.map(this.mapProductData) ?? [],
-        total: count ?? 0,
-        totalPages: count ? Math.ceil(count / limit) : 0
-      }
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      return {
-        products: [],
-        total: 0,
-        totalPages: 0
-      }
-    }
+      products: products as unknown as ProductWithRelations[],
+      total: count || 0,
+    };
   }
 
-  // Get featured products
-  static getFeaturedProducts = async (limit = 4): Promise<Product[]> => {
-    try {
-      const { data, error } = await supabase
+  static async deleteProduct(id: string): Promise<void> {
+    const supabase = await this.getClient();
+
+    const { error } = await supabase
         .from('products')
-        .select(`
-          *,
-          images:product_images(id, url, alt_text, display_order),
-          variants:product_variants(*),
-          categories:product_categories!inner(
-            category:categories(*)
-          )
-        `)
-        .eq('is_available', true)
-        .eq('is_featured', true)
-        .limit(limit)
+      .delete()
+      .eq('id', id);
 
-      if (error) {
-        handleSupabaseError(error)
-      }
-
-      return data?.map(this.mapProductData) ?? []
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      return []
-    }
+    if (error) throw new Error(`Failed to delete product: ${error.message}`);
   }
 
-  // Admin: Create a new product
-  static createProduct = async (product: ProductInsert): Promise<Product> => {
-    try {
-      const { data, error } = await supabaseAdmin
+  static async updateProductStatus(
+    id: string,
+    status: 'draft' | 'active' | 'archived'
+  ): Promise<void> {
+    const supabase = await this.getClient();
+
+    const { error } = await supabase
         .from('products')
-        .insert(product)
-        .select()
-        .single()
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id);
 
-      if (error) {
-        handleSupabaseError(error)
-      }
-
-      if (!data) {
-        throw new Error('Failed to create product')
-      }
-
-      return this.mapProductData(data)
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      throw error
-    }
+    if (error) throw new Error(`Failed to update product status: ${error.message}`);
   }
 
-  // Admin: Update a product
-  static updateProduct = async (id: string, updates: ProductUpdate): Promise<Product> => {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('products')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
+  static async searchProducts(query: string, options?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    products: ProductWithRelations[];
+    total: number;
+  }> {
+    const supabase = await this.getClient();
 
-      if (error) {
-        handleSupabaseError(error)
-      }
+    const { data: products, error, count } = await supabase
+      .from('products')
+      .select(`
+        *,
+        variants:product_variants(*),
+        images:product_images(*),
+        grillz_specification:grillz_specifications(*),
+        category:categories(id, name, slug)
+      `, { count: 'exact' })
+      .textSearch('name', query, {
+        type: 'websearch',
+        config: 'english'
+      })
+      .eq('status', 'active')
+      .limit(options?.limit || 10)
+      .range(options?.offset || 0, ((options?.offset || 0) + (options?.limit || 10)) - 1);
 
-      if (!data) {
-        throw new Error(`Failed to update product: ${id}`)
-      }
-
-      return this.mapProductData(data)
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      throw error
-    }
-  }
-
-  // Helper: Map database product to Product type
-  private static mapProductData(data: ProductRow & {
-    images?: { id: string; url: string; alt_text: string | null; display_order: number }[];
-    variants?: ProductVariant[];
-    categories?: { category: ProductCategory }[];
-  }): Product {
-    if (!data) {
-      throw new Error('Cannot map null product data')
-    }
+    if (error) throw new Error(`Failed to search products: ${error.message}`);
 
     return {
-      id: data.id,
-      name: data.name,
-      slug: data.slug,
-      description: data.description ?? '',
-      price: data.price,
-      compare_at_price: data.compare_at_price ?? null,
-      sku: data.sku ?? '',
-      inventory_quantity: data.stock_quantity ?? 0,
-      is_available: data.is_available,
-      is_featured: data.is_featured ?? false,
-      category_id: data.category_id,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      images: data.images?.map((img) => ({
-        id: img.id,
-        url: img.url,
-        alt_text: img.alt_text ?? '',
-        display_order: img.display_order,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      })) ?? [],
-      variants: data.variants ?? [],
-      categories: data.categories?.map((cat) => cat.category) ?? []
-    }
+      products: products as unknown as ProductWithRelations[],
+      total: count || 0,
+    };
   }
 } 

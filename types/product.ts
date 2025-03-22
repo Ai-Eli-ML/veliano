@@ -1,13 +1,28 @@
-import type { Database } from './supabase'
+import { Database } from './supabase'
 
 type Tables = Database['public']['Tables']
 
-export interface ProductImage {
+export type ProductStatus = 'draft' | 'active' | 'archived'
+export type GrillzMaterial = 'gold_10k' | 'gold_14k' | 'gold_18k' | 'silver_925' | 'platinum'
+export type GrillzStyle = 'open_face' | 'closed_face' | 'diamond_cut' | 'custom'
+export type TeethPosition = 'top' | 'bottom'
+
+export interface ProductBase {
   id: string
-  url: string
-  alt_text: string | null
-  display_order: number
-  position?: number
+  name: string
+  slug: string
+  description: string
+  price: number
+  compare_at_price?: number
+  featured: boolean
+  is_new: boolean
+  in_stock: boolean
+  stock_quantity: number
+  status: ProductStatus
+  category_id: string
+  metadata: Record<string, any>
+  seo_title?: string
+  seo_description?: string
   created_at: string
   updated_at: string
 }
@@ -18,17 +33,67 @@ export interface ProductVariant {
   name: string
   sku: string
   price: number
-  compare_at_price: number | null
-  inventory_quantity: number
-  option1_name: string | null
-  option1_value: string | null
-  option2_name: string | null
-  option2_value: string | null
-  option3_name: string | null
-  option3_value: string | null
+  compare_at_price?: number
+  in_stock: boolean
+  stock_quantity: number
+  metadata: Record<string, any>
   created_at: string
   updated_at: string
 }
+
+export interface ProductImage {
+  id: string
+  product_id: string
+  url: string
+  alt_text?: string
+  position: number
+  is_thumbnail: boolean
+  created_at: string
+}
+
+export interface GrillzSpecification {
+  id: string
+  product_id: string
+  material: GrillzMaterial
+  style: GrillzStyle
+  teeth_position: TeethPosition
+  teeth_count: number
+  diamond_options?: {
+    clarity?: string
+    color?: string
+    carat?: number
+    stone_count?: number
+  }
+  customization_options: {
+    available_materials: GrillzMaterial[]
+    available_styles: GrillzStyle[]
+    diamond_settings?: string[]
+    custom_text_available: boolean
+    max_text_length?: number
+  }
+  base_production_time_days: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ProductWithRelations extends ProductBase {
+  variants: ProductVariant[]
+  images: ProductImage[]
+  grillz_specification?: GrillzSpecification
+  category: {
+    id: string
+    name: string
+    slug: string
+  }
+}
+
+export type ProductCreateInput = Omit<ProductBase, 'id' | 'created_at' | 'updated_at'> & {
+  variants?: Omit<ProductVariant, 'id' | 'product_id' | 'created_at' | 'updated_at'>[]
+  images?: Omit<ProductImage, 'id' | 'product_id' | 'created_at'>[]
+  grillz_specification?: Omit<GrillzSpecification, 'id' | 'product_id' | 'created_at' | 'updated_at'>
+}
+
+export type ProductUpdateInput = Partial<Omit<ProductBase, 'id' | 'created_at' | 'updated_at'>>
 
 export interface ProductCategory {
   id: string

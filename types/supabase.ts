@@ -1,5 +1,3 @@
-import { PostgrestSingleResponse } from '@supabase/supabase-js'
-
 export type Json =
   | string
   | number
@@ -8,567 +6,316 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       categories: {
         Row: {
-          id: string
-          name: string
-          slug: string
+          created_at: string | null
           description: string | null
+          id: string
           image_url: string | null
+          name: string
           parent_id: string | null
-          created_at: string
-          updated_at: string
+          slug: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          name: string
-          slug: string
+          created_at?: string | null
           description?: string | null
+          id?: string
           image_url?: string | null
+          name: string
           parent_id?: string | null
-          created_at?: string
-          updated_at?: string
+          slug: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          name?: string
-          slug?: string
+          created_at?: string | null
           description?: string | null
+          id?: string
           image_url?: string | null
+          name?: string
           parent_id?: string | null
-          created_at?: string
-          updated_at?: string
+          slug?: string
+          updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      products: {
+      error_logs: {
         Row: {
-          id: string
-          name: string
-          slug: string
-          description: string | null
-          price: number
-          compare_at_price: number | null
-          sku: string
-          inventory_quantity: number
-          is_available: boolean
-          is_featured: boolean
-          category_id: string | null
+          browser: string
           created_at: string
-          updated_at: string
+          error_message: string
+          error_stack: string | null
+          id: string
+          os: string
+          path: string
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          name: string
-          slug: string
-          description?: string | null
-          price: number
-          compare_at_price?: number | null
-          sku?: string
-          inventory_quantity?: number
-          is_available?: boolean
-          is_featured?: boolean
-          category_id?: string | null
+          browser: string
           created_at?: string
-          updated_at?: string
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          os: string
+          path: string
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          name?: string
-          slug?: string
-          description?: string | null
-          price?: number
-          compare_at_price?: number | null
-          sku?: string
-          inventory_quantity?: number
-          is_available?: boolean
-          is_featured?: boolean
-          category_id?: string | null
+          browser?: string
           created_at?: string
-          updated_at?: string
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          os?: string
+          path?: string
+          user_id?: string | null
         }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          cls: number
+          created_at: string
+          fcp: number
+          fid: number
+          id: string
+          lcp: number
+          load_time: number
+          page: string
+          ttfb: number
+        }
+        Insert: {
+          cls: number
+          created_at?: string
+          fcp: number
+          fid: number
+          id?: string
+          lcp: number
+          load_time: number
+          page: string
+          ttfb: number
+        }
+        Update: {
+          cls?: number
+          created_at?: string
+          fcp?: number
+          fid?: number
+          id?: string
+          lcp?: number
+          load_time?: number
+          page?: string
+          ttfb?: number
+        }
+        Relationships: []
       }
       product_images: {
         Row: {
-          id: string
-          product_id: string
-          url: string
           alt_text: string | null
-          is_primary: boolean
-          display_order: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_primary: boolean | null
           product_id: string
+          updated_at: string | null
           url: string
+        }
+        Insert: {
           alt_text?: string | null
-          is_primary?: boolean
-          display_order?: number
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_primary?: boolean | null
+          product_id: string
+          updated_at?: string | null
+          url: string
         }
         Update: {
+          alt_text?: string | null
+          created_at?: string | null
+          display_order?: number | null
           id?: string
+          is_primary?: boolean | null
           product_id?: string
+          updated_at?: string | null
           url?: string
-          alt_text?: string | null
-          is_primary?: boolean
-          display_order?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      affiliates: {
-        Row: {
-          id: string
-          user_id: string
-          code: string
-          commission_rate: number
-          status: "active" | "pending" | "inactive"
-          total_earnings: number | null
-          total_paid: number | null
-          payment_method: Json
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          code: string
-          commission_rate: number
-          status?: "active" | "pending" | "inactive"
-          total_earnings?: number | null
-          total_paid?: number | null
-          payment_method?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          code?: string
-          commission_rate?: number
-          status?: "active" | "pending" | "inactive"
-          total_earnings?: number | null
-          total_paid?: number | null
-          payment_method?: Json
-          created_at?: string
-          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "affiliates_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ambassadors: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          bio: string | null
-          status: "active" | "pending" | "inactive"
-          commission_rate: number
-          total_earnings: number | null
-          total_paid: number | null
-          payment_method: Json
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          name: string
-          bio?: string | null
-          status?: "active" | "pending" | "inactive"
-          commission_rate: number
-          total_earnings?: number | null
-          total_paid?: number | null
-          payment_method?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          bio?: string | null
-          status?: "active" | "pending" | "inactive"
-          commission_rate?: number
-          total_earnings?: number | null
-          total_paid?: number | null
-          payment_method?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ambassadors_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      orders: {
-        Row: {
-          id: string
-          user_id: string
-          email: string
-          total_price: number
-          subtotal_price: number
-          shipping_price: number | null
-          tax_price: number | null
-          discount_price: number | null
-          shipping_address: Json
-          billing_address: Json
-          payment_status: string
-          fulfillment_status: string
-          currency: string | null
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          email: string
-          total_price: number
-          subtotal_price: number
-          shipping_price?: number | null
-          tax_price?: number | null
-          discount_price?: number | null
-          shipping_address: Json
-          billing_address: Json
-          payment_status?: string
-          fulfillment_status?: string
-          currency?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          email?: string
-          total_price?: number
-          subtotal_price?: number
-          shipping_price?: number | null
-          tax_price?: number | null
-          discount_price?: number | null
-          shipping_address?: Json
-          billing_address?: Json
-          payment_status?: string
-          fulfillment_status?: string
-          currency?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      order_items: {
-        Row: {
-          id: string
-          order_id: string
-          product_id: string
-          variant_id: string | null
-          quantity: number
-          price: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          order_id: string
-          product_id: string
-          variant_id?: string | null
-          quantity: number
-          price: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          order_id?: string
-          product_id?: string
-          variant_id?: string | null
-          quantity?: number
-          price?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
+            foreignKeyName: "product_images_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "order_items_variant_id_fkey"
-            columns: ["variant_id"]
-            referencedRelation: "product_variants"
-            referencedColumns: ["id"]
-          }
         ]
       }
       product_variants: {
         Row: {
-          id: string
-          product_id: string
-          name: string
-          sku: string | null
-          barcode: string | null
-          price: number
           compare_at_price: number | null
+          created_at: string
+          id: string
           inventory_quantity: number | null
+          name: string
           option1_name: string | null
           option1_value: string | null
           option2_name: string | null
           option2_value: string | null
-          created_at: string
+          option3_name: string | null
+          option3_value: string | null
+          price: number
+          product_id: string | null
+          sku: string | null
           updated_at: string
         }
         Insert: {
-          id?: string
-          product_id: string
-          name: string
-          sku?: string | null
-          barcode?: string | null
-          price: number
           compare_at_price?: number | null
+          created_at?: string
+          id?: string
           inventory_quantity?: number | null
+          name: string
           option1_name?: string | null
           option1_value?: string | null
           option2_name?: string | null
           option2_value?: string | null
-          created_at?: string
+          option3_name?: string | null
+          option3_value?: string | null
+          price: number
+          product_id?: string | null
+          sku?: string | null
           updated_at?: string
         }
         Update: {
-          id?: string
-          product_id?: string
-          name?: string
-          sku?: string | null
-          barcode?: string | null
-          price?: number
           compare_at_price?: number | null
+          created_at?: string
+          id?: string
           inventory_quantity?: number | null
+          name?: string
           option1_name?: string | null
           option1_value?: string | null
           option2_name?: string | null
           option2_value?: string | null
-          created_at?: string
+          option3_name?: string | null
+          option3_value?: string | null
+          price?: number
+          product_id?: string | null
+          sku?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "product_variants_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          compare_at_price: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          inventory_quantity: number | null
+          is_available: boolean | null
+          is_featured: boolean | null
+          name: string
+          price: number
+          sku: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          compare_at_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          inventory_quantity?: number | null
+          is_available?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          price: number
+          sku?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          compare_at_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          inventory_quantity?: number | null
+          is_available?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          price?: number
+          sku?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
         Row: {
-          id: string
-          updated_at: string
-          username: string
+          address: string | null
+          bio: string | null
+          created_at: string
+          email: string
           full_name: string
-          avatar_url: string
-          website: string
-          is_admin: boolean
-        }
-        Insert: {
           id: string
-          updated_at?: string
-          username: string
-          full_name?: string
-          avatar_url?: string
-          website?: string
-          is_admin?: boolean
-        }
-        Update: {
-          id?: string
-          updated_at?: string
-          username?: string
-          full_name?: string
-          avatar_url?: string
-          website?: string
-          is_admin?: boolean
-        }
-      }
-      referrals: {
-        Row: {
-          id: string
-          affiliate_id: string
-          order_id: string
-          commission_amount: number
-          status: "pending" | "paid" | "cancelled"
-          created_at: string
+          phone: string | null
+          role: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
-          id?: string
-          affiliate_id: string
-          order_id: string
-          commission_amount: number
-          status?: "pending" | "paid" | "cancelled"
+          address?: string | null
+          bio?: string | null
           created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          affiliate_id?: string
-          order_id?: string
-          commission_amount?: number
-          status?: "pending" | "paid" | "cancelled"
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referrals_affiliate_id_fkey"
-            columns: ["affiliate_id"]
-            referencedRelation: "affiliates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referrals_order_id_fkey"
-            columns: ["order_id"]
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      error_logs: {
-        Row: {
+          email: string
+          full_name: string
           id: string
-          error_message: string
-          error_stack: string | null
-          user_id: string | null
-          path: string
-          browser: string
-          os: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          error_message: string
-          error_stack?: string | null
-          user_id?: string | null
-          path: string
-          browser: string
-          os: string
-          created_at?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Update: {
-          id?: string
-          error_message?: string
-          error_stack?: string | null
-          user_id?: string | null
-          path?: string
-          browser?: string
-          os?: string
+          address?: string | null
+          bio?: string | null
           created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "error_logs_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      performance_metrics: {
-        Row: {
-          id: string
-          page: string
-          load_time: number
-          ttfb: number
-          fcp: number
-          lcp: number
-          cls: number
-          fid: number
-          created_at: string
-        }
-        Insert: {
+          email?: string
+          full_name?: string
           id?: string
-          page: string
-          load_time: number
-          ttfb: number
-          fcp?: number
-          lcp?: number
-          cls?: number
-          fid?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          page?: string
-          load_time?: number
-          ttfb?: number
-          fcp?: number
-          lcp?: number
-          cls?: number
-          fid?: number
-          created_at?: string
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
-      }
-      addresses: {
-        Row: {
-          id: string
-          user_id: string
-          // ... other fields
-        }
-      }
-      user_preferences: {
-        Row: {
-          id: string
-          user_id: string
-          preferences: {
-            marketingEmails: boolean
-            orderUpdates: boolean
-            newProductAlerts: boolean
-            saleAlerts: boolean
-            darkMode: boolean
-          }
-          created_at: string
-          updated_at: string
-        }
-      }
-      admin_audit_logs: {
-        Row: {
-          id: string
-          admin_id: string
-          action: string
-          details: Json
-          created_at: string
-        }
       }
     }
     Views: {
@@ -580,24 +327,105 @@ export interface Database {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: {}
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
-// Strongly typed profile definition
-export type Profile = {
-  id: string
-  full_name: string | null
-  avatar_url: string | null
-  is_admin: boolean
-  created_at: string
-  updated_at: string
-}
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
-// Type-safe query pattern
-export const createTypeSafeQuery = <T>(query: Promise<PostgrestSingleResponse<T>>) => {
-  return query.then(({ data, error }) => {
-    if (error) throw error
-    return data as T
-  })
-}
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never

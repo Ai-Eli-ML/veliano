@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { expect, afterEach, beforeAll, afterAll } from 'vitest'
+import { expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { loadEnvConfig } from '@next/env'
@@ -25,6 +25,24 @@ if (!globalThis.fetch) {
 
 // Extend Vitest's expect with Testing Library's matchers
 expect.extend(matchers)
+
+// Mock Sentry
+vi.mock('@sentry/nextjs', () => ({
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
+  withScope: vi.fn((callback) => callback({ setExtra: vi.fn() })),
+}))
+
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}))
 
 beforeAll(() => {
   // Start the MSW server before all tests
