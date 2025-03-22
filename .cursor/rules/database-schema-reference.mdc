@@ -1,6 +1,6 @@
 ---
 description: Database Schema Reference
-globs: **/supabase/**", "**/types/supabase.ts
+globs: **/supabase/**, **/types/supabase.ts
 alwaysApply: false
 ---
  # Database Schema Reference

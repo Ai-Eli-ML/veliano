@@ -1,6 +1,6 @@
 ---
 description: Guide for setting up and using Cursor with the project
-globs: **/*.mdc", "**/*.md", ".cursorignore", "cursor.json
+globs: **/*.mdc, **/*.md, .cursorignore, cursor.json
 alwaysApply: false
 ---
  # Cursor Setup and Usage Guide

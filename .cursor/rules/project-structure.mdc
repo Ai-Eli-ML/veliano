@@ -3,19 +3,30 @@ description: Project Structure and Organization Guide
 globs: **/*
 alwaysApply: false
 ---
- # Project Structure Reference
+---
+description: Project Structure and Organization Guide
+globs: ["**/*"]
+---
+# Project Structure Reference
 
 This document outlines the organization of our codebase and provides references to important directories and files.
 
 ## Root Level Organization
 
 - `app/` - Next.js App Router pages and layouts
-  - `app/api/auth/` - Authentication endpoints (Phase 2)
-  - `app/(auth)/` - Auth-related pages (Phase 2)
-  - `app/(main)/` - Main application pages (Phase 1)
+  - `app/api/auth/` - Authentication endpoints
+  - `app/(auth)/` - Auth-related pages
+  - `app/(main)/` - Main application pages
+  - `app/products/` - Product-related pages (Phase 3)
+    - `[id]/page.tsx` - Product detail page
+    - `page.tsx` - Product listing page
+  - `app/search/` - Search functionality (Phase 3)
+  - `app/admin/` - Admin interface (Phase 3)
+    - `products/` - Product management
+    - `categories/` - Category management
 - `components/` - Reusable UI components
-  - `components/auth/` - Authentication components (Phase 2)
-  - `components/ui/` - Core UI components (Phase 1)
+  - `components/auth/` - Authentication components
+  - `components/ui/` - Core UI components
     - `toast.tsx` - Toast notification primitive
     - `use-toast.tsx` - Toast hook and context
     - `toaster.tsx` - Toast notification renderer
@@ -26,98 +37,126 @@ This document outlines the organization of our codebase and provides references 
     - `profile-header.tsx` - User profile header with avatar and user info
     - `profile-tabs.tsx` - Profile section navigation
     - `edit-profile-dialog.tsx` - Profile editing modal with avatar support
+  - `components/products/` - Product components (Phase 3)
+    - `product-grid.tsx` - Product listing grid
+    - `product-card.tsx` - Individual product card
+    - `product-gallery.tsx` - Product image gallery
+    - `product-info.tsx` - Product details display
+    - `related-products.tsx` - Related products section
+  - `components/search/` - Search components (Phase 3)
+    - `search-bar.tsx` - Search input component
+    - `search-results.tsx` - Search results display
+    - `filter-sidebar.tsx` - Search filters sidebar
+  - `components/admin/` - Admin components (Phase 3)
+    - `products/` - Product management components
+    - `categories/` - Category management components
 - `lib/` - Utility functions and business logic
-  - `lib/supabase/` - Supabase integration (Phase 2)
-  - `lib/utils/` - General utilities (Phase 1)
+  - `lib/supabase/` - Supabase integration
+  - `lib/utils/` - General utilities
   - `lib/repositories/` - Data access layer
     - `user-repository.ts` - User data management with avatar support
-    - `product-repository.ts` - Product data management
-    - `category-repository.ts` - Category data management
+    - `product-repository.ts` - Product data management (Phase 3)
+    - `category-repository.ts` - Category data management (Phase 3)
+    - `search-repository.ts` - Search functionality (Phase 3)
 - `types/` - TypeScript type definitions
   - `types/supabase.ts` - Database types including user profiles with avatar
   - `types/user.ts` - User-related types
-  - `types/product.ts` - Product-related types
+  - `types/product.ts` - Product-related types (Phase 3)
+  - `types/search.ts` - Search-related types (Phase 3)
 - `tests/` - Test files and configurations
   - `tests/auth/` - Authentication test suites
-    - `auth-flow.test.ts` - Authentication flow tests
+  - `tests/products/` - Product test suites (Phase 3)
+  - `tests/search/` - Search test suites (Phase 3)
   - `tests/setup.ts` - Test setup and configuration
 - `public/` - Static assets
 - `scripts/` - Utility scripts and automation tools
 - `.cursor/` - Documentation and project guidelines
-- `config/` - Configuration files
+  - `project-plan.md` - Overall project roadmap
+  - `PHASE3.md` - Phase 3 guide and resources
+  - `rules/` - Project rules and guidelines
+  - `checklists/` - Project progress checklists
+  - `docs/` - Project documentation
+  - `completed-tasks/` - Archived completed task documentation
+- `docs/` - Application documentation
+  - `phase3-implementation.md` - Phase 3 implementation guide
+  - `api/` - API documentation
 
 ## Documentation
 
 All project documentation is organized in the following locations:
 
 - `.cursor/` - Project guides, checklists, and development standards
+  - `project-plan.md` - Overall project roadmap and status
+  - `PHASE3.md` - Phase 3 reference guide
   - `rules/` - Project rules and guidelines
     - `project-structure.mdc` - This file
     - `phase-transitions.mdc` - Phase transition rules
     - `development-standards.mdc` - Coding standards
-  - `project-plan.md` - Overall project roadmap and status
-  - `DEPLOY.md` - Deployment procedures and environment setup
+    - `database-schema-reference.mdc` - Database schema reference
+    - `admin-portal-reference.mdc` - Admin portal reference
+  - `docs/` - Additional project documentation
+    - `error-handling.md` - Error handling guidelines
+    - `security-policies.md` - Security policies documentation
+  - `guides/` - Development guidelines
+    - `supabase-integration-guide.md` - Guide for Supabase integration
+    - `typescript-errors-guide.md` - Guide for fixing TypeScript errors
+    - `shadcn-guidelines.md` - Guidelines for using shadcn/ui
+    - `commit-rules.md` - Guidelines for commit messages
+    - `CURSOR-DEBUGGING-GUIDE.md` - Guide for debugging issues
+  - `testing/` - Testing documentation
+    - `test-checklist.md` - Testing checklist
+    - `auth-testing.md` - Authentication testing guide
+  - `deployment/` - Deployment documentation
+    - `DEPLOY.md` - Guide for deploying the application
+    - `deployment-checklist.md` - Checklist for deployment
+    - `deployment-monitoring.md` - Guide for monitoring deployments
+  - `performance/` - Performance documentation
+    - `performance-results.md` - Performance testing results
+    - `lighthouse-testing.md` - Lighthouse testing results
+  - `checklists/` - Project progress tracking
+    - `phase3-progress.md` - Current Phase 3 progress
+    - `code-quality-fixes.md` - Code quality improvements tracking
+  - `completed-tasks/` - Archived documentation from completed phases
+    - `phase1-progress-report.md` - Phase 1 progress report
+    - `phase2-completion.md` - Completed Phase 2 checklist
+    - `phase3-prep.md` - Phase 3 preparation tasks
+
+- `docs/` - Application documentation
+  - `phase3-implementation.md` - Phase 3 implementation guide
+  - `api/` - API documentation
 
 ## Scripts Organization
 
 - `scripts/` - All utility and automation scripts
   - `fixes/` - Phase-specific fix scripts
-    - `fix-typescript.sh` - TypeScript fixes
-    - `fix-react.sh` - React/Next.js fixes
-    - `fix-performance.sh` - Performance fixes
-  - `fix-lint-issues.sh` - Main lint fixing script
-  - `check-lint.sh` - Lint checking script
-
-- `scripts/logs/` - Logs from script executions
-  - `lint-check-*.log` - Lint check reports
-  - `lint-fixes-*.log` - Fix application logs
+  - `migrations/` - Database migration scripts
+  - `seed/` - Database seed scripts for development
 
 ## Special Files
 
 - `middleware.ts` - Next.js middleware for auth and routing (root level)
 - `instrumentation.ts` - Performance monitoring and error tracking (root level)
 - `.eslintrc.js` - ESLint configuration with phase-specific rules
-- `.github/workflows/ci.yml` - CI pipeline with phase-aware checks
-
-## Environment and Configuration
-
-- `.env.*` - Environment variables (root level)
-- `.env-files/` - Backup copies of environment files
-- `config/` - Configuration files like tailwind, tsconfig, etc.
 
 ## Phase-Specific Organization
 
 ### Phase 1 (Completed)
-- Main application functionality
-- UI components and layouts
-- Current routing and pages
-- Non-Supabase utilities
-- Fixed 404 errors and navigation issues
-- Implemented basic error handling
+- ✅ Main application functionality
+- ✅ UI components and layouts
+- ✅ Current routing and pages
+- ✅ Non-Supabase utilities
 
-### Phase 2 (Current)
+### Phase 2 (Completed)
 - ✅ Authentication system with Supabase Auth
-- ✅ Authentication test suite
-- ✅ Basic user profile types and repository
-- 🔄 Supabase integration
-- 🔄 Protected routes and middleware
-- 🔄 User profile components
-- 🔄 Database functionality
-- 🔄 Profile image upload with Supabase storage
-- 🔄 User preferences management
-- 🔄 Shipping address management
+- ✅ User profile components
+- ✅ Shipping address management
+- ✅ User preferences management
+- ✅ Profile image upload with Supabase storage
+- ✅ Type-safe Sentry integration
 
-### Test Organization
-
-### Authentication Tests (Completed)
-Located in `tests/auth/`:
-- `auth-flow.test.ts` - Tests for authentication flows
-  - ✅ User signup and login
-  - ✅ Profile creation
-  - ✅ Password reset
-  - ✅ Session management
-  - ✅ Error handling
-  - ✅ Mock Supabase client implementation
-
-### Test Configuration
-- `vitest.config.ts`
+### Phase 3 (Current)
+- 🔄 Product database schema
+- 🔄 Product components
+- 🔄 Search functionality
+- 🔄 Admin interface
+- 🔄 Product images with Supabase storage
