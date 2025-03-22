@@ -6,33 +6,102 @@ import { Pagination } from "@/components/ui/pagination"
 import { ProductGrid } from "@/components/product/product-grid"
 import { Skeleton } from "@/components/ui/skeleton"
 import SearchResults from "@/components/search/search-results"
+import { searchProducts } from '@/lib/actions/product-actions'
+import ProductGridSkeleton from '@/components/products/product-grid-skeleton'
+import SearchForm from '@/components/search/search-form'
+import { ProductWithRelations } from '@/types/product'
 
-export default function SearchPage() {
+export const metadata = {
+  title: 'Search - Veliano Jewelry',
+  description: 'Search for luxury jewelry and custom grillz in our collection'
+}
+
+interface SearchPageProps {
+  searchParams: {
+    q?: string
+    page?: string
+  }
+}
+
+export default function SearchPage({ searchParams }: SearchPageProps) {
+  const searchQuery = searchParams.q || ''
+  const page = Number(searchParams.page || '1')
+  const limit = 16
+  const offset = (page - 1) * limit
+
   return (
-    <div className="container px-4 py-8 md:px-6 md:py-12 lg:py-16">
-      <Suspense fallback={<SearchPageSkeleton />}>
-        <SearchResults />
+    <main className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Search Products</h1>
+        <SearchForm defaultValue={searchQuery} />
+      </div>
+
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <SearchResultsContent
+          query={searchQuery}
+          page={page}
+          limit={limit}
+          offset={offset}
+        />
       </Suspense>
-    </div>
+    </main>
   )
 }
 
-function SearchPageSkeleton() {
+async function SearchResultsContent({
+  query,
+  page,
+  limit,
+  offset
+}: {
+  query: string
+  page: number
+  limit: number
+  offset: number
+}) {
+  if (!query) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-gray-600">Enter a search term to find products</p>
+      </div>
+    )
+  }
+
+  const result = await searchProducts(query, { limit, offset })
+  
+  // Type guard to ensure we have products
+  let products: ProductWithRelations[] = []
+  if (result.success && result.products) {
+    products = result.products
+  }
+
   return (
     <div>
-      <div className="flex flex-col gap-4 pb-8">
-        <Skeleton className="h-10 w-2/3" />
-        <Skeleton className="h-5 w-1/3" />
+      <div className="mb-6">
+        <h2 className="text-xl font-medium">
+          {result.success ? (
+            `Search results for "${query}" (${result.total} ${
+              result.total === 1 ? 'product' : 'products'
+            })`
+          ) : (
+            `Search results for "${query}"`
+          )}
+        </h2>
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="aspect-square" />
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        ))}
-      </div>
+
+      {result.success ? (
+        <ProductGrid
+          products={products}
+          emptyMessage={`No products found matching "${query}"`}
+        />
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-lg text-gray-600">Error searching for products</p>
+          <p className="text-gray-500 mt-2">{result.error}</p>
+        </div>
+      )}
+
+      {/* Pagination would go here */}
     </div>
   )
 }
