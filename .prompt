@@ -1,0 +1,125 @@
+{
+  "projectPrompts": {
+    "component": {
+      "server": {
+        "template": "import { type FC } from 'react'\n\ninterface ${ComponentName}Props {\n  // Add props here\n}\n\nexport const ${ComponentName}: FC<${ComponentName}Props> = () => {\n  return (\n    <div>\n      {/* Component content */}\n    </div>\n  )\n}",
+        "location": "components/${category}/${name}.tsx"
+      },
+      "client": {
+        "template": "'use client'\n\nimport { type FC } from 'react'\n\ninterface ${ComponentName}Props {\n  // Add props here\n}\n\nexport const ${ComponentName}: FC<${ComponentName}Props> = () => {\n  return (\n    <div>\n      {/* Component content */}\n    </div>\n  )\n}",
+        "location": "components/${category}/${name}.tsx"
+      }
+    },
+    "repository": {
+      "template": "import { createClient } from '@/lib/supabase/server'\nimport { type Database } from '@/types/supabase'\n\nexport class ${Name}Repository {\n  private supabase = createClient()\n\n  async getById(id: string) {\n    const { data, error } = await this.supabase\n      .from('${tableName}')\n      .select('*')\n      .eq('id', id)\n      .single()\n\n    if (error) throw error\n    return data\n  }\n}",
+      "location": "lib/repositories/${name}-repository.ts"
+    },
+    "api": {
+      "route": {
+        "template": "import { createClient } from '@/lib/supabase/server'\nimport { NextResponse } from 'next/server'\n\nexport async function GET(request: Request) {\n  try {\n    const supabase = createClient()\n    // Add route logic here\n    return NextResponse.json({ message: 'Success' })\n  } catch (error) {\n    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })\n  }\n}",
+        "location": "app/api/${path}/route.ts"
+      }
+    },
+    "test": {
+      "component": {
+        "template": "import { render, screen } from '@testing-library/react'\nimport { ${ComponentName} } from './${ComponentName}'\n\ndescribe('${ComponentName}', () => {\n  it('renders correctly', () => {\n    render(<${ComponentName} />)\n    // Add test assertions\n  })\n})",
+        "location": "__tests__/components/${category}/${name}.test.tsx"
+      }
+    }
+  },
+  "conventions": {
+    "naming": {
+      "components": "PascalCase",
+      "functions": "camelCase",
+      "constants": "UPPER_SNAKE_CASE",
+      "files": "kebab-case",
+      "types": "PascalCase"
+    },
+    "imports": {
+      "order": [
+        "react",
+        "next",
+        "external",
+        "internal",
+        "components",
+        "styles"
+      ]
+    }
+  },
+  "typeChecks": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "supabaseIntegration": {
+    "requireRLS": true,
+    "requireTypes": true,
+    "requireErrorHandling": true
+  },
+  "errorHandling": {
+    "requireBoundaries": true,
+    "requireLogging": true,
+    "requireTypedErrors": true
+  },
+  "testing": {
+    "requireTests": true,
+    "coverageThreshold": 80,
+    "requireMocks": true
+  },
+  "workflowAutomation": {
+    "contextTransitions": {
+      "component": {
+        "nextSteps": ["test", "api"],
+        "autoSuggest": true,
+        "template": "@context: test\n@task: Test {componentName}\n@requirements:\n- Test component rendering\n- Test user interactions\n- Test error states\n@priority: {previousPriority}"
+      },
+      "api": {
+        "nextSteps": ["test", "database"],
+        "autoSuggest": true,
+        "template": "@context: database\n@task: Implement database layer for {apiName}\n@requirements:\n- Define database schema\n- Implement RLS policies\n- Create repository methods\n@priority: {previousPriority}"
+      },
+      "database": {
+        "nextSteps": ["test"],
+        "autoSuggest": true,
+        "template": "@context: test\n@task: Test database operations for {databaseEntity}\n@requirements:\n- Test CRUD operations\n- Test RLS policies\n- Test edge cases\n@priority: {previousPriority}"
+      }
+    },
+    "phaseTracking": {
+      "trackProgress": true,
+      "updateProjectPlan": true,
+      "generateCommitMessages": true
+    },
+    "completionActions": {
+      "suggestNextTask": true,
+      "updateDocs": true,
+      "runTests": true,
+      "checkLinting": true
+    }
+  },
+  "aiGuidance": {
+    "projectGoals": {
+      "primary": "Build a custom jewelry e-commerce platform",
+      "phase": "Product Features",
+      "completion": "15%"
+    },
+    "decisionMaking": {
+      "architecture": {
+        "followPatterns": true,
+        "suggestImprovements": true,
+        "maintainConsistency": true
+      },
+      "codeQuality": {
+        "enforceTypeChecks": true,
+        "requireTests": true,
+        "followBestPractices": true
+      }
+    },
+    "autoComplete": {
+      "enabled": true,
+      "templates": {
+        "nextTask": "@context: {suggestedContext}\n@task: {suggestedTask}\n@requirements:\n{suggestedRequirements}\n@priority: {suggestedPriority}",
+        "commitMessage": "{type}({scope}): {description}\n\n{body}\n\n{footer}"
+      }
+    }
+  }
+} 
