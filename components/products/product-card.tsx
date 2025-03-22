@@ -9,93 +9,87 @@ import { formatCurrency } from "@/lib/utils"
 import { ShoppingCart } from "lucide-react"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
+import { ProductWithRelations } from '@/types/product'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface ProductCardProps {
-  id: string
-  name: string
-  slug: string
-  price: number
-  compareAtPrice?: number
-  imageSrc: string
-  category: string
-  url?: string
+  product: ProductWithRelations
 }
 
-export default function ProductCard({
-  id,
-  name,
-  slug,
-  price,
-  compareAtPrice,
-  imageSrc,
-  category,
-  url,
-}: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart()
   const { toast } = useToast()
 
-  const productUrl = url || `/products/${category}/${slug}`
-  const discountPercentage = compareAtPrice ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100) : 0
+  const thumbnailImage = product.images?.find(img => img.is_thumbnail) || product.images?.[0]
+  
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price)
+  }
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
     addItem({
-      productId: id,
-      name,
-      price,
+      productId: product.id,
+      name: product.name,
+      price: product.price,
       quantity: 1,
-      image: imageSrc,
+      image: thumbnailImage?.url || "/placeholder.svg?height=400&width=400",
     })
 
     toast({
       title: "Added to cart",
-      description: `${name} has been added to your cart`,
+      description: `${product.name} has been added to your cart`,
     })
   }
 
   return (
-    <div className="product-card group relative flex flex-col overflow-hidden rounded-lg border">
-      {/* Product Image */}
-      <Link href={productUrl} className="aspect-square overflow-hidden">
-        <Image
-          src={imageSrc || "/placeholder.svg?height=400&width=400"}
-          alt={name}
-          width={400}
-          height={400}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-      </Link>
-
-      {/* Discount Badge */}
-      {discountPercentage > 0 && (
-        <div className="absolute left-2 top-2 rounded bg-red-600 px-2 py-1 text-xs font-bold text-white">
-          {discountPercentage}% OFF
+    <div className="group relative rounded-lg border p-4 hover:shadow-lg transition-shadow">
+      <div className="aspect-square relative mb-3">
+        {product.images?.[0] && (
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            className="object-cover rounded-md"
+          />
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">{product.name}</h3>
+        
+        <div className="flex gap-2">
+          {product.is_custom_order && (
+            <Badge variant="secondary">Custom Order</Badge>
+          )}
+          {product.requires_impression_kit && (
+            <Badge variant="outline">Requires Impression</Badge>
+          )}
         </div>
-      )}
+        
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-bold">
+            {formatPrice(product.price)}
+          </p>
+          {product.base_production_time && (
+            <p className="text-sm text-gray-500">
+              ~{product.base_production_time} days
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Quick Add Button */}
       <div className="absolute bottom-[72px] left-0 right-0 flex justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <Button size="sm" className="metallic-button" aria-label={`Add ${name} to cart`} onClick={handleQuickAdd}>
+        <Button size="sm" className="metallic-button" aria-label={`Add ${product.name} to cart`} onClick={handleQuickAdd}>
           <ShoppingCart className="mr-2 h-4 w-4" /> Quick Add
         </Button>
-      </div>
-
-      {/* Product Info */}
-      <div className="flex flex-1 flex-col p-4">
-        <Link href={productUrl} className="mb-1 line-clamp-1 font-medium hover:underline">
-          {name}
-        </Link>
-
-        <div className="mt-auto flex items-center">
-          <div className="flex items-center gap-2">
-            <span className="font-bold">{formatCurrency(price)}</span>
-            {compareAtPrice && compareAtPrice > price && (
-              <span className="text-sm text-gray-500 line-through">{formatCurrency(compareAtPrice)}</span>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   )

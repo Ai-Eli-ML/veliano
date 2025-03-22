@@ -1,8 +1,7 @@
 'use client'
 
-import { Suspense } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 
@@ -10,9 +9,11 @@ interface PaginationProps {
   currentPage: number
   totalPages: number
   totalItems: number
+  onPageChange: (page: number) => void
+  siblingCount?: number
 }
 
-function PaginationContent({ currentPage, totalPages, totalItems }: PaginationProps) {
+function PaginationContent({ currentPage, totalPages, totalItems, onPageChange, siblingCount = 1 }: PaginationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -22,33 +23,41 @@ function PaginationContent({ currentPage, totalPages, totalItems }: PaginationPr
     return `${pathname}?${params.toString()}`
   }
 
-  // Generate page numbers to show
+  // Create an array of page numbers to display
   const getPageNumbers = () => {
-    const delta = 2 // Number of pages to show on each side of current page
-    const range = []
-    const rangeWithDots = []
-    let l
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
-        range.push(i)
-      }
+    const pageNumbers = []
+    
+    // Always show first page
+    pageNumbers.push(1)
+    
+    // Calculate range around current page
+    const leftSibling = Math.max(2, currentPage - siblingCount)
+    const rightSibling = Math.min(totalPages - 1, currentPage + siblingCount)
+    
+    // Add dots if needed before left sibling
+    if (leftSibling > 2) {
+      pageNumbers.push(-1) // -1 represents dots
     }
-
-    for (const i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1)
-        } else if (i - l !== 1) {
-          rangeWithDots.push('...')
-        }
-      }
-      rangeWithDots.push(i)
-      l = i
+    
+    // Add pages around current page
+    for (let i = leftSibling; i <= rightSibling; i++) {
+      pageNumbers.push(i)
     }
-
-    return rangeWithDots
+    
+    // Add dots if needed after right sibling
+    if (rightSibling < totalPages - 1) {
+      pageNumbers.push(-2) // -2 represents dots (different key)
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages)
+    }
+    
+    return pageNumbers
   }
+
+  const pageNumbers = getPageNumbers()
 
   if (totalPages <= 1) return null
 
@@ -63,34 +72,51 @@ function PaginationContent({ currentPage, totalPages, totalItems }: PaginationPr
           size="icon"
           asChild
           disabled={currentPage <= 1}
+          onClick={() => onPageChange(currentPage - 1)}
         >
           <Link href={createPageURL(currentPage - 1)} aria-label="Previous page">
             <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
 
-        {getPageNumbers().map((pageNumber, i) => (
-          pageNumber === '...' ? (
-            <span key={`dots-${i}`} className="px-3 py-2">...</span>
-          ) : (
+        {pageNumbers.map((pageNumber, i) => {
+          // Render dots
+          if (pageNumber < 0) {
+            return (
+              <Button
+                key={pageNumber}
+                variant="ghost"
+                size="icon"
+                disabled
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            )
+          }
+          
+          // Render page number
+          return (
             <Button
               key={pageNumber}
               variant={currentPage === pageNumber ? "default" : "outline"}
               size="icon"
               asChild
+              onClick={() => onPageChange(pageNumber)}
+              disabled={currentPage === pageNumber}
             >
               <Link href={createPageURL(pageNumber)} aria-label={`Page ${pageNumber}`}>
                 {pageNumber}
               </Link>
             </Button>
           )
-        ))}
+        })}
 
         <Button
           variant="outline"
           size="icon"
           asChild
           disabled={currentPage >= totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
         >
           <Link href={createPageURL(currentPage + 1)} aria-label="Next page">
             <ChevronRight className="h-4 w-4" />
@@ -103,8 +129,6 @@ function PaginationContent({ currentPage, totalPages, totalItems }: PaginationPr
 
 export function Pagination(props: PaginationProps) {
   return (
-    <Suspense fallback={<div>Loading pagination...</div>}>
-      <PaginationContent {...props} />
-    </Suspense>
+    <div>Loading pagination...</div>
   )
 } 

@@ -1,69 +1,50 @@
 "use client"
 
 import { Component, ErrorInfo, ReactNode } from "react"
-import { supabase } from "@/lib/supabase"
+import * as Sentry from "@sentry/nextjs"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 
 interface Props {
   children: ReactNode
+  fallback?: ReactNode
 }
 
 interface State {
   hasError: boolean
-  error: Error | null
+  error?: Error
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false,
-    error: null
+    hasError: false
   }
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error }
   }
 
-  public async componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo)
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    Sentry.withScope((scope) => {
+      scope.setExtra('componentStack', errorInfo.componentStack)
+      Sentry.captureException(error)
+    })
+  }
 
-    try {
-      await supabase.from("error_logs").insert({
-        error_message: error.message,
-        error_stack: error.stack || "",
-        path: window.location.pathname,
-        browser: navigator.userAgent,
-        os: navigator.platform
-      })
-    } catch (err) {
-      console.error("Error logging to Supabase:", err)
-    }
+  private handleReset = () => {
+    this.setState({ hasError: false, error: undefined })
   }
 
   public render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="max-w-md w-full space-y-8 p-8">
-            <div className="text-center">
-              <h2 className="mt-6 text-3xl font-bold">Something went wrong</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                We've logged the error and will look into it. Please try refreshing the page.
-              </p>
-              {process.env.NODE_ENV === "development" && this.state.error && (
-                <pre className="mt-4 p-4 bg-muted rounded text-xs overflow-x-auto">
-                  {this.state.error.message}
-                  {"\n"}
-                  {this.state.error.stack}
-                </pre>
-              )}
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Refresh Page
-              </button>
-            </div>
-          </div>
-        </div>
+      return this.props.fallback || (
+        <Card className="p-6 max-w-lg mx-auto my-8">
+          <h2 className="text-xl font-semibold mb-4">Something went wrong</h2>
+          <p className="text-gray-600 mb-4">
+            We've been notified and will fix this as soon as possible.
+          </p>
+          <Button onClick={this.handleReset}>Try again</Button>
+        </Card>
       )
     }
 
