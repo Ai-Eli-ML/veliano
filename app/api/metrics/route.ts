@@ -36,4 +36,26 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+}
+
+export async function GET(request: Request) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: metrics, error } = await supabase
+      .from('metrics')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ metrics })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    )
+  }
 } 
