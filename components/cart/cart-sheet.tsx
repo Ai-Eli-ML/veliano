@@ -3,11 +3,9 @@
 import type React from "react"
 import { Suspense, useState } from "react"
 import { useCart } from "@/hooks/use-cart"
-import { CartItem } from "@/components/cart/cart-item"
-import { CartEmpty } from "@/components/cart/cart-empty"
-import { CartSummary } from "@/components/cart/cart-summary"
-import { Button } from "@/components/ui/button"
+import { CartContent } from "@/components/cart/cart-content"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 import { ShoppingCart, Loader2 } from "lucide-react"
 import { ErrorBoundary } from "react-error-boundary"
 
@@ -16,7 +14,7 @@ interface CartSheetProps {
 }
 
 function CartSheetContent({ children }: CartSheetProps) {
-  const { items, totalItems } = useCart()
+  const { totalItems } = useCart()
   const [open, setOpen] = useState(false)
 
   return (
@@ -37,24 +35,8 @@ function CartSheetContent({ children }: CartSheetProps) {
         <SheetHeader className="px-1">
           <SheetTitle>Shopping Cart ({totalItems()})</SheetTitle>
         </SheetHeader>
-
-        <div className="flex-1 overflow-auto py-4">
-          {items.length === 0 ? (
-            <CartEmpty />
-          ) : (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <CartItem key={item.id} item={item} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {items.length > 0 && (
-          <div className="border-t pt-4">
-            <CartSummary />
-          </div>
-        )}
+        
+        <CartContent onClose={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   )

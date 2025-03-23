@@ -1,122 +1,114 @@
-import { headers } from "next/headers"
-import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { getStripe } from "@/lib/stripe"
-import type Stripe from "stripe"
-
-const stripe = getStripe()
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { getStripe } from '@/lib/stripe';
+import { Database } from '@/types/supabase';
 
 // This is your Stripe webhook secret for testing your endpoint locally.
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.text()
-    const headersList = await headers()
-    const signature = headersList.get("stripe-signature")
+    const stripe = getStripe();
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature') as string;
 
-    if (!signature || !webhookSecret) {
-      return new NextResponse("Webhook signature or secret missing", { status: 400 })
-    }
-
-    let event: Stripe.Event
-
+    // Verify webhook signature
+    let event;
+    
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } catch (err) {
-      const error = err as Error
-      console.error(`Webhook signature verification failed: ${error.message}`)
-      return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        webhookSecret!
+      );
+    } catch (err: any) {
+      return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient()
+    const supabase = createServerActionClient<Database>({ cookies });
 
     // Handle the event
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session
+      case 'checkout.session.completed': {
+        const session = event.data.object;
 
-        // Update order status in Supabase
+        // Update order status in database
         const { error } = await supabase
-          .from("orders")
+          .from('orders')
           .update({
-            payment_status: "paid",
-            status: "processing",
-            stripe_payment_intent_id: session.payment_intent as string,
+            status: 'paid',
+            updated_at: new Date().toISOString(),
             metadata: {
               ...session.metadata,
-              payment_status: "paid",
+              payment_status: session.payment_status,
+              payment_intent: session.payment_intent,
               stripe_customer_id: session.customer,
-              stripe_payment_method: session.payment_method_types?.[0],
-            },
+              payment_method: session.payment_method_types[0],
+            }
           })
-          .eq("stripe_checkout_session_id", session.id)
+          .eq('id', session.metadata.orderId);
 
         if (error) {
-          console.error("Error updating order:", error)
-          return new NextResponse("Error updating order", { status: 500 })
+          console.error('Error updating order:', error);
+          return NextResponse.json({ error: 'Error updating order' }, { status: 500 });
         }
 
-        break
+        // Process order items if needed
+        // This would be where you'd populate the order_items table if you didn't do it during checkout
+        break;
       }
 
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        
+        // If you need to update using payment intent instead of checkout session
+        console.log('Payment intent succeeded:', paymentIntent.id);
+        break;
+      }
 
-        // Update order status in Supabase
-        const { error } = await supabase
-          .from("orders")
-          .update({
-            payment_status: "failed",
-            status: "failed",
-            metadata: {
-              payment_status: "failed",
-              failure_message: paymentIntent.last_payment_error?.message,
-            },
-          })
-          .eq("stripe_payment_intent_id", paymentIntent.id)
-
-        if (error) {
-          console.error("Error updating order:", error)
-          return new NextResponse("Error updating order", { status: 500 })
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object;
+        
+        // Handle failed payments
+        console.log('Payment failed:', paymentIntent.id);
+        
+        // Find order associated with this payment intent
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('*')
+          .filter('metadata->stripe_payment_intent', 'eq', paymentIntent.id);
+        
+        if (!error && orders && orders.length > 0) {
+          // Update order status
+          await supabase
+            .from('orders')
+            .update({
+              status: 'payment_failed',
+              updated_at: new Date().toISOString(),
+              metadata: {
+                ...orders[0].metadata,
+                payment_error: paymentIntent.last_payment_error,
+              }
+            })
+            .eq('id', orders[0].id);
         }
-
-        break
+        break;
       }
 
-      case "charge.refunded": {
-        const charge = event.data.object as Stripe.Charge
-
-        // Update order status in Supabase
-        const { error } = await supabase
-          .from("orders")
-          .update({
-            payment_status: "refunded",
-            status: "refunded",
-            metadata: {
-              payment_status: "refunded",
-              refund_reason: charge.refunds?.data[0]?.reason,
-            },
-          })
-          .eq("stripe_payment_intent_id", charge.payment_intent as string)
-
-        if (error) {
-          console.error("Error updating order:", error)
-          return new NextResponse("Error updating order", { status: 500 })
-        }
-
-        break
-      }
-
+      // Handle other event types as needed
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        console.log(`Unhandled event type ${event.type}`);
     }
 
-    return new NextResponse("Webhook processed successfully", { status: 200 })
-  } catch (err) {
-    const error = err as Error
-    console.error("Webhook error:", error)
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
+    // Return a response to acknowledge receipt of the event
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
 

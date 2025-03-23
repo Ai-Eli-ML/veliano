@@ -1,15 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Check, ChevronDown, ChevronUp, Plus, Minus } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export default function ProductsFilter() {
+interface ProductsFilterProps {
+  minPrice?: string;
+  maxPrice?: string;
+  selectedCategory?: string;
+}
+
+export default function ProductsFilter({ minPrice, maxPrice, selectedCategory }: ProductsFilterProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || '/products';
   const searchParams = useSearchParams();
   
   const [expanded, setExpanded] = useState({
@@ -19,10 +25,21 @@ export default function ProductsFilter() {
     style: false
   });
   
-  const [priceRange, setPriceRange] = useState([0, 5000]);
+  // Initialize price range from props or defaults
+  const initialMinPrice = minPrice ? parseInt(minPrice) : 0;
+  const initialMaxPrice = maxPrice ? parseInt(maxPrice) : 5000;
+  const [priceRange, setPriceRange] = useState([initialMinPrice, initialMaxPrice]);
+  
+  // Update price range when props change
+  useEffect(() => {
+    setPriceRange([
+      minPrice ? parseInt(minPrice) : 0,
+      maxPrice ? parseInt(maxPrice) : 5000
+    ]);
+  }, [minPrice, maxPrice]);
   
   const createQueryString = (name: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || '');
     
     if (value === null) {
       params.delete(name);
@@ -46,6 +63,10 @@ export default function ProductsFilter() {
   };
   
   const handleFilterChange = (name: string, value: string | null) => {
+    // Toggle the category if it's already selected
+    if (name === 'category' && value === selectedCategory) {
+      value = null;
+    }
     router.push(`${pathname}?${createQueryString(name, value)}`, { scroll: false });
   };
   
@@ -54,7 +75,7 @@ export default function ProductsFilter() {
   };
   
   const applyPriceRange = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('minPrice', priceRange[0].toString());
     params.set('maxPrice', priceRange[1].toString());
     params.delete('page');
@@ -63,6 +84,12 @@ export default function ProductsFilter() {
   
   const resetFilters = () => {
     router.push(pathname, { scroll: false });
+  };
+
+  // Helper to safely get search param
+  const getParam = (name: string): string | null => {
+    if (!searchParams) return null;
+    return searchParams.get(name);
   };
 
   // Mock categories for example
@@ -128,9 +155,9 @@ export default function ProductsFilter() {
               >
                 <div className={cn(
                   "mr-2 h-4 w-4 rounded-sm border flex items-center justify-center",
-                  searchParams.get('category') === category.id ? "bg-primary border-primary" : "border-gray-300"
+                  selectedCategory === category.id ? "bg-primary border-primary" : "border-gray-300"
                 )}>
-                  {searchParams.get('category') === category.id && (
+                  {selectedCategory === category.id && (
                     <Check className="h-3 w-3 text-white" />
                   )}
                 </div>
@@ -163,7 +190,6 @@ export default function ProductsFilter() {
             </div>
             
             <Slider
-              defaultValue={[0, 5000]}
               min={0}
               max={5000}
               step={100}
@@ -208,9 +234,9 @@ export default function ProductsFilter() {
               >
                 <div className={cn(
                   "mr-2 h-4 w-4 rounded-sm border flex items-center justify-center",
-                  searchParams.get('material') === material.id ? "bg-primary border-primary" : "border-gray-300"
+                  getParam('material') === material.id ? "bg-primary border-primary" : "border-gray-300"
                 )}>
-                  {searchParams.get('material') === material.id && (
+                  {getParam('material') === material.id && (
                     <Check className="h-3 w-3 text-white" />
                   )}
                 </div>
@@ -245,9 +271,9 @@ export default function ProductsFilter() {
               >
                 <div className={cn(
                   "mr-2 h-4 w-4 rounded-sm border flex items-center justify-center",
-                  searchParams.get('style') === style.id ? "bg-primary border-primary" : "border-gray-300"
+                  getParam('style') === style.id ? "bg-primary border-primary" : "border-gray-300"
                 )}>
-                  {searchParams.get('style') === style.id && (
+                  {getParam('style') === style.id && (
                     <Check className="h-3 w-3 text-white" />
                   )}
                 </div>
@@ -263,13 +289,13 @@ export default function ProductsFilter() {
         <div className="flex items-center">
           <button 
             className="flex items-center text-sm hover:text-primary"
-            onClick={() => handleFilterChange('featured', searchParams.get('featured') === 'true' ? null : 'true')}
+            onClick={() => handleFilterChange('featured', getParam('featured') === 'true' ? null : 'true')}
           >
             <div className={cn(
               "mr-2 h-4 w-4 rounded-sm border flex items-center justify-center",
-              searchParams.get('featured') === 'true' ? "bg-primary border-primary" : "border-gray-300"
+              getParam('featured') === 'true' ? "bg-primary border-primary" : "border-gray-300"
             )}>
-              {searchParams.get('featured') === 'true' && (
+              {getParam('featured') === 'true' && (
                 <Check className="h-3 w-3 text-white" />
               )}
             </div>
@@ -280,13 +306,13 @@ export default function ProductsFilter() {
         <div className="flex items-center">
           <button 
             className="flex items-center text-sm hover:text-primary"
-            onClick={() => handleFilterChange('new', searchParams.get('new') === 'true' ? null : 'true')}
+            onClick={() => handleFilterChange('new', getParam('new') === 'true' ? null : 'true')}
           >
             <div className={cn(
               "mr-2 h-4 w-4 rounded-sm border flex items-center justify-center",
-              searchParams.get('new') === 'true' ? "bg-primary border-primary" : "border-gray-300"
+              getParam('new') === 'true' ? "bg-primary border-primary" : "border-gray-300"
             )}>
-              {searchParams.get('new') === 'true' && (
+              {getParam('new') === 'true' && (
                 <Check className="h-3 w-3 text-white" />
               )}
             </div>

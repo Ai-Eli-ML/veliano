@@ -1,33 +1,26 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { Database } from "@/types/supabase"
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { Database } from '@/types/supabase'
 
-export const createServerSupabaseClient = async () => {
-  const cookieStore = await cookies()
-  
+/**
+ * Creates a Supabase client for server components
+ */
+export async function createServerSupabaseClient() {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        get(name) {
+          return cookies().get(name)?.value
         },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // Handle cookies in edge functions
-          }
+        set(name, value, options) {
+          cookies().set(name, value, options)
         },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: "", ...options })
-          } catch (error) {
-            // Handle cookies in edge functions
-          }
-        },
-      },
+        remove(name, options) {
+          cookies().set(name, '', { ...options, maxAge: 0 })
+        }
+      }
     }
   )
 } 

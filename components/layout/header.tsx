@@ -33,6 +33,10 @@ import { SearchButton } from "@/components/search/search-button"
 
 const mainNavItems = [
   {
+    title: "All Products",
+    href: "/products",
+  },
+  {
     title: "Grillz",
     href: "/products/grillz",
     children: [

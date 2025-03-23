@@ -1,61 +1,79 @@
 "use server"
 
-import { createServerActionClient } from "@/lib/supabase-server"
-import { revalidatePath } from "next/cache"
-import { CreateCustomOrderData } from "@/types/custom-order"
+import { revalidatePath } from 'next/cache'
+import { CustomOrderRepository } from '@/lib/repositories/custom-orders'
+import { CreateCustomOrderData, UpdateCustomOrderData } from '@/types/custom-orders'
+
+const repository = new CustomOrderRepository()
 
 export async function createCustomOrder(data: CreateCustomOrderData) {
-  const supabase = await createServerActionClient()
-  
-  // First create the order
-  const { data: orderData, error: orderError } = await supabase
-    .from('orders')
-    .insert({
-      status: 'pending'
-    })
-    .select()
-    .single()
-
-  if (orderError) throw new Error(orderError.message)
-
-  // Then create the custom order
-  const { data: customOrder, error: customOrderError } = await supabase
-    .from('custom_orders')
-    .insert({
-      order_id: orderData.id,
-      product_id: data.product_id,
-      customer_notes: data.customer_notes,
-      status: 'pending'
-    })
-    .select(`
-      *,
-      product:products(*),
-      order:orders(*)
-    `)
-    .single()
-
-  if (customOrderError) throw new Error(customOrderError.message)
-
-  revalidatePath('/orders')
-  return customOrder
+  try {
+    const order = await repository.create(data)
+    revalidatePath('/admin/orders')
+    revalidatePath('/account/orders')
+    return { data: order, error: null }
+  } catch (error) {
+    console.error('Error creating custom order:', error)
+    return { data: null, error: 'Failed to create custom order' }
+  }
 }
 
-export async function updateCustomOrderStatus(
-  orderId: string,
-  status: string
+export async function updateCustomOrder(id: string, data: UpdateCustomOrderData) {
+  try {
+    const order = await repository.update(id, data)
+    revalidatePath('/admin/orders')
+    revalidatePath('/account/orders')
+    revalidatePath(`/admin/orders/${id}`)
+    return { data: order, error: null }
+  } catch (error) {
+    console.error('Error updating custom order:', error)
+    return { data: null, error: 'Failed to update custom order' }
+  }
+}
+
+export async function updateOrderStatus(id: string, status: UpdateCustomOrderData['status']) {
+  if (!status) return { data: null, error: 'Status is required' }
+  
+  try {
+    const order = await repository.updateStatus(id, status)
+    revalidatePath('/admin/orders')
+    revalidatePath('/account/orders')
+    revalidatePath(`/admin/orders/${id}`)
+    return { data: order, error: null }
+  } catch (error) {
+    console.error('Error updating order status:', error)
+    return { data: null, error: 'Failed to update order status' }
+  }
+}
+
+export async function updateImpressionKitStatus(
+  id: string,
+  status: string,
+  tracking: string | null = null
 ) {
-  const supabase = await createServerActionClient()
-
-  const { error } = await supabase
-    .from('custom_orders')
-    .update({ 
-      status,
-      updated_at: new Date().toISOString()
+  try {
+    const order = await repository.updateImpressionKit(id, {
+      impression_kit_status: status,
+      impression_kit_tracking: tracking
     })
-    .eq('id', orderId)
+    revalidatePath('/admin/orders')
+    revalidatePath('/account/orders')
+    revalidatePath(`/admin/orders/${id}`)
+    return { data: order, error: null }
+  } catch (error) {
+    console.error('Error updating impression kit status:', error)
+    return { data: null, error: 'Failed to update impression kit status' }
+  }
+}
 
-  if (error) throw new Error(error.message)
-
-  revalidatePath('/orders')
-  revalidatePath(`/orders/${orderId}`)
+export async function deleteCustomOrder(id: string) {
+  try {
+    await repository.delete(id)
+    revalidatePath('/admin/orders')
+    revalidatePath('/account/orders')
+    return { error: null }
+  } catch (error) {
+    console.error('Error deleting custom order:', error)
+    return { error: 'Failed to delete custom order' }
+  }
 } 

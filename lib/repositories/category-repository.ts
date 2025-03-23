@@ -1,18 +1,19 @@
-import { supabase } from '@/lib/supabase/client'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { createSafeQuery, handleSupabaseError } from '@/lib/supabase/client'
-import type { Database } from '@/types/supabase'
-import type { Product, ProductCategory } from '@/types/product'
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import type { ProductCategory } from '@/types/product'
+import { Database } from '@/types/supabase'
 
-type Tables = Database['public']['Tables']
-type CategoryRow = Tables['categories']['Row']
-type CategoryInsert = Tables['categories']['Insert']
-type CategoryUpdate = Tables['categories']['Update']
+// Custom error handler
+const handleSupabaseError = (error: any, message?: string) => {
+  console.error(`Supabase error ${message ? `(${message})` : ''}:`, error)
+}
 
 export class CategoryRepository {
   // Get all categories
   static getCategories = async (): Promise<ProductCategory[]> => {
     try {
+      const supabase = createServerActionClient<Database>({ cookies })
+      
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -20,6 +21,7 @@ export class CategoryRepository {
 
       if (error) {
         handleSupabaseError(error)
+        return []
       }
 
       return (data ?? []).map(this.mapCategoryData)
@@ -32,6 +34,8 @@ export class CategoryRepository {
   // Get a category by slug
   static getBySlug = async (slug: string): Promise<ProductCategory | null> => {
     try {
+      const supabase = createServerActionClient<Database>({ cookies })
+      
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -39,7 +43,12 @@ export class CategoryRepository {
         .single()
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          // Not found error
+          return null
+        }
         handleSupabaseError(error)
+        return null
       }
 
       return data ? this.mapCategoryData(data) : null
@@ -49,93 +58,17 @@ export class CategoryRepository {
     }
   }
 
-  // Get categories with their products
-  static getCategoriesWithProducts = async (): Promise<(ProductCategory & { products: Product[] })[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select(`
-          *,
-          products:product_categories!inner(
-            product:products(*)
-          )
-        `)
-        .order('name')
-
-      if (error) {
-        handleSupabaseError(error)
-      }
-
-      return (data ?? []).map(category => ({
-        ...this.mapCategoryData(category),
-        products: category.products.map((p: any) => p.product)
-      }))
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      return []
-    }
-  }
-
-  // Admin: Create a new category
-  static createCategory = async (category: CategoryInsert): Promise<ProductCategory> => {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('categories')
-        .insert(category)
-        .select()
-        .single()
-
-      if (error) {
-        handleSupabaseError(error)
-      }
-
-      if (!data) {
-        throw new Error('Failed to create category')
-      }
-
-      return this.mapCategoryData(data)
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      throw error
-    }
-  }
-
-  // Admin: Update a category
-  static updateCategory = async (id: string, updates: CategoryUpdate): Promise<ProductCategory> => {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('categories')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        handleSupabaseError(error)
-      }
-
-      if (!data) {
-        throw new Error(`Failed to update category: ${id}`)
-      }
-
-      return this.mapCategoryData(data)
-    } catch (error) {
-      handleSupabaseError(error as Error)
-      throw error
-    }
-  }
-
-  // Helper: Map database category to ProductCategory type
-  private static mapCategoryData(data: CategoryRow): ProductCategory {
+  // Helper to map database row to ProductCategory type
+  private static mapCategoryData(category: any): ProductCategory {
     return {
-      id: data.id,
-      name: data.name,
-      slug: data.slug,
-      description: data.description,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      image_url: null, // These fields will be added to the database schema later
-      parent_id: null
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      image_url: category.image_url,
+      parent_id: category.parent_id,
+      created_at: category.created_at,
+      updated_at: category.updated_at,
     }
   }
 } 

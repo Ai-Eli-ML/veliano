@@ -1,33 +1,16 @@
-"use client"
-
-import { useState, useEffect, Suspense } from "react"
-import { useRouter } from "next/navigation"
-import { 
-  Plus, Search, Filter, ArrowUpDown, MoreHorizontal, Edit, Trash, Eye, 
-  Download, Upload, Loader2
-} from "lucide-react"
+import { Suspense } from "react"
 import Link from 'next/link'
+import { Metadata } from "next"
+import { PlusIcon } from 'lucide-react'
+
 import { ProductRepository } from '@/lib/repositories/product-repository'
 import { ProductStatus } from '@/types/product'
 import { Button } from '@/components/ui/button'
 import ProductsTable from '@/components/admin/products/products-table'
 import ProductsTableSkeleton from '@/components/admin/products/products-table-skeleton'
 import ProductsFilter from '@/components/admin/products/products-filter'
-import { PlusIcon } from 'lucide-react'
 
-interface Product {
-  id: string
-  name: string
-  price: number
-  category: string
-  inventory: number
-  featured: boolean
-  published: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Product Management - Veliano Admin',
   description: 'Manage your jewelry products'
 }

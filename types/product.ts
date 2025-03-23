@@ -29,26 +29,21 @@ export interface ProductBase {
 
 export interface ProductVariant {
   id: string
-  product_id: string
+  productId: string
   name: string
-  sku: string
   price: number
-  compare_at_price?: number
-  in_stock: boolean
-  stock_quantity: number
-  metadata: Record<string, any>
-  created_at: string
-  updated_at: string
+  sku?: string
+  inventory?: number
+  isDefault?: boolean
+  options?: Record<string, string>
 }
 
 export interface ProductImage {
   id: string
-  product_id: string
   url: string
-  alt_text?: string
-  position: number
-  is_thumbnail: boolean
-  created_at: string
+  alt?: string
+  productId: string
+  position?: number
 }
 
 export interface GrillzSpecification {
@@ -109,23 +104,20 @@ export interface ProductCategory {
 export interface Product {
   id: string
   name: string
-  slug: string
-  description: string | null
+  description?: string
   price: number
-  compare_at_price: number | null
-  sku: string
-  inventory_quantity: number
-  is_available: boolean
-  is_featured: boolean
-  has_variants?: boolean
-  is_published?: boolean
-  featured?: boolean
-  category_id: string | null
-  created_at: string
-  updated_at: string
+  slug: string
+  inventory?: number
   images?: ProductImage[]
   variants?: ProductVariant[]
-  categories?: ProductCategory[]
+  categoryId?: string
+  category?: {
+    id: string
+    name: string
+    slug: string
+  }
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface ProductFilterOptions {

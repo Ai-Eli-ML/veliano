@@ -1,125 +1,94 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useCart } from "@/hooks/use-cart"
-import { createCheckoutSession } from "@/actions/stripe"
-import { ecommerceEvent } from "@/lib/analytics"
-import { Loader2, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { User } from "@supabase/supabase-js"
-import { CheckoutFormData } from "@/types/cart"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { useCart } from "@/hooks/use-cart"
+import { formatCurrency } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 
-const formSchema = z.object({
+const checkoutFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  streetAddress: z.string().min(5, "Street address is required"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  zipCode: z.string().min(5, "Zip code is required"),
-  country: z.string().min(2, "Country is required"),
-  paymentMethod: z.enum(["creditCard", "paypal"]),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  city: z.string().min(2, "City must be at least 2 characters"),
+  state: z.string().min(2, "State must be at least 2 characters"),
+  zipCode: z.string().min(5, "ZIP code must be at least 5 characters"),
+  paymentMethod: z.enum(["credit_card", "paypal"]),
   notes: z.string().optional(),
 })
 
-type FormValues = z.infer<typeof formSchema>
+type CheckoutFormValues = z.infer<typeof checkoutFormSchema>
 
 interface CheckoutFormProps {
-  user: User | null
+  subtotal: number
+  shipping: number
+  tax: number
+  total: number
 }
 
-function CheckoutFormContent({ user }: CheckoutFormProps) {
+export function CheckoutForm({ subtotal, shipping, tax, total }: CheckoutFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const { items, subtotal, clearCart } = useCart()
-  const { toast } = useToast()
+  const { clearCart } = useCart()
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-      email: user?.email || "",
+      email: "",
       phone: "",
-      streetAddress: "",
+      address: "",
       city: "",
       state: "",
       zipCode: "",
-      country: "United States",
-      paymentMethod: "creditCard",
+      paymentMethod: "credit_card",
       notes: "",
     },
   })
 
-  async function onSubmit(data: FormValues) {
-    if (items.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Cart is empty",
-        description: "Please add items to your cart before checking out.",
-      })
-      return
-    }
-
+  async function onSubmit(data: CheckoutFormValues) {
     setIsSubmitting(true)
-    setError(null)
-
+    
     try {
-      const lineItems = items.map((item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.name,
-            images: [item.image],
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }))
-
-      const session = await createCheckoutSession({
-        lineItems,
-        customerEmail: data.email,
-        metadata: {
-          name: `${data.firstName} ${data.lastName}`,
-          address: data.streetAddress,
-          city: data.city,
-          state: data.state,
-          postal_code: data.zipCode,
-          country: data.country,
-          notes: data.notes || "",
-        },
+      // In a real application, this would process the payment and create the order
+      // This is just a placeholder for the demonstration
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      // Clear the cart after successful checkout
+      clearCart()
+      
+      // Show success message
+      toast.success("Order placed successfully!", {
+        description: "Thank you for your purchase. You will receive a confirmation email shortly.",
       })
-
-      if (session.error) {
-        throw new Error(session.error)
-      }
-
-      if (session.url) {
-        // Track begin checkout event
-        ecommerceEvent.beginCheckout(items, subtotal())
-        router.push(session.url)
-      } else {
-        throw new Error("No checkout URL returned")
-      }
-    } catch (error: any) {
-      setError(error?.message || "An error occurred while creating your checkout session")
-      toast({
-        variant: "destructive",
-        title: "Checkout Error",
-        description: error?.message || "An error occurred while creating your checkout session",
+      
+      // Redirect to success page
+      router.push("/checkout/success")
+    } catch (error) {
+      console.error("Checkout error:", error)
+      toast.error("Failed to process your order", {
+        description: "Please try again or contact customer support for assistance.",
       })
     } finally {
       setIsSubmitting(false)
@@ -127,23 +96,17 @@ function CheckoutFormContent({ user }: CheckoutFormProps) {
   }
 
   return (
-    <div className="space-y-6 rounded-lg border p-6">
-      <div>
-        <h3 className="text-lg font-medium">Shipping Information</h3>
-        <p className="text-sm text-gray-500">Please enter your shipping details</p>
-      </div>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Contact Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Information</CardTitle>
+            <CardDescription>
+              Please provide your contact details for order confirmation
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="firstName"
@@ -157,7 +120,6 @@ function CheckoutFormContent({ user }: CheckoutFormProps) {
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="lastName"
@@ -171,9 +133,6 @@ function CheckoutFormContent({ user }: CheckoutFormProps) {
                 </FormItem>
               )}
             />
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="email"
@@ -181,13 +140,12 @@ function CheckoutFormContent({ user }: CheckoutFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} />
+                    <Input placeholder="john.doe@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="phone"
@@ -195,190 +153,199 @@ function CheckoutFormContent({ user }: CheckoutFormProps) {
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(123) 456-7890" {...field} />
+                    <Input placeholder="(555) 123-4567" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="streetAddress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Street Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="123 Main St" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input placeholder="New York" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State</FormLabel>
-                  <FormControl>
-                    <Input placeholder="NY" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="10001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country</FormLabel>
-                <FormControl>
-                  <Input placeholder="United States" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div>
-            <h3 className="text-lg font-medium">Payment Method</h3>
-            <p className="text-sm text-gray-500">Select your preferred payment method</p>
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="paymentMethod"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="creditCard" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Credit Card
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="paypal" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        PayPal
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Order Notes (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Special delivery instructions or additional information" 
-                    className="resize-none"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Processing..." : "Complete Order"}
-          </Button>
-        </form>
-      </Form>
-    </div>
-  )
-}
+          </CardContent>
+        </Card>
 
-export function CheckoutForm({ user }: CheckoutFormProps) {
-  return (
-    <Suspense fallback={
-      <div className="space-y-6 animate-pulse">
-        <div className="space-y-4">
-          <div className="h-6 w-40 bg-muted rounded" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <div className="h-4 w-20 bg-muted rounded" />
-              <div className="h-10 w-full bg-muted rounded" />
+        {/* Shipping Address */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Shipping Address</CardTitle>
+            <CardDescription>
+              Where should we send your order?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Street Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main St" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid gap-6 sm:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="New York" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <Input placeholder="NY" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ZIP Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="10001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="space-y-2">
-              <div className="h-4 w-20 bg-muted rounded" />
-              <div className="h-10 w-full bg-muted rounded" />
-            </div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="h-6 w-40 bg-muted rounded" />
-          <div className="h-10 w-full bg-muted rounded" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-4 w-20 bg-muted rounded" />
-                <div className="h-10 w-full bg-muted rounded" />
+          </CardContent>
+        </Card>
+
+        {/* Payment Method */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Method</CardTitle>
+            <CardDescription>
+              How would you like to pay for your order?
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="credit_card" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Credit or Debit Card
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="paypal" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          PayPal
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <p className="text-sm text-muted-foreground mt-2">
+              <span className="font-medium">Note:</span> This is a demo checkout. No actual payment will be processed.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Order Notes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+            <CardDescription>
+              Any special instructions for your order?
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Order Notes (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Special delivery instructions, gift message, etc."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Order Summary and Submit */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span>{formatCurrency(subtotal)}</span>
               </div>
-            ))}
-          </div>
-        </div>
-        <div className="h-10 w-full bg-muted rounded" />
-      </div>
-    }>
-      <CheckoutFormContent user={user} />
-    </Suspense>
+              <div className="flex justify-between text-sm">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? "Free" : formatCurrency(shipping)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Tax</span>
+                <span>{formatCurrency(tax)}</span>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between font-medium">
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                `Complete Order (${formatCurrency(total)})`
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
   )
 }
 

@@ -1,107 +1,108 @@
-"use client"
-
+import { Suspense } from "react"
+import { ProductRepository } from "@/lib/repositories/product-repository"
 import { Pagination } from "@/components/ui/pagination"
-import { ProductGrid } from "@/components/product/product-grid"
+import ProductCard from "@/components/products/product-card"
+import { ProductSort } from "@/components/products/product-sort"
+import ProductsFilter from "@/components/products/products-filter"
+import ProductGridSkeleton from "@/components/products/product-grid-skeleton"
 import { ProductsHeader } from "@/components/product/products-header"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Suspense } from "react"
 import { getProducts, getCategories } from "@/lib/products"
-import { ProductRepository } from '@/lib/repositories/product-repository'
-import ProductGridSkeleton from '@/components/products/product-grid-skeleton'
-import ProductsFilter from '@/components/products/products-filter'
 
 export const metadata = {
-  title: 'Products - Veliano Jewelry',
-  description: 'Browse our collection of luxury jewelry and custom grillz'
+  title: 'Products | Veliano Jewelry',
+  description: 'Explore our collection of custom grillz and luxury jewelry.',
 }
 
 interface ProductsPageProps {
   searchParams: {
-    category?: string
     page?: string
-    sort?: 'newest' | 'price_asc' | 'price_desc' | 'featured'
+    sort?: string
     minPrice?: string
     maxPrice?: string
-    search?: string
+    category?: string
   }
 }
 
-export default function ProductsPage({ searchParams }: ProductsPageProps) {
-  const page = Number(searchParams.page || '1')
-  const limit = 16
-  const offset = (page - 1) * limit
-
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  // Parse search params
+  const page = Number(searchParams.page) || 1
+  const sort = searchParams.sort || 'newest'
+  const minPrice = searchParams.minPrice ? Number(searchParams.minPrice) : undefined
+  const maxPrice = searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined
+  const category = searchParams.category
+  
+  // Compute options for repository
+  const options: { 
+    limit: number;
+    offset: number;
+    status: 'active'; 
+    featured?: boolean;
+    category_id?: string;
+  } = {
+    limit: 12,
+    offset: (page - 1) * 12,
+    status: 'active',
+  }
+  
+  // Set featured flag for sorting
+  if (sort === 'featured') {
+    options.featured = true
+  }
+  
+  // Fetch products
+  const { products, total } = await ProductRepository.getProducts(options)
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(total / options.limit)
+  
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Our Collection</h1>
-        <p className="text-gray-600">Discover our exclusive selection of custom grillz and luxury jewelry</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-8">
-        <aside>
-          <ProductsFilter />
-        </aside>
-        
-        <div>
-          <Suspense fallback={<ProductGridSkeleton />}>
-            <ProductsContent 
-              page={page} 
-              limit={limit} 
-              offset={offset}
-              searchParams={searchParams} 
+    <div className="container py-10">
+      <h1 className="text-3xl font-bold mb-6">Products</h1>
+      
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Filters sidebar */}
+        <div className="w-full md:w-64 flex-shrink-0">
+          <Suspense fallback={<div className="h-96 w-full bg-muted animate-pulse rounded-lg" />}>
+            <ProductsFilter 
+              minPrice={searchParams.minPrice} 
+              maxPrice={searchParams.maxPrice} 
+              selectedCategory={category} 
             />
           </Suspense>
         </div>
-      </div>
-    </main>
-  )
-}
-
-async function ProductsContent({ 
-  page, 
-  limit, 
-  offset,
-  searchParams 
-}: { 
-  page: number;
-  limit: number;
-  offset: number;
-  searchParams: ProductsPageProps['searchParams'];
-}) {
-  // Convert category slug to ID if needed
-  let categoryId;
-  if (searchParams.category) {
-    // In a real app, you would fetch the category ID by slug
-    // For now, we'll assume we have the ID
-    categoryId = searchParams.category;
-  }
-
-  // Fetch products with filters
-  const result = await ProductRepository.getProducts({
-    category_id: categoryId,
-    featured: searchParams.sort === 'featured' ? true : undefined,
-    status: 'active',
-    limit,
-    offset,
-  });
-
-  return (
-    <>
-      <div className="flex justify-between items-center mb-6">
-        <p className="text-sm text-gray-500">
-          Showing {result.products.length} of {result.total} products
-        </p>
         
-        {/* Sort dropdown would go here */}
+        {/* Products grid */}
+        <div className="flex-1">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-muted-foreground">
+              Showing {products.length} of {total} products
+            </p>
+            <Suspense fallback={<div className="w-48 h-10 bg-muted animate-pulse rounded-md" />}>
+              <ProductSort currentSort={sort} />
+            </Suspense>
+          </div>
+          
+          <Suspense fallback={<ProductGridSkeleton />}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </Suspense>
+          
+          {totalPages > 1 && (
+            <div className="mt-10">
+              <Pagination 
+                currentPage={page} 
+                totalPages={totalPages} 
+                baseUrl="/products" 
+                searchParams={searchParams}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      
-      <ProductGrid 
-        products={result.products} 
-        emptyMessage="No products found. Try adjusting your filters." 
-      />
-      
-      {/* Pagination component would go here */}
-    </>
-  );
+    </div>
+  )
 }

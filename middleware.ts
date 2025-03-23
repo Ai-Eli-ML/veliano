@@ -1,46 +1,78 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import type { Database } from '@/types/supabase'
+import { NextResponse, type NextRequest } from 'next/server'
+import { Database } from '@/types/supabase'
 
-const publicRoutes = [
-  '/',
-  '/about',
-  '/products',
-  '/categories',
-  '/auth/signin',
-  '/auth/signup',
-  '/auth/reset-password',
-]
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient<Database>({ req, res })
+  // Create a Supabase client for middleware
+  const supabase = createMiddlewareClient<Database>({ req: request, res: response })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Get user session
+  const { data: { session } } = await supabase.auth.getSession()
 
-  const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname.startsWith(route))
-  const isApiRoute = req.nextUrl.pathname.startsWith('/api')
-  const isAuthRoute = req.nextUrl.pathname.startsWith('/auth')
-
-  // Allow public routes and API routes
-  if (isPublicRoute || isApiRoute) {
-    return res
+  // If user is not signed in and the current path is not / redirect the user to /
+  if (!session && request.nextUrl.pathname !== '/' && !isPublicRoute(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Redirect authenticated users away from auth routes
-  if (session && isAuthRoute) {
-    return NextResponse.redirect(new URL('/account', req.url))
+  // If user is signed in and the current path is / redirect the user to /account
+  if (session && request.nextUrl.pathname === '/') {
+    return NextResponse.redirect(new URL('/account', request.url))
   }
 
-  // Redirect unauthenticated users to signin
-  if (!session && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url))
+  // Check if route is admin-protected
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    const { data: adminUser } = await supabase
+      .from('admin_users')
+      .select()
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+
+    if (!adminUser) {
+      return NextResponse.redirect(new URL('/account', request.url))
+    }
   }
 
-  return res
+  return response
+}
+
+// Helper to determine if a route is public
+function isPublicRoute(pathname: string): boolean {
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/signup',
+    '/about',
+    '/contact',
+    '/products',
+    '/reset-password',
+  ]
+  
+  const publicPrefixes = [
+    '/api/auth/',
+    '/_next/',
+    '/favicon',
+    '/public/',
+  ]
+  
+  if (publicRoutes.includes(pathname)) {
+    return true
+  }
+  
+  if (publicPrefixes.some(prefix => pathname.startsWith(prefix))) {
+    return true
+  }
+  
+  return false
 }
 
 export const config = {
@@ -50,9 +82,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - public (public files)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
 

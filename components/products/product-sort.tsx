@@ -1,15 +1,15 @@
 "use client"
 
-import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-function ProductSortContent() {
+interface ProductSortProps {
+  currentSort: string
+}
+
+export function ProductSort({ currentSort }: ProductSortProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-
-  // Get current sort value from URL
-  const currentSort = searchParams.get("sort") || "newest"
 
   // Handle sort change
   const handleSortChange = (value: string) => {
@@ -45,19 +45,4 @@ function ProductSortContent() {
     </div>
   )
 }
-
-export function ProductSort() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium">Sort by:</span>
-        <div className="h-10 w-[180px] animate-pulse rounded-md bg-muted"></div>
-      </div>
-    }>
-      <ProductSortContent />
-    </Suspense>
-  )
-}
-
-export default ProductSort
 

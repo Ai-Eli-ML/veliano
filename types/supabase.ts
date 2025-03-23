@@ -9,6 +9,123 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      carts: {
+        Row: {
+          created_at: string
+          id: string
+          is_archived: boolean
+          metadata: Json | null
+          session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          metadata?: Json | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          metadata?: Json | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          price: number
+          product_id: string
+          quantity: number
+          updated_at: string
+          variant_id: string | null
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          price: number
+          product_id: string
+          quantity: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          price?: number
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -50,6 +167,98 @@ export type Database = {
           },
         ]
       }
+      custom_orders: {
+        Row: {
+          created_at: string | null
+          customer_id: string
+          design_details: string | null
+          estimated_completion_date: string | null
+          id: string
+          impression_kit_status: string
+          impression_kit_tracking: string | null
+          material: string
+          notes: string | null
+          order_number: string
+          status: Database["public"]["Enums"]["order_status"]
+          teeth_selection: Json
+          total_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id: string
+          design_details?: string | null
+          estimated_completion_date?: string | null
+          id?: string
+          impression_kit_status?: string
+          impression_kit_tracking?: string | null
+          material: string
+          notes?: string | null
+          order_number: string
+          status?: Database["public"]["Enums"]["order_status"]
+          teeth_selection: Json
+          total_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string
+          design_details?: string | null
+          estimated_completion_date?: string | null
+          id?: string
+          impression_kit_status?: string
+          impression_kit_tracking?: string | null
+          material?: string
+          notes?: string | null
+          order_number?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          teeth_selection?: Json
+          total_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: Json | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           browser: string
@@ -82,6 +291,56 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      grillz_specifications: {
+        Row: {
+          base_production_time_days: number
+          created_at: string | null
+          customization_options: Json
+          diamond_options: Json | null
+          id: string
+          material: Database["public"]["Enums"]["grillz_material"]
+          product_id: string
+          style: Database["public"]["Enums"]["grillz_style"]
+          teeth_count: number
+          teeth_position: Database["public"]["Enums"]["teeth_position"]
+          updated_at: string | null
+        }
+        Insert: {
+          base_production_time_days: number
+          created_at?: string | null
+          customization_options: Json
+          diamond_options?: Json | null
+          id?: string
+          material: Database["public"]["Enums"]["grillz_material"]
+          product_id: string
+          style: Database["public"]["Enums"]["grillz_style"]
+          teeth_count: number
+          teeth_position: Database["public"]["Enums"]["teeth_position"]
+          updated_at?: string | null
+        }
+        Update: {
+          base_production_time_days?: number
+          created_at?: string | null
+          customization_options?: Json
+          diamond_options?: Json | null
+          id?: string
+          material?: Database["public"]["Enums"]["grillz_material"]
+          product_id?: string
+          style?: Database["public"]["Enums"]["grillz_style"]
+          teeth_count?: number
+          teeth_position?: Database["public"]["Enums"]["teeth_position"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grillz_specifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       performance_metrics: {
         Row: {
@@ -224,6 +483,7 @@ export type Database = {
       }
       products: {
         Row: {
+          base_production_time: number | null
           category_id: string | null
           compare_at_price: number | null
           created_at: string | null
@@ -231,14 +491,17 @@ export type Database = {
           id: string
           inventory_quantity: number | null
           is_available: boolean | null
+          is_custom_order: boolean | null
           is_featured: boolean | null
           name: string
           price: number
+          requires_impression_kit: boolean | null
           sku: string | null
           slug: string
           updated_at: string | null
         }
         Insert: {
+          base_production_time?: number | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string | null
@@ -246,14 +509,17 @@ export type Database = {
           id?: string
           inventory_quantity?: number | null
           is_available?: boolean | null
+          is_custom_order?: boolean | null
           is_featured?: boolean | null
           name: string
           price: number
+          requires_impression_kit?: boolean | null
           sku?: string | null
           slug: string
           updated_at?: string | null
         }
         Update: {
+          base_production_time?: number | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string | null
@@ -261,9 +527,11 @@ export type Database = {
           id?: string
           inventory_quantity?: number | null
           is_available?: boolean | null
+          is_custom_order?: boolean | null
           is_featured?: boolean | null
           name?: string
           price?: number
+          requires_impression_kit?: boolean | null
           sku?: string | null
           slug?: string
           updated_at?: string | null
@@ -317,6 +585,129 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          id: string
+          user_id: string | null
+          status: string
+          total: number
+          payment_intent_id: string | null
+          checkout_session_id: string | null
+          shipping_address: Json | null
+          billing_address: Json | null
+          created_at: string
+          updated_at: string
+          customer_email: string | null
+          customer_name: string | null
+          notes: string | null
+          payment_status: string
+          shipping_status: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          status: string
+          total: number
+          payment_intent_id?: string | null
+          checkout_session_id?: string | null
+          shipping_address?: Json | null
+          billing_address?: Json | null
+          created_at?: string
+          updated_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          notes?: string | null
+          payment_status: string
+          shipping_status?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          status?: string
+          total?: number
+          payment_intent_id?: string | null
+          checkout_session_id?: string | null
+          shipping_address?: Json | null
+          billing_address?: Json | null
+          created_at?: string
+          updated_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          notes?: string | null
+          payment_status?: string
+          shipping_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string
+          variant_id: string | null
+          quantity: number
+          price: number
+          name: string
+          created_at: string
+          updated_at: string
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_id: string
+          variant_id?: string | null
+          quantity: number
+          price: number
+          name: string
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_id?: string
+          variant_id?: string | null
+          quantity?: number
+          price?: number
+          name?: string
+          created_at?: string
+          updated_at?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -325,7 +716,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      grillz_material:
+        | "gold"
+        | "silver"
+        | "platinum"
+        | "rainbow_gold"
+        | "diamond_encrusted"
+      grillz_style: "full_set" | "top_only" | "bottom_only" | "fangs" | "custom"
+      order_status:
+        | "pending"
+        | "impression_kit_sent"
+        | "impression_received"
+        | "in_design"
+        | "in_production"
+        | "completed"
+      teeth_position: "top" | "bottom" | "both"
     }
     CompositeTypes: {
       [_ in never]: never
