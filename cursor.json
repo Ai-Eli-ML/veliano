@@ -1,7 +1,7 @@
 {
-  "name": "custom-gold-grillz",
+  "name": "veliano",
   "version": "1.0.0",
-  "description": "Custom Gold Grillz e-commerce site with Next.js, Supabase, and Stripe",
+  "description": "Veliano & Co e-commerce site with Next.js, Supabase, and Stripe",
   "cursorSettings": {
     "formatOnSave": true,
     "lintOnSave": true,
