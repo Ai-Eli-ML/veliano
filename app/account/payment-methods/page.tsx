@@ -177,7 +177,7 @@ export default function PaymentMethodsPage() {
               <p className="font-medium">John Doe</p>
               <p className="text-sm text-muted-foreground">123 Main Street</p>
               <p className="text-sm text-muted-foreground">Apt 4B</p>
-              <p className="text-sm text-muted-foreground">New York, NY 10001</p>
+              <p className="text-sm text-muted-foreground">Las Vegas, NV</p>
               <p className="text-sm text-muted-foreground">United States</p>
               <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
             </div>

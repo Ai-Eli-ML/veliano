@@ -90,8 +90,10 @@ export default function ContactPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="font-medium">123 Luxury Lane, New York, NY 10001</p>
-            <p className="text-sm text-muted-foreground">Monday-Saturday, 10am-7pm</p>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Our Location</h3>
+              <p className="text-sm text-muted-foreground">Las Vegas, NV</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -117,10 +119,8 @@ export default function ContactPage() {
             <div className="flex items-start gap-3">
               <MapPin className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <h3 className="font-medium">Store Locations</h3>
-                <p className="text-sm text-muted-foreground">New York: 123 Luxury Lane, NY 10001</p>
-                <p className="text-sm text-muted-foreground">Los Angeles: 456 Fashion Blvd, LA 90001</p>
-                <p className="text-sm text-muted-foreground">Miami: 789 Gold Coast Drive, FL 33101</p>
+                <h3 className="font-medium">Our Location</h3>
+                <p className="text-sm text-muted-foreground">Las Vegas, NV</p>
               </div>
             </div>
           </div>
