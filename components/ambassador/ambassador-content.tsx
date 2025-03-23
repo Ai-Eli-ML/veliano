@@ -103,7 +103,7 @@ export function AmbassadorContent() {
           <CardContent className="prose max-w-none dark:prose-invert">
             <h3>Brand Voice & Messaging</h3>
             <p>
-              When creating content for Custom Gold Grillz, maintain a tone that is:
+              When creating content for Veliano & Co, maintain a tone that is:
             </p>
             <ul>
               <li><strong>Authentic:</strong> Be genuine and relatable in your content</li>
