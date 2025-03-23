@@ -11,9 +11,10 @@ import { formatCurrency } from "@/lib/utils"
 
 interface CartItemProps {
   item: CartItemType
+  readonly?: boolean
 }
 
-function CartItemContent({ item }: CartItemProps) {
+function CartItemContent({ item, readonly }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart()
   const [quantity, setQuantity] = useState(item.quantity)
   const [isPending, startTransition] = useTransition()
@@ -48,7 +49,7 @@ function CartItemContent({ item }: CartItemProps) {
       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
         <Link href={`/products/${item.productId}`}>
           <Image
-            src={item.image || "/placeholder.svg?height=96&width=96"}
+            src={item.image || "/images/placeholder.jpg"}
             alt={item.name}
             fill
             className="object-cover"
@@ -56,72 +57,68 @@ function CartItemContent({ item }: CartItemProps) {
         </Link>
       </div>
 
-      {/* Product Info */}
-      <div className="flex flex-1 flex-col">
+      {/* Product Details */}
+      <div className="flex flex-1 flex-col justify-between">
         <div className="flex justify-between">
-          <Link href={`/products/${item.productId}`} className="font-medium hover:underline">
-            {item.name}
-          </Link>
-          <span className="font-medium">{formatCurrency(item.price * quantity)}</span>
-        </div>
-
-        <div className="mt-1 text-sm text-muted-foreground">
-          {item.options &&
-            Object.entries(item.options).map(([key, value]) => (
-              <div key={key}>
+          <div>
+            <Link href={`/products/${item.productId}`}>
+              <h3 className="font-medium hover:underline">{item.name}</h3>
+            </Link>
+            {item.options && Object.entries(item.options).map(([key, value]) => (
+              <p key={key} className="text-sm text-muted-foreground">
                 {key}: {value}
-              </div>
+              </p>
             ))}
-          <div>Price: {formatCurrency(item.price)}</div>
+          </div>
+          <p className="font-medium">{formatCurrency(item.price)}</p>
         </div>
 
-        <div className="mt-auto flex items-center justify-between pt-2">
-          {/* Quantity Controls */}
-          <div className="flex items-center">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-r-none"
-              onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={quantity <= 1 || isPending}
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-            <Input
-              type="number"
-              min="1"
-              max="10"
-              value={quantity}
-              onChange={(e) => handleQuantityChange(Number.parseInt(e.target.value) || 1)}
-              className="h-8 w-12 rounded-none border-x-0 text-center"
-              disabled={isPending}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 rounded-l-none"
-              onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={quantity >= 10 || isPending}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-between">
+          {!readonly ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleQuantityChange(quantity - 1)}
+                disabled={quantity <= 1 || isPending}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                value={quantity}
+                onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+                className="h-8 w-16 text-center"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleQuantityChange(quantity + 1)}
+                disabled={quantity >= 10 || isPending}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Quantity: {item.quantity}
+            </p>
+          )}
 
-          {/* Remove Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-muted-foreground hover:text-destructive"
-            onClick={handleRemove}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-1 h-4 w-4" />
-            )}
-            Remove
-          </Button>
+          {!readonly && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={handleRemove}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -130,11 +127,7 @@ function CartItemContent({ item }: CartItemProps) {
 
 export function CartItem(props: CartItemProps) {
   return (
-    <Suspense fallback={
-      <div className="flex h-24 items-center justify-center rounded-lg border p-4">
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<div>Loading...</div>}>
       <CartItemContent {...props} />
     </Suspense>
   )

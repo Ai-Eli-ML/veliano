@@ -3,7 +3,7 @@
 import { UserProfile } from '@/types/user'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ShippingAddresses } from './shipping-addresses'
-import { Preferences } from './preferences'
+import { UserPreferences } from './preferences'
 import { OrderHistory } from './order-history'
 
 interface ProfileTabsProps {
@@ -25,7 +25,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
         <ShippingAddresses profile={profile} />
       </TabsContent>
       <TabsContent value="preferences" className="space-y-4">
-        <Preferences profile={profile} />
+        <UserPreferences userId={profile.id} initialPreferences={profile.preferences} />
       </TabsContent>
     </Tabs>
   )

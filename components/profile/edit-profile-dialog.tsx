@@ -1,139 +1,129 @@
 'use client'
 
 import { useState } from 'react'
-import { UserProfile } from '@/types/user'
-import { UserRepository } from '@/lib/repositories/user-repository'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from '@/components/ui/use-toast'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { UserProfile } from '@/types/user'
+import { updateUserProfile } from '@/app/actions/user'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+const profileSchema = z.object({
+  full_name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  bio: z.string().optional(),
+})
+
+type ProfileFormData = z.infer<typeof profileSchema>
 
 interface EditProfileDialogProps {
   profile: UserProfile
-  open: boolean
-  onOpenChange: (open: boolean) => void
 }
 
-export function EditProfileDialog({
-  profile,
-  open,
-  onOpenChange,
-}: EditProfileDialogProps) {
-  const [formData, setFormData] = useState({
-    full_name: profile.full_name || '',
-    email: profile.email || '',
-    phone: profile.phone || '',
-    avatar_url: profile.avatar_url || '',
+export function EditProfileDialog({ profile }: EditProfileDialogProps) {
+  const [open, setOpen] = useState(false)
+  const { toast } = useToast()
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      full_name: profile.full_name || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      bio: profile.bio || '',
+    },
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
+  const onSubmit = async (data: ProfileFormData) => {
     try {
-      const userRepo = UserRepository.getInstance()
-      const success = await userRepo.updateProfile(profile.id, {
-        ...formData,
-        avatar_url: formData.avatar_url || null, // Convert empty string to null
+      await updateUserProfile({ ...data, id: profile.id })
+      setOpen(false)
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been updated successfully.',
       })
-
-      if (success) {
-        toast({
-          title: 'Profile updated',
-          description: 'Your profile has been updated successfully.',
-        })
-        onOpenChange(false)
-      } else {
-        throw new Error('Failed to update profile')
-      }
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to update profile. Please try again.',
         variant: 'destructive',
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Edit Profile</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
-          <DialogDescription>
-            Update your profile information below.
-          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
-              id="full_name"
-              value={formData.full_name}
-              onChange={(e) =>
-                setFormData({ ...formData, full_name: e.target.value })
-              }
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="tel" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="avatar_url">Avatar URL</Label>
-            <Input
-              id="avatar_url"
-              type="url"
-              value={formData.avatar_url}
-              onChange={(e) =>
-                setFormData({ ...formData, avatar_url: e.target.value })
-              }
-              placeholder="https://example.com/avatar.jpg"
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end space-x-2">
+              <Button type="submit">Save Changes</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

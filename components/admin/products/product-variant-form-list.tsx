@@ -83,22 +83,14 @@ export function ProductVariantFormList({
     setTimeout(() => setCopySuccess(null), 2000)
   }
 
-  const moveVariant = (index: number, direction: "up" | "down") => {
-    if (
-      (direction === "up" && index === 0) ||
-      (direction === "down" && index === variants.length - 1)
-    ) {
-      return
-    }
-
+  const handleMoveVariant = (index: number, direction: "up" | "down") => {
     const newVariants = [...variants]
     const targetIndex = direction === "up" ? index - 1 : index + 1
     
     // Swap the variants
-    [newVariants[index], newVariants[targetIndex]] = [
-      newVariants[targetIndex],
-      newVariants[index],
-    ]
+    const temp = newVariants[index]
+    newVariants[index] = newVariants[targetIndex]
+    newVariants[targetIndex] = temp
     
     onChange(newVariants)
   }
@@ -143,7 +135,7 @@ export function ProductVariantFormList({
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation()
-                      moveVariant(index, "up")
+                      handleMoveVariant(index, "up")
                     }}
                     disabled={index === 0}
                     className="h-8 w-8"
@@ -155,7 +147,7 @@ export function ProductVariantFormList({
                     size="icon"
                     onClick={(e) => {
                       e.stopPropagation()
-                      moveVariant(index, "down")
+                      handleMoveVariant(index, "down")
                     }}
                     disabled={index === variants.length - 1}
                     className="h-8 w-8"
