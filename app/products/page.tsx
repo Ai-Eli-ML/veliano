@@ -8,6 +8,7 @@ import ProductGridSkeleton from "@/components/products/product-grid-skeleton"
 import { ProductsHeader } from "@/components/product/products-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getProducts, getCategories } from "@/lib/products"
+import type { ProductWithRelations } from "@/types/product"
 
 export const metadata = {
   title: 'Products | Veliano Jewelry',
@@ -32,26 +33,24 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const maxPrice = searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined
   const category = searchParams.category
   
-  // Compute options for repository
-  const options: { 
-    limit: number;
-    offset: number;
-    status: 'active'; 
-    featured?: boolean;
-    category_id?: string;
-  } = {
+  // Set up options for fetching products
+  const options = {
     limit: 12,
     offset: (page - 1) * 12,
-    status: 'active',
+    status: 'active' as const,
   }
   
-  // Set featured flag for sorting
-  if (sort === 'featured') {
-    options.featured = true
-  }
+  // Try to fetch products
+  let products: ProductWithRelations[] = []
+  let total = 0
   
-  // Fetch products
-  const { products, total } = await ProductRepository.getProducts(options)
+  try {
+    const result = await ProductRepository.getProducts(options)
+    products = result.products
+    total = result.total
+  } catch (error) {
+    console.error("Error fetching products:", error)
+  }
   
   // Calculate total pages
   const totalPages = Math.ceil(total / options.limit)
@@ -85,20 +84,29 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           
           <Suspense fallback={<ProductGridSkeleton />}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {products.length > 0 ? (
+                products.map((product) => (
+                  <div key={product.id} className="border p-4 rounded-lg">
+                    <h2 className="font-bold">{product.name}</h2>
+                    <p className="text-muted-foreground truncate">{product.description}</p>
+                    <p className="mt-2 font-semibold">${product.price.toFixed(2)}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10">
+                  <p className="text-lg text-muted-foreground">No products found</p>
+                </div>
+              )}
             </div>
           </Suspense>
           
           {totalPages > 1 && (
             <div className="mt-10">
-              <Pagination 
-                currentPage={page} 
-                totalPages={totalPages} 
-                baseUrl="/products" 
-                searchParams={searchParams}
-              />
+              <div className="flex justify-center">
+                <span className="text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
+              </div>
             </div>
           )}
         </div>
