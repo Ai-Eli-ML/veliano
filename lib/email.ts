@@ -48,7 +48,7 @@ export async function sendOrderConfirmationEmail(order: OrderEmailData): Promise
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #000; padding: 20px; text-align: center;">
-            <h1 style="color: #bf953f; margin: 0;">CUSTOM GOLD GRILLZ</h1>
+            <h1 style="color: #bf953f; margin: 0;">Veliano & Co</h1>
           </div>
           
           <div style="padding: 20px;">
@@ -65,11 +65,11 @@ export async function sendOrderConfirmationEmail(order: OrderEmailData): Promise
             
             <p>If you have any questions about your order, please don't hesitate to <a href="${process.env.NEXT_PUBLIC_SITE_URL}/contact" style="color: #bf953f;">contact us</a>.</p>
             
-            <p>Thank you for choosing Custom Gold Grillz!</p>
+            <p>Thank you for choosing Veliano & Co!</p>
           </div>
           
           <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
-            <p>© ${new Date().getFullYear()} Custom Gold Grillz. All rights reserved.</p>
+            <p>© ${new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
             <p>This email was sent to ${email}</p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export async function sendShippingConfirmationEmail(
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #000; padding: 20px; text-align: center;">
-            <h1 style="color: #bf953f; margin: 0;">CUSTOM GOLD GRILLZ</h1>
+            <h1 style="color: #bf953f; margin: 0;">Veliano & Co</h1>
           </div>
           
           <div style="padding: 20px;">
@@ -114,11 +114,11 @@ export async function sendShippingConfirmationEmail(
             
             <p>If you have any questions about your shipment, please don't hesitate to <a href="${process.env.NEXT_PUBLIC_SITE_URL}/contact" style="color: #bf953f;">contact us</a>.</p>
             
-            <p>Thank you for choosing Custom Gold Grillz!</p>
+            <p>Thank you for choosing Veliano & Co!</p>
           </div>
           
           <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
-            <p>© ${new Date().getFullYear()} Custom Gold Grillz. All rights reserved.</p>
+            <p>© ${new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
             <p>This email was sent to ${email}</p>
           </div>
         </div>
@@ -130,5 +130,165 @@ export async function sendShippingConfirmationEmail(
     console.error("Error sending shipping confirmation email:", error)
     return { success: false, error }
   }
+}
+
+export function generateOrderEmailHtml(order: OrderWithRelations) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Order Confirmation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      /* Base styles */
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        padding: 20px 0;
+        background-color: #f8f8f8;
+      }
+      .order-details {
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        padding: 15px;
+      }
+      .item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #777;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 style="color: #bf953f; margin: 0;">Veliano & Co</h1>
+        <p>Order Confirmation: #${order.id.substring(0, 8)}</p>
+      </div>
+      
+      <p>Dear ${order.customer_name || 'Valued Customer'},</p>
+      
+      <p>Thank you for your order! We're preparing it for shipment and will notify you when it's on the way.</p>
+      
+      <div class="order-details">
+        <h2>Order Summary</h2>
+        <p><strong>Order ID:</strong> #${order.id.substring(0, 8)}</p>
+        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
+        <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+        
+        <h3>Items:</h3>
+        ${order.items.map(item => `
+          <div class="item">
+            <p><strong>${item.product_name}</strong> x ${item.quantity}</p>
+            <p>Price: $${item.price.toFixed(2)}</p>
+          </div>
+        `).join('')}
+      </div>
+      
+      <p>If you have any questions about your order, please contact our customer service at support@veliano.co.</p>
+      
+      <p>Thank you for choosing Veliano & Co!</p>
+      
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+}
+
+export function generatePasswordResetEmailHtml(resetUrl: string) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Password Reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      /* Base styles */
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        padding: 20px 0;
+        background-color: #f8f8f8;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 20px 0;
+        background-color: #bf953f;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #777;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 style="color: #bf953f; margin: 0;">Veliano & Co</h1>
+        <p>Password Reset Request</p>
+      </div>
+      
+      <p>Hello,</p>
+      
+      <p>We received a request to reset your password. If you didn't make this request, you can ignore this email.</p>
+      
+      <p>To reset your password, please click the button below:</p>
+      
+      <div style="text-align: center;">
+        <a href="${resetUrl}" class="button">Reset Password</a>
+      </div>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #777;">${resetUrl}</p>
+      
+      <p>This link will expire in 1 hour for security reasons.</p>
+      
+      <p>Thank you for choosing Veliano & Co!</p>
+      
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
 }
 
