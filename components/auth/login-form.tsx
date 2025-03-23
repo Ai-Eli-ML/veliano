@@ -28,8 +28,8 @@ export default function LoginForm() {
     try {
       await signIn(email, password)
       toast({
-        title: "Success",
-        description: "You have been signed in.",
+        title: "Login successful",
+        description: "Welcome back to Veliano & Co",
       })
       router.push("/account")
       router.refresh()
@@ -37,9 +37,9 @@ export default function LoginForm() {
       console.error("Login error:", error)
       setError("Invalid email or password. Please try again.")
       toast({
-        title: "Error",
-        description: "Invalid email or password. Please try again.",
         variant: "destructive",
+        title: "Login error",
+        description: "An unexpected error occurred. Please try again.",
       })
     } finally {
       setIsLoading(false)

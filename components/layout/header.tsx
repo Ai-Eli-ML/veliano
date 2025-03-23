@@ -30,6 +30,7 @@ import { useAuth } from "@/components/providers/auth-provider"
 import { Menu, User, LogOut, Package, Settings, Heart, ShoppingCart } from "lucide-react"
 import { CartSheet } from "@/components/cart/cart-sheet"
 import { SearchButton } from "@/components/search/search-button"
+import type { UserProfile } from "@/types/user"
 
 const mainNavItems = [
   {

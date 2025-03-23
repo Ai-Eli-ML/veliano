@@ -1,18 +1,16 @@
 "use client"
 
-import type React from "react"
-
-import { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 import type { Database } from "@/types/supabase"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
+import type { UserProfile } from "@/types/user"
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 
 interface AuthState {
-  user: User | null
-  profile: Profile | null
+  user: UserProfile | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, metadata?: { [key: string]: any }) => Promise<void>
@@ -24,8 +22,7 @@ const AuthContext = createContext<AuthState | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createBrowserSupabaseClient()
 
@@ -86,9 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session?.user) {
-          setUser(session.user)
           const userProfile = await fetchUserProfile(session.user.id)
-          setProfile(userProfile)
+          if (userProfile) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email || "",
+              full_name: userProfile.full_name || "",
+              avatar_url: userProfile.avatar_url || "",
+              ...userProfile
+            })
+          }
         }
       } catch (error) {
         console.error("Error initializing auth:", error)
@@ -103,12 +107,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        setUser(session.user)
         const userProfile = await fetchUserProfile(session.user.id)
-        setProfile(userProfile)
+        if (userProfile) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || "",
+            full_name: userProfile.full_name || "",
+            avatar_url: userProfile.avatar_url || "",
+            ...userProfile
+          })
+        }
       } else {
         setUser(null)
-        setProfile(null)
       }
       setIsLoading(false)
     })
@@ -135,7 +145,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!userProfile) {
           throw new Error("Could not fetch or create user profile")
         }
-        setProfile(userProfile)
+        
+        setUser({
+          id: data.user.id,
+          email: data.user.email || "",
+          full_name: userProfile.full_name || "",
+          avatar_url: userProfile.avatar_url || "",
+          ...userProfile
+        })
+        
         router.refresh()
       }
     } catch (error) {
@@ -160,18 +178,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user && data.user.email) {
         // Create user profile
+        const profileData = {
+          id: data.user.id,
+          email: data.user.email,
+          full_name: metadata?.full_name || "",
+          avatar_url: metadata?.avatar_url || "",
+        }
+        
         const { error: profileError } = await supabase
           .from("profiles")
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: metadata?.full_name || "",
-            avatar_url: metadata?.avatar_url || "",
-          })
+          .insert(profileData)
 
         if (profileError) {
           throw profileError
         }
+        
+        setUser({
+          ...profileData,
+          id: data.user.id,
+          email: data.user.email,
+        })
 
         router.refresh()
       }
@@ -187,6 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         throw error
       }
+      setUser(null)
       router.refresh()
     } catch (error) {
       console.error("Error signing out:", error)
@@ -210,7 +237,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
-    profile,
     isLoading,
     signIn: handleSignIn,
     signUp: handleSignUp,
