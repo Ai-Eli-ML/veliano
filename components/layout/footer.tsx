@@ -10,10 +10,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Company Info */}
           <div>
-            <h3 className="gold-text mb-4 text-xl font-bold">CUSTOM GOLD GRILLZ</h3>
-            <p className="mb-4 text-gray-400">
-              Premium custom gold grillz and jewelry handcrafted with the finest materials for a perfect fit and
-              luxurious look.
+            <h3 className="gold-text mb-4 text-xl font-bold">Veliano & Co</h3>
+            <p className="mb-4 max-w-xs text-gray-400">
+              Premium grillz & jewelry handcrafted with the finest materials for a perfect fit and luxurious look.
             </p>
             <div className="flex space-x-4">
               <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
@@ -118,7 +117,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-gray-800 pt-8 text-center">
-          <p className="text-gray-400">&copy; {new Date().getFullYear()} Custom Gold Grillz. All rights reserved.</p>
+          <p className="text-gray-400">&copy; {new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
           <p className="mt-2 text-sm text-gray-500">
             All prices are in USD. Shipping and taxes calculated at checkout.
           </p>

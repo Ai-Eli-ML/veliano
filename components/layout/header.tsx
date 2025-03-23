@@ -96,7 +96,7 @@ export default function Header() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <span className="gold-text text-2xl font-bold">CUSTOM GOLD GRILLZ</span>
+          <span className="gold-text text-2xl font-bold">Veliano & Co</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -210,7 +210,7 @@ export default function Header() {
         <SheetContent side="left" className="w-[300px] sm:w-[350px]">
           <nav className="flex flex-col gap-6">
             <Link href="/" className="gold-text text-2xl font-bold" onClick={() => setIsMobileMenuOpen(false)}>
-              CUSTOM GOLD GRILLZ
+              Veliano & Co
             </Link>
 
             <div className="flex flex-col space-y-3">
