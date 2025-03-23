@@ -20,12 +20,12 @@ export interface UserProfile {
   address?: string | null
   bio?: string | null
   website?: string | null
-  avatar_url?: string | null
   is_admin?: boolean
   shipping_addresses?: Address[]
   preferences?: UserPreferences
   created_at?: string
   updated_at?: string
+  role?: string | null
 }
 
 export interface UserPreferences {

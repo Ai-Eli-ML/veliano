@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const email = currentUser.data.user.email
       if (!email) return null
 
+      const now = new Date().toISOString()
       // Create a new profile
       const { data: newProfile, error: insertError } = await supabase
         .from("profiles")
@@ -60,7 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: userId,
           email: email,
           full_name: "",
-          avatar_url: "",
+          created_at: now,
+          updated_at: now,
+          bio: null,
+          address: null,
+          website: null,
+          phone: null,
+          role: null
         })
         .select()
         .single()
@@ -194,7 +201,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         address: null,
         website: null,
         phone: null,
-        avatar_url: metadata?.avatar_url || null,
         role: null
       }
       
