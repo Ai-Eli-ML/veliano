@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuth } from "@/components/providers/auth-provider"
+import { toast } from "sonner"
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -39,6 +41,7 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { signUp } = useAuth()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,17 +60,27 @@ export function RegisterForm() {
     setError(null)
 
     try {
-      // Simulate registration API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const fullName = `${data.firstName} ${data.lastName}`.trim()
       
-      // In a real app, you would call your auth API here
-      console.log("Registration data:", data)
+      // Call the Auth Provider signUp function
+      await signUp(data.email, data.password, {
+        full_name: fullName
+      })
+      
+      // Show success toast
+      toast.success("Account created successfully", {
+        description: "Please check your email to verify your account"
+      })
       
       // Redirect to login page on success
       router.push("/account/login?registered=true")
     } catch (err) {
       console.error("Registration error:", err)
-      setError("An error occurred during registration. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "An error occurred during registration. Please try again."
+      setError(errorMessage)
+      toast.error("Registration failed", {
+        description: errorMessage
+      })
     } finally {
       setIsLoading(false)
     }
