@@ -108,3 +108,31 @@ export function truncateText(text: string, length: number): string {
   if (text.length <= length) return text
   return text.slice(0, length) + "..."
 }
+
+export function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')        // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')    // Remove all non-word chars
+    .replace(/\-\-+/g, '-')      // Replace multiple - with single -
+    .replace(/^-+/, '')          // Trim - from start of text
+    .replace(/-+$/, '')          // Trim - from end of text
+}
+
+/**
+ * Escapes HTML entities in a string
+ * @param str The string to escape
+ * @returns The escaped string
+ */
+export function escapeHtml(str: string): string {
+  const htmlEntities: Record<string, string> = {
+    "'": "&apos;",
+    '"': "&quot;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "&": "&amp;"
+  };
+  return str.replace(/['"<>&]/g, (match) => htmlEntities[match]);
+}

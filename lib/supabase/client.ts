@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
+import { createBrowserClient } from '@supabase/ssr'
+import { useEffect, useState } from 'react'
 
 // Re-export createClient to fix import issues elsewhere
 export { createClient }
@@ -22,6 +24,27 @@ export const supabase = createClient<Database>(
     },
   }
 )
+
+// Create a browser client for client-side usage
+export const createBrowserSupabaseClient = () => {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+// Hook for using Supabase in components
+export const useSupabase = () => {
+  const [client] = useState(() => createBrowserSupabaseClient())
+
+  useEffect(() => {
+    return () => {
+      client.auth.getSession()
+    }
+  }, [client])
+
+  return { supabase: client }
+}
 
 // Helper function to handle Supabase errors
 export const handleSupabaseError = (error: Error) => {

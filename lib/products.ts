@@ -2,6 +2,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@/lib/supabase-server"
 import type { Product, ProductCategory, ProductFilterOptions } from "@/types/product"
 import { unstable_noStore as noStore } from 'next/cache'
+import { type Database } from '@/types/supabase'
+import { ProductWithRelations } from '@/types/products'
 
 // Define types for product-related data
 interface ProductImage {
@@ -664,5 +666,20 @@ export async function getProduct(slug: string) {
     ...product,
     categories: product.categories.map((item: any) => item.categories),
   } as unknown as Product
+}
+
+export async function searchProducts(query: string, options?: { limit?: number, offset?: number }) {
+  const supabase = await createServerSupabaseClient()
+  // ... existing code ...
+}
+
+export async function getProductById(id: string): Promise<ProductWithRelations | null> {
+  const supabase = await createServerSupabaseClient()
+  // ... existing code ...
+}
+
+export async function getProducts(options?: { limit?: number, offset?: number }): Promise<ProductWithRelations[]> {
+  const supabase = await createServerSupabaseClient()
+  // ... existing code ...
 }
 
