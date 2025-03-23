@@ -106,19 +106,18 @@ export class ProductRepository {
   static async getProductById(id: string): Promise<ProductWithRelations> {
     const supabase = createServerActionClient<Database>({ cookies });
 
-    // Using a type assertion to work around the type error until
-    // the Supabase schema is updated to include grillz_specifications
-    const query = supabase.from('products').select(`
+    // Use a string for the select query to avoid issues
+    const selectQuery = `
       *,
       variants:product_variants(*),
       images:product_images(*),
-      category:categories(id, name, slug)
-    `);
+      category:categories(id, name, slug),
+      grillz_specification:grillz_specifications(*)
+    `;
     
-    // Add grillz_specification using type assertion
-    (query as any).select += `,grillz_specification:grillz_specifications(*)`;
-    
-    const { data: product, error: productError } = await query
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select(selectQuery)
       .eq('id', id)
       .single();
 
@@ -141,29 +140,27 @@ export class ProductRepository {
   }> {
     const supabase = createServerActionClient<Database>({ cookies });
     
-    // Use a base query that TypeScript recognizes
+    // Use a string for the select query to avoid issues with replace
+    const selectQuery = `
+      *,
+      variants:product_variants(*),
+      images:product_images(*),
+      category:categories(id, name, slug),
+      grillz_specification:grillz_specifications(*)
+    `;
+    
+    // Create the query with the full select statement
     let query = supabase
       .from('products')
-      .select(`
-        *,
-        variants:product_variants(*),
-        images:product_images(*),
-        category:categories(id, name, slug)
-      `, { count: 'exact' });
-    
-    // Add grillz_specification using type assertion
-    (query as any).select = (query as any).select.replace(
-      'category:categories(id, name, slug)',
-      'category:categories(id, name, slug),grillz_specification:grillz_specifications(*)'
-    );
+      .select(selectQuery, { count: 'exact' });
 
     if (options?.category_id) {
       query = query.eq('category_id', options.category_id);
-      }
+    }
 
     if (options?.status) {
       query = query.eq('status', options.status);
-      }
+    }
 
     if (options?.featured !== undefined) {
       query = query.eq('featured', options.featured);
@@ -185,7 +182,7 @@ export class ProductRepository {
 
     if (error) throw new Error(`Failed to fetch products: ${error.message}`);
 
-      return {
+    return {
       products: products as unknown as ProductWithRelations[],
       total: count || 0,
     };
@@ -225,30 +222,29 @@ export class ProductRepository {
   }> {
     const supabase = createServerActionClient<Database>({ cookies });
 
-    // Use a base query that TypeScript recognizes
-    let baseQuery = supabase
-      .from('products')
-      .select(`
-        *,
-        variants:product_variants(*),
-        images:product_images(*),
-        category:categories(id, name, slug)
-      `, { count: 'exact' });
+    // Use a string for the select query to avoid issues with replace
+    const selectQuery = `
+      *,
+      variants:product_variants(*),
+      images:product_images(*),
+      category:categories(id, name, slug),
+      grillz_specification:grillz_specifications(*)
+    `;
     
-    // Add grillz_specification using type assertion
-    (baseQuery as any).select = (baseQuery as any).select.replace(
-      'category:categories(id, name, slug)',
-      'category:categories(id, name, slug),grillz_specification:grillz_specifications(*)'
-    );
-
-    const searchQuery = baseQuery
+    // Create the query with the full select statement
+    let searchQuery = supabase
+      .from('products')
+      .select(selectQuery, { count: 'exact' })
       .textSearch('name', query, {
         type: 'websearch',
         config: 'english'
       })
       .eq('status', 'active')
-      .limit(options?.limit || 10)
-      .range(options?.offset || 0, ((options?.offset || 0) + (options?.limit || 10)) - 1);
+      .limit(options?.limit || 10);
+
+    if (options?.offset) {
+      searchQuery = searchQuery.range(options.offset, (options.offset + (options.limit || 10)) - 1);
+    }
 
     const { data: products, error, count } = await searchQuery;
 
@@ -262,20 +258,19 @@ export class ProductRepository {
 
   static async getProductBySlug(slug: string): Promise<ProductWithRelations | null> {
     const supabase = createServerActionClient<Database>({ cookies });
-    
-    // Using a type assertion to work around the type error until
-    // the Supabase schema is updated to include grillz_specifications
-    const query = supabase.from('products').select(`
+
+    // Use a string for the select query to avoid issues
+    const selectQuery = `
       *,
       variants:product_variants(*),
       images:product_images(*),
-      category:categories(id, name, slug)
-    `);
+      category:categories(id, name, slug),
+      grillz_specification:grillz_specifications(*)
+    `;
     
-    // Add grillz_specification using type assertion
-    (query as any).select += `,grillz_specification:grillz_specifications(*)`;
-    
-    const { data: product, error } = await query
+    const { data: product, error } = await supabase
+      .from('products')
+      .select(selectQuery)
       .eq('slug', slug)
       .eq('status', 'active')
       .single();
