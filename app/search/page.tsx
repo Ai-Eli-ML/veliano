@@ -1,7 +1,4 @@
-"use client"
-
-import { useSearchParams } from "next/navigation"
-import { useState, useEffect, Suspense } from "react"
+import { Suspense } from "react"
 import { Pagination } from "@/components/ui/pagination"
 import { ProductGrid } from "@/components/product/product-grid"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,92 +13,45 @@ export const metadata = {
   description: 'Search for luxury jewelry and custom grillz in our collection'
 }
 
-interface SearchPageProps {
-  searchParams: {
-    q?: string
-    page?: string
-  }
-}
-
-export default function SearchPage({ searchParams }: SearchPageProps) {
-  const searchQuery = searchParams.q || ''
-  const page = Number(searchParams.page || '1')
-  const limit = 16
-  const offset = (page - 1) * limit
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; page?: string }
+}) {
+  const query = searchParams.q || ''
+  const page = parseInt(searchParams.page || '1')
+  const results = query ? await searchProducts(query, page) : null
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <div className="container py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Search Products</h1>
-        <SearchForm defaultValue={searchQuery} />
+        <SearchForm initialQuery={query} />
       </div>
 
       <Suspense fallback={<ProductGridSkeleton />}>
-        <SearchResultsContent
-          query={searchQuery}
-          page={page}
-          limit={limit}
-          offset={offset}
-        />
-      </Suspense>
-    </main>
-  )
-}
-
-async function SearchResultsContent({
-  query,
-  page,
-  limit,
-  offset
-}: {
-  query: string
-  page: number
-  limit: number
-  offset: number
-}) {
-  if (!query) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-lg text-gray-600">Enter a search term to find products</p>
-      </div>
-    )
-  }
-
-  const result = await searchProducts(query, { limit, offset })
-  
-  // Type guard to ensure we have products
-  let products: ProductWithRelations[] = []
-  if (result.success && result.products) {
-    products = result.products
-  }
-
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-medium">
-          {result.success ? (
-            `Search results for "${query}" (${result.total} ${
-              result.total === 1 ? 'product' : 'products'
-            })`
+        {query ? (
+          results && results.products.length > 0 ? (
+            <>
+              <ProductGrid products={results.products} />
+              <div className="mt-8">
+                <Pagination
+                  currentPage={page}
+                  totalPages={Math.ceil(results.total / 12)}
+                  baseUrl={`/search?q=${encodeURIComponent(query)}`}
+                />
+              </div>
+            </>
           ) : (
-            `Search results for "${query}"`
-          )}
-        </h2>
-      </div>
-
-      {result.success ? (
-        <ProductGrid
-          products={products}
-          emptyMessage={`No products found matching "${query}"`}
-        />
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-lg text-gray-600">Error searching for products</p>
-          <p className="text-gray-500 mt-2">{result.error}</p>
-        </div>
-      )}
-
-      {/* Pagination would go here */}
+            <p className="text-center text-muted-foreground">
+              No products found for "{query}"
+            </p>
+          )
+        ) : (
+          <p className="text-center text-muted-foreground">
+            Enter a search term to find products
+          </p>
+        )}
+      </Suspense>
     </div>
   )
 }
