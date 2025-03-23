@@ -65,14 +65,22 @@ export function RegisterForm() {
       console.log("Attempting to sign up with:", { email: data.email, fullName });
       
       // Call the Auth Provider signUp function
-      await signUp(data.email, data.password, {
+      const result = await signUp(data.email, data.password, {
         full_name: fullName
       })
       
-      // Show success toast - emphasize checking email for verification
-      toast.success("Account created successfully", {
-        description: "Please check your email for a verification link to complete your registration."
-      })
+      const emailConfirmationRequired = result?.requiresEmailConfirmation
+      
+      // Show appropriate success toast based on email confirmation
+      if (emailConfirmationRequired) {
+        toast.success("Account created successfully", {
+          description: "Please check your email for a verification link to complete your registration."
+        })
+      } else {
+        toast.success("Account created successfully", {
+          description: "You can now sign in with your credentials."
+        })
+      }
       
       // Redirect to login page on success
       router.push("/account/login?registered=true")

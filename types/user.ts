@@ -50,11 +50,13 @@ export interface AuthError {
   status?: number
 }
 
-export type AuthState = {
+export interface AuthState {
   user: UserProfile | null
-  session: Session | null
-  loading: boolean
-  error: AuthError | null
+  isLoading: boolean
+  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, metadata?: { [key: string]: any }) => Promise<{ requiresEmailConfirmation?: boolean } | undefined>
+  signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
 }
 
 export type AuthAction =

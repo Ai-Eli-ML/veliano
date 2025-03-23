@@ -168,12 +168,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleSignUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
     try {
-      // First sign up the user
+      // First sign up the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
+          // Set emailRedirectTo to the verification page
+          emailRedirectTo: `${window.location.origin}/account/verify`,
         },
       })
 
@@ -188,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("User created successfully:", data.user.id)
+      console.log("Email confirmation required:", !data.session)
 
       // Important: Only try to create a profile if we have a session
       // If email confirmation is required, we won't have a session yet
@@ -236,11 +239,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Don't throw here, we still want to return success for the signup
         }
       } else {
-        console.log("No session available after signup. Email confirmation may be required.")
+        console.log("No session available after signup. Email confirmation is required.")
       }
 
       // Continue even if profile creation fails
       router.refresh()
+      
+      // Return whether email confirmation is required
+      return { requiresEmailConfirmation: !data.session }
     } catch (error) {
       console.error("Error signing up:", error)
       throw error
