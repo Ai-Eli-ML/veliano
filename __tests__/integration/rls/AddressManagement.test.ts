@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import * as Sentry from '@sentry/nextjs'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 describe('Address Management RLS Policies', () => {
@@ -62,11 +63,10 @@ describe('Address Management RLS Policies', () => {
 
   describe('SELECT Policy', () => {
     it('should allow users to view their own addresses', async () => {
-      const { data, error } = await supabase
-        .auth.signInWithPassword({
-          email: 'test1@example.com',
-          password: 'testpassword123'
-        })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'test1@example.com',
+        password: 'testpassword123'
+      })
 
       const { data: addresses, error: selectError } = await supabase
         .from('addresses')
@@ -79,11 +79,10 @@ describe('Address Management RLS Policies', () => {
     })
 
     it('should not allow users to view other users addresses', async () => {
-      const { data, error } = await supabase
-        .auth.signInWithPassword({
-          email: 'test2@example.com',
-          password: 'testpassword123'
-        })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'test2@example.com',
+        password: 'testpassword123'
+      })
 
       const { data: addresses, error: selectError } = await supabase
         .from('addresses')
@@ -96,11 +95,10 @@ describe('Address Management RLS Policies', () => {
 
   describe('INSERT Policy', () => {
     it('should allow users to add their own addresses', async () => {
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test1@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test1@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: insertError } = await supabase
         .from('addresses')
@@ -117,11 +115,10 @@ describe('Address Management RLS Policies', () => {
     })
 
     it('should not allow users to add addresses for other users', async () => {
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test2@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test2@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: insertError } = await supabase
         .from('addresses')
@@ -140,11 +137,10 @@ describe('Address Management RLS Policies', () => {
 
   describe('UPDATE Policy', () => {
     it('should allow users to update their own addresses', async () => {
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test1@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test1@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: updateError } = await supabase
         .from('addresses')
@@ -155,11 +151,10 @@ describe('Address Management RLS Policies', () => {
     })
 
     it('should not allow users to update other users addresses', async () => {
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test2@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test2@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: updateError } = await supabase
         .from('addresses')
@@ -172,11 +167,10 @@ describe('Address Management RLS Policies', () => {
 
   describe('DELETE Policy', () => {
     it('should allow users to delete their own addresses', async () => {
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test1@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test1@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: deleteError } = await supabase
         .from('addresses')
@@ -201,11 +195,10 @@ describe('Address Management RLS Policies', () => {
         .select()
         .single()
 
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test2@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test2@example.com',
+        password: 'testpassword123'
+      })
 
       const { error: deleteError } = await supabase
         .from('addresses')
@@ -231,11 +224,10 @@ describe('Address Management RLS Policies', () => {
         .select()
         .single()
 
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test1@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test1@example.com',
+        password: 'testpassword123'
+      })
 
       const { error } = await supabase
         .rpc('set_default_address', {
@@ -269,11 +261,10 @@ describe('Address Management RLS Policies', () => {
         .select()
         .single()
 
-      const { data } = await supabase
-        .auth.signInWithPassword({
-          email: 'test2@example.com',
-          password: 'testpassword123'
-        })
+      const { data } = await supabase.auth.signInWithPassword({
+        email: 'test2@example.com',
+        password: 'testpassword123'
+      })
 
       const { error } = await supabase
         .rpc('set_default_address', {
