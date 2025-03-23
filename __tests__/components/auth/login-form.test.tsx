@@ -101,7 +101,7 @@ describe('LoginForm', () => {
       expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Login successful',
-        description: 'Welcome back to Custom Gold Grillz',
+        description: 'Welcome back to Veliano & Co',
       })
       expect(mockPush).toHaveBeenCalledWith('/account')
     })
@@ -124,7 +124,7 @@ describe('LoginForm', () => {
       expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Login successful',
-        description: 'Welcome back to Custom Gold Grillz',
+        description: 'Welcome back to Veliano & Co',
       })
       expect(mockPush).toHaveBeenCalledWith('/custom-redirect')
     })
