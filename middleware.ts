@@ -3,7 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { Database } from '@/types/supabase'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
+  const requestUrl = new URL(request.url)
+  const pathname = requestUrl.pathname
+  
+  // Create a response object
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -15,22 +19,31 @@ export async function middleware(request: NextRequest) {
   // Get user session
   const { data: { session } } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not / redirect the user to /
-  if (!session && request.nextUrl.pathname !== '/' && !isPublicRoute(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/', request.url))
+  // If the route is public, allow access
+  if (isPublicRoute(pathname)) {
+    // If user is signed in and trying to access auth pages, redirect to account
+    if (
+      session && 
+      (pathname === '/account/login' || 
+       pathname === '/account/register' || 
+       pathname === '/account/forgot-password')
+    ) {
+      return NextResponse.redirect(new URL('/account', requestUrl.origin))
+    }
+    
+    return response
   }
 
-  // If user is signed in and the current path is / redirect the user to /account
-  if (session && request.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/account', request.url))
+  // For non-public routes, check if user is authenticated
+  if (!session) {
+    // Save the original URL to redirect back after login
+    const redirectUrl = new URL('/account/login', requestUrl.origin)
+    redirectUrl.searchParams.set('redirectTo', pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Check if route is admin-protected
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-
+  if (pathname.startsWith('/admin')) {
     const { data: adminUser } = await supabase
       .from('admin_users')
       .select()
@@ -38,7 +51,7 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     if (!adminUser) {
-      return NextResponse.redirect(new URL('/account', request.url))
+      return NextResponse.redirect(new URL('/account', requestUrl.origin))
     }
   }
 
@@ -51,10 +64,23 @@ function isPublicRoute(pathname: string): boolean {
     '/',
     '/login',
     '/signup',
+    '/register',
     '/about',
     '/contact',
     '/products',
     '/reset-password',
+    '/account/login',
+    '/account/register',
+    '/account/forgot-password',
+    '/account/reset-password',
+    '/how-it-works',
+    '/faq',
+    '/ambassador-program',
+    '/warranty',
+    '/privacy-policy',
+    '/terms-of-service',
+    '/shipping-delivery',
+    '/returns-exchanges'
   ]
   
   const publicPrefixes = [
@@ -62,6 +88,8 @@ function isPublicRoute(pathname: string): boolean {
     '/_next/',
     '/favicon',
     '/public/',
+    '/products/',
+    '/search'
   ]
   
   if (publicRoutes.includes(pathname)) {
