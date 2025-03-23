@@ -62,6 +62,8 @@ export function RegisterForm() {
     try {
       const fullName = `${data.firstName} ${data.lastName}`.trim()
       
+      console.log("Attempting to sign up with:", { email: data.email, fullName });
+      
       // Call the Auth Provider signUp function
       await signUp(data.email, data.password, {
         full_name: fullName
@@ -74,9 +76,22 @@ export function RegisterForm() {
       
       // Redirect to login page on success
       router.push("/account/login?registered=true")
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registration error:", err)
-      const errorMessage = err instanceof Error ? err.message : "An error occurred during registration. Please try again."
+      
+      // Handle specific Supabase error messages
+      let errorMessage = "An error occurred during registration. Please try again.";
+      
+      if (err.message?.includes("User already registered")) {
+        errorMessage = "This email is already registered. Please log in instead.";
+      } else if (err.message?.includes("invalid email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (err.message?.includes("password")) {
+        errorMessage = "Password error: " + err.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage)
       toast.error("Registration failed", {
         description: errorMessage
@@ -146,6 +161,7 @@ export function RegisterForm() {
                     placeholder="your@email.com" 
                     {...field} 
                     disabled={isLoading}
+                    autoComplete="email"
                   />
                 </FormControl>
                 <FormMessage />
@@ -165,6 +181,7 @@ export function RegisterForm() {
                     placeholder="••••••••" 
                     {...field} 
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                 </FormControl>
                 <FormMessage />
@@ -184,6 +201,7 @@ export function RegisterForm() {
                     placeholder="••••••••" 
                     {...field} 
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                 </FormControl>
                 <FormMessage />

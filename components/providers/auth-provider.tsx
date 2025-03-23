@@ -182,14 +182,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("User created successfully:", data.user.id)
 
-      // Create profile with required fields matching the database schema
+      // Create profile with all required fields matching the database schema exactly
+      const now = new Date().toISOString()
       const profileData = {
         id: data.user.id,
         email: data.user.email || email,
         full_name: metadata?.full_name || "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        avatar_url: metadata?.avatar_url || "",
+        created_at: now,
+        updated_at: now,
+        bio: null,
+        address: null,
+        website: null,
+        phone: null,
+        avatar_url: metadata?.avatar_url || null,
+        role: null
       }
       
       console.log("Attempting to create profile:", profileData)
@@ -209,9 +215,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Set user in state if we get this far
       setUser({
-        ...profileData,
+        ...createdProfile,
         id: data.user.id,
         email: data.user.email || email,
+        full_name: metadata?.full_name || ""
       })
 
       router.refresh()
