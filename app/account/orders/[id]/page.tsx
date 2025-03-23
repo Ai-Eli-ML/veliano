@@ -161,7 +161,7 @@ export default function OrderDetailsPage() {
   if (!order) {
     return (
       <div className="container max-w-screen-xl py-8">
-        <PageHeading title="Order Not Found" description="We couldn't find the order you're looking for" />
+        <PageHeading title="Order Not Found" description="We couldn&apos;t find the order you&apos;re looking for" />
         <div className="mt-8 text-center">
           <p className="mb-6 text-gray-600">The order may have been deleted or the ID is incorrect.</p>
           <Button asChild>

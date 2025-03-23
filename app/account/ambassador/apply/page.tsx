@@ -245,33 +245,50 @@ export default function AmbassadorApplicationPage() {
                 <textarea 
                   id="whyJoin" 
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Tell us why you're interested in representing Veliano Jewelry."
+                  placeholder="Tell us why you&apos;re interested in representing Veliano Jewelry."
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input 
-                    id="terms" 
-                    type="checkbox" 
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    required
-                  />
-                  <label htmlFor="terms" className="text-sm">
-                    I agree to the <a href="/terms-of-service" className="text-primary hover:underline">Terms of Service</a> and <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a>
-                  </label>
-                </div>
+                <label htmlFor="content" className="text-sm font-medium">Content Creation</label>
+                <textarea 
+                  id="content" 
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Describe the type of content you&apos;d create to promote Veliano Jewelry."
+                  required
+                />
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <input 
+                  id="terms" 
+                  type="checkbox" 
+                  className="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                  required
+                />
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
+                  I agree to Veliano&apos;s Ambassador Program Terms and Conditions and understand that my application will be reviewed based on the provided information.
+                </label>
               </div>
               
               <button 
                 type="submit" 
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 w-full"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
               >
                 Submit Application
               </button>
             </form>
           </div>
+        </div>
+        
+        <div className="text-center text-sm text-muted-foreground">
+          <p>
+            We&apos;ll review your application and get back to you within 5-7 business days. If you have any questions, please contact us at{" "}
+            <a href="mailto:ambassadors@veliano.com" className="text-primary hover:underline">
+              ambassadors@veliano.com
+            </a>
+          </p>
         </div>
       </div>
     </main>

@@ -114,7 +114,7 @@ export default function AmbassadorPage() {
             <CardHeader>
               <CardTitle>Your Referrals</CardTitle>
               <CardDescription>
-                Track the people you've referred to our platform
+                Track the people you&apos;ve referred to our platform
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -137,7 +137,7 @@ export default function AmbassadorPage() {
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">
-                      You haven't referred anyone yet. Share your referral link to start earning rewards!
+                      You haven&apos;t referred anyone yet. Share your referral link to start earning rewards!
                     </p>
                   </div>
                 )}
