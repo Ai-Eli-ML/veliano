@@ -1,5 +1,3 @@
-"use client"
-
 import { Skeleton } from "@/components/ui/skeleton"
 import { Suspense } from "react"
 import { getProducts, getCategories, getCategoryBySlug } from "@/lib/products"
@@ -37,14 +35,14 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   
   if (!category) {
     return {
-      title: 'Category Not Found',
-      description: 'The requested category could not be found',
+      title: 'Category Not Found - Veliano Jewelry',
+      description: 'The requested category could not be found.'
     }
   }
-  
+
   return {
-    title: `${category.name} | Veliano Jewelry`,
-    description: category.description || `Browse our collection of ${category.name}`,
+    title: `${category.name} - Veliano Jewelry`,
+    description: category.description || `Browse our collection of ${category.name}`
   }
 }
 
