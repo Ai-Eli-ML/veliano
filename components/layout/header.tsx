@@ -126,9 +126,11 @@ export default function Header() {
                   </NavigationMenuItem>
                 ) : (
                   <NavigationMenuItem key={item.title}>
-                    <Link href={item.href} legacyBehavior passHref>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>{item.title}</NavigationMenuLink>
-                    </Link>
+                    <NavigationMenuLink asChild>
+                      <Link href={item.href} className={navigationMenuTriggerStyle()}>
+                        {item.title}
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                 ),
               )}
@@ -248,54 +250,64 @@ export default function Header() {
                       <AvatarImage src={user.avatar_url || ""} alt={user.full_name || "User"} />
                       <AvatarFallback>{getInitials(user.full_name || "User")}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{user.full_name || "User"}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
+                    <span className="font-medium">{user.full_name || "User"}</span>
                   </div>
                   <Link
                     href="/account"
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 py-2 text-sm"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <User className="h-4 w-4" /> My Account
+                    <User className="h-4 w-4" /> Dashboard
                   </Link>
                   <Link
                     href="/account/orders"
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 py-2 text-sm"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <Package className="h-4 w-4" /> My Orders
+                    <Package className="h-4 w-4" /> Orders
                   </Link>
                   <Link
                     href="/account/wishlist"
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 py-2 text-sm"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <Heart className="h-4 w-4" /> My Wishlist
+                    <Heart className="h-4 w-4" /> Wishlist
+                  </Link>
+                  <Link
+                    href="/account/settings"
+                    className="flex items-center gap-2 py-2 text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" /> Settings
                   </Link>
                   <button
                     onClick={() => {
                       signOut()
                       setIsMobileMenuOpen(false)
                     }}
-                    className="flex items-center gap-2 text-sm text-red-500"
+                    className="flex items-center gap-2 py-2 text-sm text-red-500"
                   >
                     <LogOut className="h-4 w-4" /> Sign Out
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/account/login"
-                  className="flex items-center gap-2 text-sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" /> Login / Register
-                </Link>
+                <>
+                  <Link
+                    href="/account/login"
+                    className="flex items-center gap-2 py-2 text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/account/register"
+                    className="flex items-center gap-2 py-2 text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Create Account
+                  </Link>
+                </>
               )}
-              <Link href="/cart" className="flex items-center gap-2 text-sm" onClick={() => setIsMobileMenuOpen(false)}>
-                <ShoppingCart className="h-4 w-4" /> Cart ({totalItems()})
-              </Link>
             </div>
           </nav>
         </SheetContent>
