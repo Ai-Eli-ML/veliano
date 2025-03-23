@@ -161,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleSignUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
     try {
+      // First sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -170,34 +171,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
+        console.error("Signup error:", error)
         throw error
       }
 
-      if (data.user && data.user.email) {
-        // Create user profile
-        const profileData = {
-          id: data.user.id,
-          email: data.user.email,
-          full_name: metadata?.full_name || "",
-          avatar_url: metadata?.avatar_url || "",
-        }
-        
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert(profileData)
-
-        if (profileError) {
-          throw profileError
-        }
-        
-        setUser({
-          ...profileData,
-          id: data.user.id,
-          email: data.user.email,
-        })
-
-        router.refresh()
+      if (!data.user || !data.user.id) {
+        console.error("No user returned from signup")
+        throw new Error("Failed to create user account")
       }
+
+      console.log("User created successfully:", data.user.id)
+
+      // Create profile with required fields matching the database schema
+      const profileData = {
+        id: data.user.id,
+        email: data.user.email || email,
+        full_name: metadata?.full_name || "",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        avatar_url: metadata?.avatar_url || "",
+      }
+      
+      console.log("Attempting to create profile:", profileData)
+      
+      const { error: profileError, data: createdProfile } = await supabase
+        .from("profiles")
+        .insert(profileData)
+        .select()
+        .single()
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError)
+        throw profileError
+      }
+
+      console.log("Profile created successfully:", createdProfile)
+      
+      // Set user in state if we get this far
+      setUser({
+        ...profileData,
+        id: data.user.id,
+        email: data.user.email || email,
+      })
+
+      router.refresh()
     } catch (error) {
       console.error("Error signing up:", error)
       throw error
