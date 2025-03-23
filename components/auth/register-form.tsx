@@ -69,9 +69,9 @@ export function RegisterForm() {
         full_name: fullName
       })
       
-      // Show success toast
+      // Show success toast - emphasize checking email for verification
       toast.success("Account created successfully", {
-        description: "Please check your email to verify your account"
+        description: "Please check your email for a verification link to complete your registration."
       })
       
       // Redirect to login page on success
@@ -88,6 +88,8 @@ export function RegisterForm() {
         errorMessage = "Please enter a valid email address.";
       } else if (err.message?.includes("password")) {
         errorMessage = "Password error: " + err.message;
+      } else if (err.message?.includes("policy")) {
+        errorMessage = "Registration blocked by security settings. Please contact support.";
       } else if (err.message) {
         errorMessage = err.message;
       }

@@ -189,44 +189,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("User created successfully:", data.user.id)
 
-      // Create profile with all required fields matching the database schema exactly
-      const now = new Date().toISOString()
-      const profileData = {
-        id: data.user.id,
-        email: data.user.email || email,
-        full_name: metadata?.full_name || "",
-        created_at: now,
-        updated_at: now,
-        bio: null,
-        address: null,
-        website: null,
-        phone: null,
-        role: null
+      // Important: Only try to create a profile if we have a session
+      // If email confirmation is required, we won't have a session yet
+      if (data.session) {
+        try {
+          // Create profile with all required fields matching the database schema exactly
+          const now = new Date().toISOString()
+          const profileData = {
+            id: data.user.id,
+            email: data.user.email || email,
+            full_name: metadata?.full_name || "",
+            created_at: now,
+            updated_at: now,
+            bio: null,
+            address: null,
+            website: null,
+            phone: null,
+            role: null
+          }
+          
+          console.log("Attempting to create profile:", profileData)
+          
+          // Use the user's session when creating their profile
+          const { error: profileError, data: createdProfile } = await supabase
+            .from("profiles")
+            .insert(profileData)
+            .select()
+            .single()
+
+          if (profileError) {
+            console.error("Profile creation error:", profileError)
+            // Don't throw here, we still want to complete the signup
+          } else {
+            console.log("Profile created successfully:", createdProfile)
+            
+            // Set user in state if we get this far
+            setUser({
+              ...createdProfile,
+              id: data.user.id,
+              email: data.user.email || email,
+              full_name: metadata?.full_name || ""
+            })
+          }
+        } catch (profileError) {
+          console.error("Error in profile creation:", profileError)
+          // Don't throw here, we still want to return success for the signup
+        }
+      } else {
+        console.log("No session available after signup. Email confirmation may be required.")
       }
-      
-      console.log("Attempting to create profile:", profileData)
-      
-      const { error: profileError, data: createdProfile } = await supabase
-        .from("profiles")
-        .insert(profileData)
-        .select()
-        .single()
 
-      if (profileError) {
-        console.error("Profile creation error:", profileError)
-        throw profileError
-      }
-
-      console.log("Profile created successfully:", createdProfile)
-      
-      // Set user in state if we get this far
-      setUser({
-        ...createdProfile,
-        id: data.user.id,
-        email: data.user.email || email,
-        full_name: metadata?.full_name || ""
-      })
-
+      // Continue even if profile creation fails
       router.refresh()
     } catch (error) {
       console.error("Error signing up:", error)
