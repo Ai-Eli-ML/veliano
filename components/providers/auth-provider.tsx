@@ -86,11 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userProfile = await fetchUserProfile(session.user.id)
           if (userProfile) {
             setUser({
+              ...userProfile,
               id: session.user.id,
-              email: session.user.email || "",
-              full_name: userProfile.full_name || "",
-              avatar_url: userProfile.avatar_url || "",
-              ...userProfile
+              email: session.user.email || userProfile.email,
+              full_name: userProfile.full_name || ""
             })
           }
         }
@@ -110,11 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userProfile = await fetchUserProfile(session.user.id)
         if (userProfile) {
           setUser({
+            ...userProfile,
             id: session.user.id,
-            email: session.user.email || "",
-            full_name: userProfile.full_name || "",
-            avatar_url: userProfile.avatar_url || "",
-            ...userProfile
+            email: session.user.email || userProfile.email,
+            full_name: userProfile.full_name || ""
           })
         }
       } else {
@@ -147,11 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         setUser({
+          ...userProfile,
           id: data.user.id,
-          email: data.user.email || "",
-          full_name: userProfile.full_name || "",
-          avatar_url: userProfile.avatar_url || "",
-          ...userProfile
+          email: data.user.email || userProfile.email,
+          full_name: userProfile.full_name || ""
         })
         
         router.refresh()
