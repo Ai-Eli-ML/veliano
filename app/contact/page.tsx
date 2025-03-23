@@ -48,7 +48,7 @@ export default function ContactPage() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold tracking-tight mb-4">Contact Us</h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          We'd love to hear from you. Our team is always here to help.
+          We&apos;re here to help! Whether you have questions about our products, need assistance with an order, or want to learn more about our ambassador program, don&apos;t hesitate to reach out.
         </p>
       </div>
       
