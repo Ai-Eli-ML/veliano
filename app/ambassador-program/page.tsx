@@ -94,7 +94,7 @@ export default function AmbassadorProgramPage() {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4">How It Works</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Becoming a Veliano Ambassador is simple. Here's how to get started.
+            Here&apos;s how to get started as a Veliano Ambassador.
           </p>
         </div>
         
@@ -153,7 +153,7 @@ export default function AmbassadorProgramPage() {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4">Ambassador Benefits</h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            As a Veliano Ambassador, you'll enjoy these exclusive benefits.
+            As a Veliano Ambassador, you&apos;ll enjoy these exclusive benefits.
           </p>
         </div>
         
@@ -218,6 +218,13 @@ export default function AmbassadorProgramPage() {
             </div>
           </div>
         </div>
+      </div>
+      
+      <div className="text-center max-w-3xl mx-auto">
+        <p className="text-lg mb-6">
+          &quot;Being a Veliano ambassador has been an incredible journey. The team&apos;s support and the quality of their products make it easy to share with my followers.&quot;
+        </p>
+        <p className="font-semibold">- Sarah M., Fashion Influencer</p>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-16">
@@ -378,7 +385,7 @@ export default function AmbassadorProgramPage() {
                   </div>
                 </div>
                 <p className="italic">
-                  "The Veliano ambassador program stands out from others I've participated in. The commission structure is generous, and I love getting early access to new collections. It's a win-win partnership."
+                  &quot;I love representing a brand that&apos;s all about quality and style. The team is incredibly supportive.&quot;
                 </p>
               </div>
               
@@ -400,7 +407,7 @@ export default function AmbassadorProgramPage() {
                   </div>
                 </div>
                 <p className="italic">
-                  "The ambassador community Veliano has created is amazing. I've connected with other creators and even collaborated on content. The exclusive events and workshops have helped me grow my platform significantly."
+                  &quot;The commission structure is fantastic, and I&apos;m proud to promote products I truly believe in.&quot;
                 </p>
               </div>
             </CardContent>
