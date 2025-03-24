@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { OrderWithRelations } from "@/types"
 
 // Define types for order data
 interface OrderEmailData {
@@ -194,9 +195,9 @@ export function generateOrderEmailHtml(order: OrderWithRelations) {
         <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
         
         <h3>Items:</h3>
-        ${order.items.map(item => `
+        ${order.order_items.map((item) => `
           <div class="item">
-            <p><strong>${item.product_name}</strong> x ${item.quantity}</p>
+            <p><strong>${item.name}</strong> x ${item.quantity}</p>
             <p>Price: $${item.price.toFixed(2)}</p>
           </div>
         `).join('')}
@@ -280,6 +281,110 @@ export function generatePasswordResetEmailHtml(resetUrl: string) {
       <p style="word-break: break-all; color: #777;">${resetUrl}</p>
       
       <p>This link will expire in 1 hour for security reasons.</p>
+      
+      <p>Thank you for choosing Veliano & Co!</p>
+      
+      <div class="footer">
+        <p>© ${new Date().getFullYear()} Veliano & Co. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+}
+
+/**
+ * Sends a verification email to users who have just signed up
+ */
+export async function sendVerificationEmail(
+  email: string, 
+  verificationUrl: string
+): Promise<EmailResponse> {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Verify your email for Veliano & Co",
+      html: generateVerificationEmailHtml(verificationUrl),
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error sending verification email:", error)
+    return { success: false, error }
+  }
+}
+
+/**
+ * Generate HTML template for verification emails
+ */
+export function generateVerificationEmailHtml(verificationUrl: string) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Email Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      /* Base styles */
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        text-align: center;
+        padding: 20px 0;
+        background-color: #f8f8f8;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 20px 0;
+        background-color: #bf953f;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #777;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 style="color: #bf953f; margin: 0;">Veliano & Co</h1>
+        <p>Email Verification</p>
+      </div>
+      
+      <p>Hello,</p>
+      
+      <p>Thank you for creating an account with Veliano & Co. To complete your registration, please verify your email address.</p>
+      
+      <p>Click the button below to verify your email:</p>
+      
+      <div style="text-align: center;">
+        <a href="${verificationUrl}" class="button">Verify Email</a>
+      </div>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #777;">${verificationUrl}</p>
+      
+      <p>This link will expire in 24 hours for security reasons.</p>
+      
+      <p>If you didn't create an account with us, you can safely ignore this email.</p>
       
       <p>Thank you for choosing Veliano & Co!</p>
       
