@@ -253,11 +253,14 @@ Last Updated: 2024-04-03
    - Add sharing features
 
 3. Email Marketing Integration
-   - Set up email service provider integration
-   - Create order confirmation emails
-   - Implement abandoned cart emails
-   - Build newsletter subscription system
-   - Design email templates
+   - ✅ Set up custom email verification with Supabase Auth hooks
+   - ✅ Implement email verification templates
+   - ✅ Create webhook for auth events
+   - [ ] Select and integrate full-featured email service provider
+   - [ ] Create order confirmation emails
+   - [ ] Implement abandoned cart emails
+   - [ ] Build newsletter subscription system
+   - [ ] Design additional email templates
 
 #### Success Criteria:
 - Functional reviews system
