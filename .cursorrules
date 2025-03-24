@@ -1,172 +1,89 @@
 {
   "context": {
     "projectDescription": "Veliano Jewelry E-commerce application specializing in custom grillz, built with Next.js 15, TypeScript, and Supabase",
-    "priorityDocuments": [
+    "priorityFiles": [
       ".cursor/project-plan.md",
-      ".cursor/deployment/DEPLOY.md",
-      ".cursor/rules/project-structure.mdc",
-      ".cursor/PHASE3.md",
-      ".cursor/MVP_READINESS.md",
-      "https://nextjs.org/docs"
+      ".cursor/PHASE4.md",
+      ".cursor/PHASE4_ONE_SHOT.md",
+      ".cursor/rules/database-schema-reference.mdc"
     ],
-    "projectPhase": "Phase 3: Product Features (Current Phase)",
-    "phaseTransitionRequirements": {
-      "remaining": [
-        "Build admin interface for product management",
-        "Implement shopping cart functionality",
-        "Create checkout process",
-        "Implement image storage for products"
-      ],
-      "completed": [
-        "User profile components",
-        "Supabase RLS policies",
-        "Integration tests for address management",
-        "API documentation updates",
-        "Sentry error tracking implementation",
-        "Design product database schema",
-        "Implement product listing components",
-        "Create search functionality",
-        "Set up product category relationships",
-        "Build product detail pages"
-      ]
-    },
-    "Prompt_file": ".prompt",
-    "always_load_prompt_": true,
-    "respect_conventions": true
-  },
-  "instructions": [
-    "Always reference the project plan (.cursor/project-plan.md) for guidance on priorities and next steps",
-    "Implement Supabase integration while maintaining code quality",
-    "When working with deployment code, automatically reference the DEPLOY.md guide",
-    "Follow the development standards in .cursor/rules/development-standards.mdc",
-    "Use the project structure guide when navigating or creating new files",
-    "Always follow Next.js 15 official documentation structure and conventions",
-    "Implement error handling according to Next.js 15 App Router patterns",
-    "Ensure all code changes maintain type safety and pass linting",
-    "Commit changes frequently with clear, descriptive messages following conventional commits"
-  ],
-  "commitGuidelines": {
-    "format": "<type>(<scope>): <description>",
-    "types": [
-      "feat",
-      "fix",
-      "refactor",
-      "style",
-      "docs",
-      "test",
-      "chore"
+    "currentPhase": "Phase 4: Advanced Features",
+    "remainingFeatures": [
+      "Complete customer reviews system",
+      "Implement wishlist functionality",
+      "Finish email marketing integration",
+      "Build product recommendation engine",
+      "Enhance search with autocomplete"
     ],
-    "rules": [
-      "Use present tense ('add' not 'added')",
-      "First line should be under 72 characters",
-      "Describe both what and why",
-      "Reference issues when relevant"
-    ],
-    "examples": [
-      "feat(auth): implement user profile types and repository",
-      "fix(types): resolve TypeScript errors in email service",
-      "refactor(db): update schema for product variants"
+    "completedFeatures": [
+      "Custom email verification with Supabase Auth hooks",
+      "All Phase 3 requirements"
     ]
   },
-  "currentPriorities": [
-    "Implement shopping cart functionality",
-    "Create checkout process",
-    "Build admin interface for product management",
-    "Implement image storage for products",
-    "Create order management components",
-    "Fix remaining TypeScript errors in filter component"
-  ],
-  "completedTasks": [
-    "User profile components",
-    "User preferences system",
-    "Admin verification",
-    "Address management with optimistic updates",
-    "Type safety improvements",
-    "Database schema updates",
-    "Authentication system with Supabase Auth",
-    "Basic user profile types and repository",
-    "Authentication test suite implementation",
-    "Type-safe Sentry integration",
-    "Error boundary implementation",
-    "API documentation updates",
-    "Design product database schema",
-    "Create custom orders table",
-    "Create customers table",
-    "Create admin users table",
-    "Implement RLS policies",
-    "Implement product listing components",
-    "Create product detail pages",
-    "Set up product category relationships",
-    "Create search interface and functionality",
-    "Implement product filtering and sorting"
-  ],
-  "codeGeneration": {
-    "defaultTechStack": {
-      "frontend": "Next.js 15 App Router",
-      "styling": "shadcn/ui with Tailwind CSS",
-      "dataFetching": "Server Components and Server Actions with Supabase",
-      "database": "Supabase with repository pattern",
-      "authentication": "Supabase Auth with middleware protection"
+  "phaseConfig": {
+    "reviews": {
+      "priority": 1,
+      "dependencies": ["products", "auth"],
+      "components": ["ReviewForm", "ReviewsList", "RatingStars", "ReviewCard"],
+      "schema": "reviews",
+      "apis": ["GET /api/products/[id]/reviews", "POST /api/reviews"]
     },
-    "bestPractices": [
-      "Implement Server Components by default",
-      "Use TypeScript for all code with explicit types",
-      "Follow functional component patterns",
-      "Prioritize performance optimization",
-      "Include proper error handling",
-      "Follow Next.js 15 conventions for file naming and directory structure",
-      "Use App Router patterns for routing and layouts",
-      "Implement error boundaries at appropriate levels",
-      "Follow Next.js 15 metadata and SEO best practices",
-      "Use Supabase type-safe queries with error handling",
-      "Implement RLS policies for all database tables",
-      "Use repository pattern for all database operations",
-      "Include integration tests for critical user flows",
-      "Document all API endpoints in Swagger format",
-      "Implement proper error tracking with Sentry",
-      "Follow strict TypeScript practices with no any types"
-    ]
-  },
-  "nextjs15Guidelines": {
-    "directoryStructure": {
-      "app": {
-        "description": "Main application directory using App Router",
-        "conventions": [
-          "Use page.tsx for route segments",
-          "Use layout.tsx for shared layouts",
-          "Place error.tsx for client-side error handling",
-          "Place global-error.tsx for root error handling",
-          "Use loading.tsx for suspense boundaries",
-          "Group related routes in folders"
-        ]
-      },
-      "components": {
-        "description": "Reusable UI components",
-        "conventions": [
-          "Use 'use client' directive for client components",
-          "Default to Server Components when possible",
-          "Group by feature or global usage"
-        ]
-      }
+    "wishlist": {
+      "priority": 2,
+      "dependencies": ["products", "auth"],
+      "components": ["WishlistButton", "WishlistPage", "WishlistItem"],
+      "schema": ["wishlists", "wishlist_items"],
+      "apis": ["GET /api/wishlist", "POST /api/wishlist"]
     },
-    "errorHandling": {
-      "conventions": [
-        "Use error.tsx for client-side errors",
-        "Use global-error.tsx for root errors",
-        "Implement reset functionality in error boundaries",
-        "Log errors appropriately in production",
-        "Ensure type safety in error handling components",
-        "Add error tracking with Sentry integration"
-      ]
+    "email": {
+      "priority": 3,
+      "dependencies": ["auth"],
+      "components": ["EmailSubscriptionForm", "EmailPreferences", "AdminCampaignEditor"],
+      "schema": ["email_subscribers", "email_campaigns", "email_logs"],
+      "apis": ["POST /api/subscribe", "PUT /api/preferences/email"]
+    },
+    "recommendations": {
+      "priority": 4,
+      "dependencies": ["products"],
+      "components": ["RelatedProducts", "FrequentlyBoughtTogether", "ProductCarousel"],
+      "schema": "product_relations",
+      "apis": ["GET /api/products/[id]/recommended"]
+    },
+    "search": {
+      "priority": 5,
+      "dependencies": ["products"],
+      "components": ["SearchBar", "SearchResults", "SearchFilters", "Autocomplete"],
+      "schema": ["search_logs", "product_search_data"],
+      "apis": ["GET /api/search"]
     }
   },
-  "analysisMode": {
-    "autoReference": true,
-    "deepAnalysis": true,
-    "oneShot": true,
-    "followProjectPlan": true,
-    "followNextJsDocs": true,
-    "enforceTypeChecks": true,
-    "enforceLinting": true
+  "codeStandards": {
+    "fileStructure": {
+      "components": "app/components/[feature]/[ComponentName].tsx",
+      "serverActions": "app/actions/[feature].ts",
+      "repositories": "app/repositories/[name]Repository.ts",
+      "types": "types/[feature].ts"
+    },
+    "typeChecks": {
+      "enforceTypedProps": true,
+      "enforceTypedReturnValues": true,
+      "useZodForValidation": true
+    },
+    "errorHandling": {
+      "useCustomErrorTypes": true,
+      "wrapDatabaseErrors": true,
+      "provideUserFriendlyMessages": true
+    },
+    "analytics": {
+      "trackPageViews": true,
+      "trackUserActions": true,
+      "anonymizeData": true
+    }
+  },
+  "oneShot": {
+    "enabled": true,
+    "logFile": "phase4-progress.log",
+    "outputDir": "phase4-output",
+    "inputHandler": "scripts/phase4-generator.js"
   }
 } 

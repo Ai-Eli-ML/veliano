@@ -1,125 +1,632 @@
-{
-  "projectPrompts": {
-    "component": {
-      "server": {
-        "template": "import { type FC } from 'react'\n\ninterface ${ComponentName}Props {\n  // Add props here\n}\n\nexport const ${ComponentName}: FC<${ComponentName}Props> = () => {\n  return (\n    <div>\n      {/* Component content */}\n    </div>\n  )\n}",
-        "location": "components/${category}/${name}.tsx"
-      },
-      "client": {
-        "template": "'use client'\n\nimport { type FC } from 'react'\n\ninterface ${ComponentName}Props {\n  // Add props here\n}\n\nexport const ${ComponentName}: FC<${ComponentName}Props> = () => {\n  return (\n    <div>\n      {/* Component content */}\n    </div>\n  )\n}",
-        "location": "components/${category}/${name}.tsx"
-      }
-    },
-    "repository": {
-      "template": "import { createClient } from '@/lib/supabase/server'\nimport { type Database } from '@/types/supabase'\n\nexport class ${Name}Repository {\n  private supabase = createClient()\n\n  async getById(id: string) {\n    const { data, error } = await this.supabase\n      .from('${tableName}')\n      .select('*')\n      .eq('id', id)\n      .single()\n\n    if (error) throw error\n    return data\n  }\n}",
-      "location": "lib/repositories/${name}-repository.ts"
-    },
-    "api": {
-      "route": {
-        "template": "import { createClient } from '@/lib/supabase/server'\nimport { NextResponse } from 'next/server'\n\nexport async function GET(request: Request) {\n  try {\n    const supabase = createClient()\n    // Add route logic here\n    return NextResponse.json({ message: 'Success' })\n  } catch (error) {\n    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })\n  }\n}",
-        "location": "app/api/${path}/route.ts"
-      }
-    },
-    "test": {
-      "component": {
-        "template": "import { render, screen } from '@testing-library/react'\nimport { ${ComponentName} } from './${ComponentName}'\n\ndescribe('${ComponentName}', () => {\n  it('renders correctly', () => {\n    render(<${ComponentName} />)\n    // Add test assertions\n  })\n})",
-        "location": "__tests__/components/${category}/${name}.test.tsx"
-      }
-    }
-  },
-  "conventions": {
-    "naming": {
-      "components": "PascalCase",
-      "functions": "camelCase",
-      "constants": "UPPER_SNAKE_CASE",
-      "files": "kebab-case",
-      "types": "PascalCase"
-    },
-    "imports": {
-      "order": [
-        "react",
-        "next",
-        "external",
-        "internal",
-        "components",
-        "styles"
-      ]
-    }
-  },
-  "typeChecks": {
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true
-  },
-  "supabaseIntegration": {
-    "requireRLS": true,
-    "requireTypes": true,
-    "requireErrorHandling": true
-  },
-  "errorHandling": {
-    "requireBoundaries": true,
-    "requireLogging": true,
-    "requireTypedErrors": true
-  },
-  "testing": {
-    "requireTests": true,
-    "coverageThreshold": 80,
-    "requireMocks": true
-  },
-  "workflowAutomation": {
-    "contextTransitions": {
-      "component": {
-        "nextSteps": ["test", "api"],
-        "autoSuggest": true,
-        "template": "@context: test\n@task: Test {componentName}\n@requirements:\n- Test component rendering\n- Test user interactions\n- Test error states\n@priority: {previousPriority}"
-      },
-      "api": {
-        "nextSteps": ["test", "database"],
-        "autoSuggest": true,
-        "template": "@context: database\n@task: Implement database layer for {apiName}\n@requirements:\n- Define database schema\n- Implement RLS policies\n- Create repository methods\n@priority: {previousPriority}"
-      },
-      "database": {
-        "nextSteps": ["test"],
-        "autoSuggest": true,
-        "template": "@context: test\n@task: Test database operations for {databaseEntity}\n@requirements:\n- Test CRUD operations\n- Test RLS policies\n- Test edge cases\n@priority: {previousPriority}"
-      }
-    },
-    "phaseTracking": {
-      "trackProgress": true,
-      "updateProjectPlan": true,
-      "generateCommitMessages": true
-    },
-    "completionActions": {
-      "suggestNextTask": true,
-      "updateDocs": true,
-      "runTests": true,
-      "checkLinting": true
-    }
-  },
-  "aiGuidance": {
-    "projectGoals": {
-      "primary": "Build a custom jewelry e-commerce platform",
-      "phase": "Product Features",
-      "completion": "15%"
-    },
-    "decisionMaking": {
-      "architecture": {
-        "followPatterns": true,
-        "suggestImprovements": true,
-        "maintainConsistency": true
-      },
-      "codeQuality": {
-        "enforceTypeChecks": true,
-        "requireTests": true,
-        "followBestPractices": true
-      }
-    },
-    "autoComplete": {
-      "enabled": true,
-      "templates": {
-        "nextTask": "@context: {suggestedContext}\n@task: {suggestedTask}\n@requirements:\n{suggestedRequirements}\n@priority: {suggestedPriority}",
-        "commitMessage": "{type}({scope}): {description}\n\n{body}\n\n{footer}"
-      }
-    }
+// Phase 4 Configuration and Templates
+// Format is valid TypeScript to avoid linting errors
+
+/** 
+ * Component templates
+ */
+export const componentTemplates = {
+  server: `import { type FC } from 'react';
+
+interface \${ComponentName}Props {
+  // Add props here
+}
+
+export const \${ComponentName}: FC<\${ComponentName}Props> = () => {
+  return (
+    <div>
+      {/* Component content */}
+    </div>
+  );
+}`,
+  
+  client: `'use client';
+
+import { type FC } from 'react';
+
+interface \${ComponentName}Props {
+  // Add props here
+}
+
+export const \${ComponentName}: FC<\${ComponentName}Props> = () => {
+  return (
+    <div>
+      {/* Component content */}
+    </div>
+  );
+}`
+};
+
+/**
+ * Repository template
+ */
+export const repositoryTemplate = `import { createClient } from '@/lib/supabase/server';
+import { type Database } from '@/types/supabase';
+
+export class \${Name}Repository {
+  private supabase = createClient();
+
+  async getById(id: string) {
+    const { data, error } = await this.supabase
+      .from('\${tableName}')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
   }
-} 
+
+  async list(options?: { limit?: number; offset?: number; filters?: Record<string, any> }) {
+    let query = this.supabase.from('\${tableName}').select('*');
+    
+    if (options?.filters) {
+      Object.entries(options.filters).forEach(([key, value]) => {
+        if (value !== undefined) query = query.eq(key, value);
+      });
+    }
+    
+    if (options?.limit) query = query.limit(options.limit);
+    if (options?.offset) query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+  
+  async create(data: any) {
+    const { data: result, error } = await this.supabase.from('\${tableName}').insert(data).select().single();
+    if (error) throw error;
+    return result;
+  }
+  
+  async update(id: string, data: any) {
+    const { data: result, error } = await this.supabase.from('\${tableName}').update(data).eq('id', id).select().single();
+    if (error) throw error;
+    return result;
+  }
+  
+  async delete(id: string) {
+    const { error } = await this.supabase.from('\${tableName}').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+}`;
+
+/**
+ * API route template
+ */
+export const apiRouteTemplate = `import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  try {
+    const supabase = createClient();
+    // Add route logic here
+    return NextResponse.json({ message: 'Success' });
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}`;
+
+/**
+ * Server action template
+ */
+export const serverActionTemplate = `'use server';
+
+import { revalidatePath } from 'next/cache';
+import { createClient } from '@/lib/supabase/server';
+
+type \${Name}Data = {
+  // Add data fields here
+};
+
+export async function create\${Name}(data: \${Name}Data) {
+  try {
+    const supabase = createClient();
+    
+    const { data: result, error } = await supabase
+      .from('\${tableName}')
+      .insert(data)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    
+    revalidatePath('/\${path}');
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Server action error:', error);
+    return { success: false, error: 'Failed to create \${name}' };
+  }
+}`;
+
+/**
+ * Phase 4 feature: Reviews
+ */
+export const reviewsFeature = {
+  schema: {
+    migration: `CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  title TEXT,
+  content TEXT,
+  verified_purchase BOOLEAN DEFAULT false,
+  helpful_votes INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE (product_id, user_id)
+);
+
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view all reviews" 
+  ON reviews FOR SELECT 
+  USING (true);
+
+CREATE POLICY "Users can insert their own reviews" 
+  ON reviews FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own reviews" 
+  ON reviews FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own reviews" 
+  ON reviews FOR DELETE 
+  USING (auth.uid() = user_id);`,
+    
+    types: `export type Review = Database['public']['Tables']['reviews']['Row'];
+export type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
+export type ReviewUpdate = Database['public']['Tables']['reviews']['Update'];
+
+export interface ReviewWithUser extends Review {
+  profiles: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  };
+}`
+  },
+  components: [
+    "ReviewForm",
+    "ReviewsList",
+    "RatingStars",
+    "ReviewCard",
+    "AdminReviewModeration"
+  ],
+  actions: [
+    "createReview",
+    "updateReview",
+    "deleteReview",
+    "approveReview"
+  ]
+};
+
+/**
+ * Phase 4 feature: Wishlist
+ */
+export const wishlistFeature = {
+  schema: {
+    migration: `CREATE TABLE IF NOT EXISTS wishlists (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT DEFAULT 'Default',
+  is_public BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE (user_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS wishlist_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wishlist_id UUID NOT NULL REFERENCES wishlists(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  added_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE (wishlist_id, product_id)
+);
+
+ALTER TABLE wishlists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wishlist_items ENABLE ROW LEVEL SECURITY;
+
+-- Select policies
+CREATE POLICY "Users can view their own wishlists"
+  ON wishlists FOR SELECT
+  USING (auth.uid() = user_id OR is_public = true);
+
+CREATE POLICY "Users can view items in visible wishlists"
+  ON wishlist_items FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM wishlists
+      WHERE wishlists.id = wishlist_id
+      AND (wishlists.user_id = auth.uid() OR wishlists.is_public = true)
+    )
+  );
+
+-- Insert policies
+CREATE POLICY "Users can insert into their own wishlists"
+  ON wishlists FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert items into their own wishlists"
+  ON wishlist_items FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM wishlists
+      WHERE wishlists.id = wishlist_id
+      AND wishlists.user_id = auth.uid()
+    )
+  );
+
+-- Update policies
+CREATE POLICY "Users can update their own wishlists"
+  ON wishlists FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Delete policies
+CREATE POLICY "Users can delete their own wishlists"
+  ON wishlists FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete items from their own wishlists"
+  ON wishlist_items FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM wishlists
+      WHERE wishlists.id = wishlist_id
+      AND wishlists.user_id = auth.uid()
+    )
+  );`,
+    
+    types: `export type Wishlist = Database['public']['Tables']['wishlists']['Row'];
+export type WishlistInsert = Database['public']['Tables']['wishlists']['Insert'];
+export type WishlistUpdate = Database['public']['Tables']['wishlists']['Update'];
+
+export type WishlistItem = Database['public']['Tables']['wishlist_items']['Row'];
+export type WishlistItemInsert = Database['public']['Tables']['wishlist_items']['Insert'];
+
+export interface WishlistWithItems extends Wishlist {
+  items: (WishlistItem & {
+    products: {
+      id: string;
+      name: string;
+      price: number;
+      image_url: string | null;
+    };
+  })[];
+}`
+  },
+  components: [
+    "WishlistButton",
+    "WishlistPage",
+    "WishlistItem"
+  ],
+  actions: [
+    "addToWishlist",
+    "removeFromWishlist",
+    "createWishlist",
+    "updateWishlist",
+    "toggleWishlistItem"
+  ]
+};
+
+/**
+ * Phase 4 feature: Email Marketing
+ */
+export const emailFeature = {
+  schema: {
+    migration: `CREATE TABLE IF NOT EXISTS email_subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  first_name TEXT,
+  last_name TEXT,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  status TEXT NOT NULL CHECK (status IN ('active', 'unsubscribed', 'bounced', 'complained')),
+  preferences JSONB DEFAULT '{"marketing": true, "product": true, "newsletter": true}'::jsonb,
+  source TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS email_campaigns (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  content TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('draft', 'scheduled', 'sending', 'sent', 'cancelled')),
+  scheduled_at TIMESTAMP WITH TIME ZONE,
+  sent_at TIMESTAMP WITH TIME ZONE,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS email_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  subscriber_id UUID REFERENCES email_subscribers(id) ON DELETE CASCADE,
+  campaign_id UUID REFERENCES email_campaigns(id) ON DELETE SET NULL,
+  email TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('sent', 'delivered', 'opened', 'clicked', 'bounced', 'complained', 'failed')),
+  provider_id TEXT,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+ALTER TABLE email_subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+
+-- Email subscribers policies
+CREATE POLICY "Users can view their own subscriber data"
+  ON email_subscribers FOR SELECT
+  USING (auth.uid() = user_id OR auth.uid() IN (
+    SELECT id FROM profiles WHERE role = 'admin'
+  ));
+
+CREATE POLICY "Anyone can subscribe"
+  ON email_subscribers FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Users can update their own subscriber data"
+  ON email_subscribers FOR UPDATE
+  USING (auth.uid() = user_id OR auth.uid() IN (
+    SELECT id FROM profiles WHERE role = 'admin'
+  ));
+
+-- Campaign policies (admin only)
+CREATE POLICY "Admin can view campaigns"
+  ON email_campaigns FOR SELECT
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+CREATE POLICY "Admin can insert campaigns"
+  ON email_campaigns FOR INSERT
+  WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+CREATE POLICY "Admin can update campaigns"
+  ON email_campaigns FOR UPDATE
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+CREATE POLICY "Admin can delete campaigns"
+  ON email_campaigns FOR DELETE
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+-- Email logs policies
+CREATE POLICY "Users can view their own email logs"
+  ON email_logs FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM email_subscribers
+    WHERE email_subscribers.id = subscriber_id
+    AND email_subscribers.user_id = auth.uid()
+  ) OR auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+CREATE POLICY "Admin can insert email logs"
+  ON email_logs FOR INSERT
+  WITH CHECK (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));`,
+    
+    types: `export type EmailSubscriber = Database['public']['Tables']['email_subscribers']['Row'];
+export type EmailSubscriberInsert = Database['public']['Tables']['email_subscribers']['Insert'];
+export type EmailSubscriberUpdate = Database['public']['Tables']['email_subscribers']['Update'];
+
+export type EmailCampaign = Database['public']['Tables']['email_campaigns']['Row'];
+export type EmailCampaignInsert = Database['public']['Tables']['email_campaigns']['Insert'];
+export type EmailCampaignUpdate = Database['public']['Tables']['email_campaigns']['Update'];
+
+export type EmailLog = Database['public']['Tables']['email_logs']['Row'];
+export type EmailLogInsert = Database['public']['Tables']['email_logs']['Insert'];
+
+export type EmailPreferences = {
+  marketing: boolean;
+  product: boolean;
+  newsletter: boolean;
+};
+
+export type EmailStatus = 'active' | 'unsubscribed' | 'bounced' | 'complained';
+export type CampaignStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'cancelled';
+export type DeliveryStatus = 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'complained' | 'failed';`
+  },
+  components: [
+    "EmailSubscriptionForm",
+    "EmailPreferences",
+    "AdminCampaignEditor"
+  ],
+  actions: [
+    "subscribeToEmails",
+    "updateEmailPreferences",
+    "unsubscribeFromEmails",
+    "createEmailCampaign",
+    "sendTestEmail"
+  ]
+};
+
+/**
+ * Phase 4 feature: Recommendations
+ */
+export const recommendationsFeature = {
+  schema: {
+    migration: `CREATE TABLE IF NOT EXISTS product_relations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  related_product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  relation_type TEXT NOT NULL CHECK (relation_type IN ('similar', 'bought_together', 'viewed_together')),
+  relevance_score NUMERIC DEFAULT 1.0 CHECK (relevance_score >= 0),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE (product_id, related_product_id, relation_type)
+);
+
+ALTER TABLE product_relations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Everyone can view product relations"
+  ON product_relations FOR SELECT
+  USING (true);
+
+CREATE POLICY "Only admins can manage product relations"
+  ON product_relations FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.role = 'admin'
+  ));`,
+    
+    types: `export type ProductRelation = Database['public']['Tables']['product_relations']['Row'];
+export type ProductRelationInsert = Database['public']['Tables']['product_relations']['Insert'];
+export type ProductRelationUpdate = Database['public']['Tables']['product_relations']['Update'];
+
+export type RelationType = 'similar' | 'bought_together' | 'viewed_together';
+
+export interface RelatedProduct {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  slug: string;
+  relevance_score: number;
+}`
+  },
+  components: [
+    "RelatedProducts",
+    "FrequentlyBoughtTogether",
+    "ProductCarousel"
+  ],
+  actions: [
+    "getProductRecommendations",
+    "trackProductView",
+    "trackPurchaseTogether",
+    "setManualRecommendation"
+  ]
+};
+
+/**
+ * Phase 4 feature: Search
+ */
+export const searchFeature = {
+  schema: {
+    migration: `CREATE TABLE IF NOT EXISTS search_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  session_id TEXT,
+  query TEXT NOT NULL,
+  filters JSONB,
+  results_count INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS product_search_data (
+  id UUID PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+  search_vector tsvector GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(category, '')), 'C') ||
+    setweight(to_tsvector('english', coalesce(tags, '')), 'D')
+  ) STORED,
+  name TEXT,
+  description TEXT,
+  category TEXT,
+  tags TEXT
+);
+
+CREATE INDEX product_search_idx ON product_search_data USING GIN (search_vector);
+
+ALTER TABLE search_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_search_data ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin can view all search logs"
+  ON search_logs FOR SELECT
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+
+CREATE POLICY "Insert search logs for anyone"
+  ON search_logs FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Everyone can view product search data"
+  ON product_search_data FOR SELECT
+  USING (true);
+
+CREATE POLICY "Only admins can modify product search data"
+  ON product_search_data FOR ALL
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));`,
+    
+    types: `export type SearchLog = Database['public']['Tables']['search_logs']['Row'];
+export type SearchLogInsert = Database['public']['Tables']['search_logs']['Insert'];
+
+export type ProductSearchData = Database['public']['Tables']['product_search_data']['Row'];
+
+export interface SearchFilters {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string[];
+  inStock?: boolean;
+}
+
+export interface SearchResult {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string | null;
+  slug: string;
+  category: string;
+  rank: number;
+}`
+  },
+  components: [
+    "SearchBar",
+    "SearchResults",
+    "SearchFilters",
+    "Autocomplete"
+  ],
+  actions: [
+    "searchProducts",
+    "logSearch",
+    "getPopularSearches"
+  ]
+};
+
+/**
+ * Phase 4 Implementation Config
+ */
+export const phase4Config = {
+  order: ["reviews", "wishlist", "email", "recommendations", "search"],
+  steps: [
+    "Create database migrations",
+    "Define TypeScript types",
+    "Implement repositories",
+    "Create server actions",
+    "Build UI components",
+    "Add API routes",
+    "Update navigation",
+    "Write tests",
+    "Update documentation"
+  ],
+  parallelization: true,
+  settings: {
+    errorHandling: true,
+    typeChecking: true,
+    analytics: true,
+    logging: true,
+    optimisticUpdates: true
+  }
+};
+
+/**
+ * One-Shot Implementation Config
+ */
+export const oneShotConfig = {
+  inputHandling: {
+    mode: "terminal",
+    logFile: "phase4-progress.log",
+    commands: {
+      status: "Show current progress",
+      next: "Move to next feature",
+      help: "Show available commands",
+      exit: "Exit the process"
+    }
+  },
+  parallel: true,
+  memoryOptimization: true,
+  streamProcessing: true
+}; 
