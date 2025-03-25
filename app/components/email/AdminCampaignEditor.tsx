@@ -17,20 +17,20 @@ import { CalendarIcon, Loader2, MailOpen, Send, Users, CheckCircle, AlertCircle 
 import { format } from 'date-fns'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { toast } from 'sonner'
+import { createCampaign } from '@/actions/email'
 
 // Form schema
 const campaignSchema = z.object({
-  name: z.string().min(3, { message: 'Campaign name must be at least 3 characters' }),
-  subject: z.string().min(5, { message: 'Subject line must be at least 5 characters' }),
-  preheader: z.string().optional(),
-  templateId: z.string().min(1, { message: 'Please select a template' }),
-  content: z.string().min(20, { message: 'Content must be at least 20 characters' }),
-  scheduledFor: z.date().optional(),
-  targetAudience: z.enum(['all', 'active', 'inactive', 'custom']),
-  testEmails: z.string().optional()
+  title: z.string().min(1, 'Title is required'),
+  subject: z.string().min(1, 'Subject is required'),
+  content: z.string().min(1, 'Content is required'),
+  targetAudience: z.enum(['all', 'marketing', 'product_updates']),
+  scheduledFor: z.string().optional(),
+  testEmails: z.string().optional(),
 })
 
-type CampaignValues = z.infer<typeof campaignSchema>
+type CampaignFormData = z.infer<typeof campaignSchema>
 
 const emailTemplates = [
   { id: 'newsletter', name: 'Newsletter' },
@@ -40,27 +40,23 @@ const emailTemplates = [
   { id: 'seasonal', name: 'Seasonal Campaign' }
 ]
 
-export default function AdminCampaignEditor() {
+export function AdminCampaignEditor() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState('content')
   const [audienceCount, setAudienceCount] = useState<number | null>(null)
   const supabase = createClientComponentClient()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const form = useForm<CampaignValues>({
+  const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
-      name: '',
-      subject: '',
-      preheader: '',
-      templateId: '',
-      content: '',
       targetAudience: 'all',
-      testEmails: ''
-    }
+    },
   })
   
-  const targetAudience = form.watch('targetAudience')
+  const { control, handleSubmit, watch, reset } = form
+  const targetAudience = watch('targetAudience')
   
   const fetchAudienceCount = async (audience: string) => {
     if (audience === 'custom') {
@@ -91,31 +87,25 @@ export default function AdminCampaignEditor() {
     }
   }, [targetAudience])
   
-  async function onSubmit(values: CampaignValues) {
-    setStatus('loading')
-    
+  const onSubmit = async (data: CampaignFormData) => {
     try {
-      // In a real implementation, this would call a server action to save/send the campaign
-      console.log('Campaign values:', values)
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      setStatus('success')
-      setMessage('Campaign saved successfully!')
-      
-      // Reset form if needed
-      // form.reset()
+      setIsSubmitting(true)
+      await createCampaign(data)
+      toast.success('Campaign created successfully')
+      reset()
     } catch (error) {
-      setStatus('error')
-      setMessage('Failed to save campaign. Please try again.')
-      console.error('Campaign submission error:', error)
+      toast.error('Failed to create campaign')
+      console.error('Campaign creation error:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
   
-  function handleSendTest() {
-    // Logic to send test emails would go here
-    alert('Test emails would be sent to: ' + form.getValues('testEmails'))
+  const handleSendTest = () => {
+    const testEmails = form.getValues('testEmails')
+    if (testEmails) {
+      alert('Test emails would be sent to: ' + testEmails)
+    }
   }
   
   return (
@@ -128,7 +118,7 @@ export default function AdminCampaignEditor() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="content">Campaign Content</TabsTrigger>
@@ -138,13 +128,13 @@ export default function AdminCampaignEditor() {
               
               <TabsContent value="content" className="space-y-4 pt-4">
                 <FormField
-                  control={form.control}
-                  name="name"
+                  control={control}
+                  name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
+                      <FormLabel>Campaign Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="Summer Sale 2024" {...field} />
+                        <Input placeholder="Summer Sale Announcement" {...field} />
                       </FormControl>
                       <FormDescription>
                         Internal name for this campaign
@@ -155,13 +145,13 @@ export default function AdminCampaignEditor() {
                 />
                 
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subject Line</FormLabel>
+                      <FormLabel>Email Subject</FormLabel>
                       <FormControl>
-                        <Input placeholder="Special offer just for you!" {...field} />
+                        <Input placeholder="Don't Miss Our Summer Sale!" {...field} />
                       </FormControl>
                       <FormDescription>
                         Appears in recipient's inbox
@@ -172,59 +162,14 @@ export default function AdminCampaignEditor() {
                 />
                 
                 <FormField
-                  control={form.control}
-                  name="preheader"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preheader Text</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Get 20% off your next custom grillz order" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Preview text shown in email clients
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="templateId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Template</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a template" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {emailTemplates.map(template => (
-                            <SelectItem key={template.id} value={template.id}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Choose the design template for your campaign
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
+                  control={control}
                   name="content"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email Content</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Enter your email content here..." 
+                          placeholder="Write your email content here..." 
                           className="min-h-[200px]"
                           {...field} 
                         />
@@ -240,7 +185,7 @@ export default function AdminCampaignEditor() {
               
               <TabsContent value="audience" className="space-y-4 pt-4">
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="targetAudience"
                   render={({ field }) => (
                     <FormItem>
@@ -248,14 +193,13 @@ export default function AdminCampaignEditor() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select audience" />
+                            <SelectValue placeholder="Select target audience" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="all">All Subscribers</SelectItem>
-                          <SelectItem value="active">Active Subscribers</SelectItem>
-                          <SelectItem value="inactive">Inactive Subscribers</SelectItem>
-                          <SelectItem value="custom">Custom Segment</SelectItem>
+                          <SelectItem value="marketing">Marketing Subscribers</SelectItem>
+                          <SelectItem value="product_updates">Product Updates Subscribers</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -276,7 +220,7 @@ export default function AdminCampaignEditor() {
                 )}
                 
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="testEmails"
                   render={({ field }) => (
                     <FormItem>
@@ -298,7 +242,7 @@ export default function AdminCampaignEditor() {
                         size="sm"
                         className="mt-2"
                         onClick={handleSendTest}
-                        disabled={!form.getValues('testEmails')}
+                        disabled={!field.value}
                       >
                         <MailOpen className="mr-2 h-4 w-4" />
                         Send Test
@@ -310,36 +254,18 @@ export default function AdminCampaignEditor() {
               
               <TabsContent value="scheduling" className="space-y-4 pt-4">
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="scheduledFor"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Schedule Send Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormLabel>Schedule Send (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          className="mt-1"
+                        />
+                      </FormControl>
                       <FormDescription>
                         Leave blank to save as draft
                       </FormDescription>
@@ -369,7 +295,7 @@ export default function AdminCampaignEditor() {
                 type="button" 
                 variant="outline"
                 onClick={() => {
-                  form.reset()
+                  reset()
                   setStatus('idle')
                   setMessage('')
                 }}
@@ -380,25 +306,9 @@ export default function AdminCampaignEditor() {
                 <Button 
                   type="submit" 
                   variant="outline"
-                  disabled={status === 'loading'}
+                  disabled={isSubmitting}
                 >
-                  Save Draft
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={status === 'loading'}
-                >
-                  {status === 'loading' ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      {form.getValues('scheduledFor') ? 'Schedule Campaign' : 'Send Campaign'}
-                    </>
-                  )}
+                  {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
                 </Button>
               </div>
             </div>

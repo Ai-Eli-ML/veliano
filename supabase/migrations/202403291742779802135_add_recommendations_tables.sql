@@ -1,4 +1,3 @@
-
 -- Product view history for generating recommendations
 CREATE TABLE IF NOT EXISTS product_views (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -42,7 +41,7 @@ ALTER TABLE curated_recommendations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own view history"
   ON product_views FOR SELECT
   USING (auth.uid() = user_id OR auth.uid() IN (
-    SELECT id FROM profiles WHERE role = 'admin'
+    SELECT id FROM profiles WHERE is_admin = true
   ));
 
 CREATE POLICY "Users can insert their own view history"
@@ -56,7 +55,7 @@ CREATE POLICY "Anyone can view product recommendations"
 
 CREATE POLICY "Admin can manage product recommendations"
   ON product_recommendations FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE is_admin = true));
 
 -- Curated recommendations policies
 CREATE POLICY "Anyone can view curated recommendations"
@@ -65,7 +64,7 @@ CREATE POLICY "Anyone can view curated recommendations"
 
 CREATE POLICY "Admin can manage curated recommendations"
   ON curated_recommendations FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE is_admin = true));
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_product_views_user_id ON product_views(user_id);

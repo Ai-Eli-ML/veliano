@@ -101,24 +101,18 @@ export interface ProductCategory {
   updated_at: string
 }
 
-export interface Product {
-  id: string
-  name: string
-  description?: string
-  price: number
-  slug: string
-  inventory?: number
-  images?: ProductImage[]
-  variants?: ProductVariant[]
-  categoryId?: string
-  category?: {
-    id: string
-    name: string
-    slug: string
-  }
-  createdAt?: Date
-  updatedAt?: Date
-}
+export type Product = Database['public']['Tables']['products']['Row'] & {
+  images: {
+    id: string;
+    url: string;
+    alt?: string;
+  }[];
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+};
 
 export interface ProductFilterOptions {
   category?: string

@@ -8,6 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 
 interface EmailPreference {
   marketing: boolean;
@@ -15,11 +17,20 @@ interface EmailPreference {
   productUpdates: boolean;
 }
 
-export default function EmailPreferences() {
-  const [preferences, setPreferences] = useState<EmailPreference>({
+export interface EmailPreferencesProps {
+  userId: string;
+  initialPreferences?: {
+    marketing: boolean;
+    orderUpdates: boolean;
+    newsletter: boolean;
+  };
+}
+
+export default function EmailPreferences({ userId, initialPreferences }: EmailPreferencesProps) {
+  const [preferences, setPreferences] = useState(initialPreferences || {
     marketing: true,
-    transactional: true,
-    productUpdates: true
+    orderUpdates: true,
+    newsletter: true,
   });
   
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -76,14 +87,17 @@ export default function EmailPreferences() {
       if (result.success) {
         setStatus('success');
         setMessage(result.message || 'Preferences updated successfully!');
+        toast.success("Email preferences updated successfully");
       } else {
         setStatus('error');
         setMessage(result.error || 'Failed to update preferences. Please try again.');
+        toast.error("Failed to update email preferences");
       }
     } catch (error) {
       setStatus('error');
       setMessage('An unexpected error occurred. Please try again.');
       console.error('Error updating preferences:', error);
+      toast.error("Failed to update email preferences");
     }
   };
   

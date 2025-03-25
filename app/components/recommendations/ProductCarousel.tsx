@@ -8,6 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { trackRecommendationClick } from '@/app/actions/analytics';
+import { useSession } from '@supabase/auth-helpers-react';
+import { v4 as uuidv4 } from 'uuid';
+import { RecommendationAnalyticsRepository } from '@/repositories/RecommendationAnalyticsRepository';
 
 interface Product {
   id: string;
@@ -22,12 +25,14 @@ interface Product {
 interface ProductCarouselProps {
   productId: string;
   title?: string;
-  type?: 'similar' | 'frequently-bought' | 'popular';
+  type?: 'trending' | 'popular' | 'new_arrivals';
   limit?: number;
   autoScroll?: boolean;
   autoScrollInterval?: number;
   className?: string;
 }
+
+const analyticsRepository = new RecommendationAnalyticsRepository();
 
 export default function ProductCarousel({
   productId,
@@ -45,33 +50,45 @@ export default function ProductCarousel({
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
   const [autoPaused, setAutoPaused] = useState(false);
+  const session = useSession();
+  const [sessionId] = useState(() => uuidv4());
+
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   useEffect(() => {
-    const fetchRecommendedProducts = async () => {
+    const fetchProducts = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/products/${productId}/recommended?type=${type}&limit=${limit}`);
+        const response = await fetch(`/api/products/recommended?type=${type}&limit=${limit}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch recommended products');
+          throw new Error('Failed to fetch products');
         }
         
         const data = await response.json();
         setProducts(data.recommendations || []);
+
+        // Track view event for the carousel
+        await analyticsRepository.trackRecommendationView({
+          product_id: 'carousel',
+          user_id: session?.user?.id,
+          session_id: sessionId,
+          source: `${type}_carousel`,
+          recommendation_type: type,
+        });
       } catch (err) {
-        console.error('Error fetching recommended products:', err);
-        setError('Unable to load recommended products');
+        console.error('Error fetching products:', err);
+        setError('Unable to load products');
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (productId) {
-      fetchRecommendedProducts();
-    }
-  }, [productId, type, limit]);
+    fetchProducts();
+  }, [type, limit, session?.user?.id, sessionId]);
 
   // Calculate max scroll position when products change or on resize
   useEffect(() => {
@@ -104,17 +121,17 @@ export default function ProductCarousel({
     return () => clearInterval(interval);
   }, [autoScroll, isLoading, autoPaused, autoScrollInterval, products.length, scrollPosition, maxScroll]);
 
-  const handleProductClick = async (clickedProductId: string) => {
+  const handleProductClick = async (productId: string) => {
     try {
-      // Track this click for analytics
-      await trackRecommendationClick({
-        sourceProductId: productId,
-        clickedProductId,
-        recommendationType: type,
+      await analyticsRepository.trackRecommendationClick({
+        product_id: 'carousel',
+        recommended_product_id: productId,
+        user_id: session?.user?.id,
+        session_id: sessionId,
+        recommendation_type: type,
       });
     } catch (error) {
-      // Silent fail - don't block navigation if tracking fails
-      console.error('Failed to track recommendation click:', error);
+      console.error('Error tracking recommendation click:', error);
     }
   };
 
@@ -179,6 +196,12 @@ export default function ProductCarousel({
     return null; // Don't show this section if there are no recommendations
   }
 
+  const currentIndex = Math.floor(scrollPosition / 300);
+  const visibleProducts = products.slice(
+    currentIndex * itemsPerPage,
+    (currentIndex + 1) * itemsPerPage
+  );
+
   return (
     <div 
       className={`w-full py-6 ${className}`}
@@ -217,7 +240,7 @@ export default function ProductCarousel({
         onScroll={handleScroll}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {products.map((product) => (
+        {visibleProducts.map((product) => (
           <div
             key={product.id}
             className="min-w-[200px] w-[200px] sm:min-w-[220px] sm:w-[220px] mr-4 snap-start"
@@ -265,7 +288,7 @@ export default function ProductCarousel({
       
       {/* Pagination dots */}
       <div className="flex justify-center gap-1 mt-4">
-        {Array.from({ length: Math.ceil(maxScroll / 300) + 1 }).map((_, index) => {
+        {Array.from({ length: totalPages }).map((_, index) => {
           const dotPosition = index * 300;
           const isActive = 
             scrollPosition >= dotPosition && 

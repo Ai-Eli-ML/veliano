@@ -57,24 +57,12 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param options - Formatter options
  * @returns Formatted price string
  */
-export function formatPrice(
-  price: number,
-  options: {
-    currency?: "USD" | "EUR" | "GBP" | "BDT"
-    notation?: Intl.NumberFormatOptions["notation"]
-  } = {}
-) {
-  const { currency = "USD", notation = "standard" } = options
-
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    notation,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-
-  return formatter.format(price / 100)
+export function formatPrice(price: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+  }).format(price);
 }
 
 export function absoluteUrl(path: string) {
@@ -135,4 +123,11 @@ export function escapeHtml(str: string): string {
     "&": "&amp;"
   };
   return str.replace(/['"<>&]/g, (match) => htmlEntities[match]);
+}
+
+export function generateSlug(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }

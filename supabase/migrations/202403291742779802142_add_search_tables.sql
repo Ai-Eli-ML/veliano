@@ -1,4 +1,3 @@
-
 -- Search indices for products
 CREATE INDEX IF NOT EXISTS idx_products_search ON products 
 USING GIN (to_tsvector('english', name || ' ' || description));
@@ -32,7 +31,7 @@ CREATE POLICY "Users can insert their own search history"
 CREATE POLICY "Users can view their own search history"
   ON search_history FOR SELECT
   USING (auth.uid() = user_id OR auth.uid() IN (
-    SELECT id FROM profiles WHERE role = 'admin'
+    SELECT id FROM profiles WHERE is_admin = true
   ));
 
 -- Popular searches policies (readable by all)
@@ -42,7 +41,7 @@ CREATE POLICY "Anyone can view popular searches"
 
 CREATE POLICY "Admin can manage popular searches"
   ON popular_searches FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+  USING (auth.uid() IN (SELECT id FROM profiles WHERE is_admin = true));
 
 -- Full-text search function for products
 CREATE OR REPLACE FUNCTION search_products(search_term TEXT)

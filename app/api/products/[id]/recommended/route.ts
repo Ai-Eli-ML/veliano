@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { RecommendationType } from '@/types/recommendations';
 
 const recommendationQuerySchema = z.object({
-  type: z.enum(['similar', 'frequently-bought', 'popular']).optional().default('similar'),
+  type: z.enum(['similar', 'frequently_bought_together', 'viewed_also_viewed']).optional().default('similar'),
   limit: z.coerce.number().min(1).max(20).optional().default(6),
 });
 
@@ -84,7 +85,7 @@ export async function GET(
         recommendedProducts = similarProducts;
         break;
         
-      case 'frequently-bought':
+      case 'frequently_bought_together':
         // Get products that are frequently bought with this product
         // This would typically use order history data to find correlations
         // For now, we'll use a simplified approach with product_relations table
@@ -132,25 +133,51 @@ export async function GET(
         }
         break;
         
-      case 'popular':
-        // Get popular products based on sales or views
-        const { data: popularProducts } = await supabase
-          .from('products')
+      case 'viewed_also_viewed':
+        // Get products that users who viewed this product also viewed
+        const { data: viewedAlsoViewedProducts } = await supabase
+          .from('product_recommendations')
           .select(`
-            id, 
-            name, 
-            slug, 
-            price, 
-            sale_price, 
-            main_image_url,
-            average_rating,
-            total_sales
+            recommended_product_id,
+            relevance_score,
+            products:recommended_product_id (
+              id, 
+              name, 
+              slug, 
+              price, 
+              sale_price, 
+              main_image_url,
+              average_rating
+            )
           `)
-          .neq('id', productId)
-          .order('total_sales', { ascending: false })
+          .eq('product_id', productId)
+          .eq('recommendation_type', 'viewed_also_viewed')
+          .order('relevance_score', { ascending: false })
           .limit(limit);
           
-        recommendedProducts = popularProducts;
+        // Transform the result to get just the product data
+        recommendedProducts = viewedAlsoViewedProducts?.map(item => item.products) || [];
+        
+        // If no viewed-also-viewed products are found, fall back to similar products
+        if (!recommendedProducts.length) {
+          const { data: fallbackProducts } = await supabase
+            .from('products')
+            .select(`
+              id, 
+              name, 
+              slug, 
+              price, 
+              sale_price, 
+              main_image_url,
+              average_rating
+            `)
+            .eq('category_id', currentProduct.category_id)
+            .neq('id', productId)
+            .order('average_rating', { ascending: false })
+            .limit(limit);
+            
+          recommendedProducts = fallbackProducts;
+        }
         break;
     }
     

@@ -2,59 +2,47 @@
   "context": {
     "projectDescription": "Veliano Jewelry E-commerce application specializing in custom grillz, built with Next.js 15, TypeScript, and Supabase",
     "priorityFiles": [
-      ".cursor/project-plan.md",
-      ".cursor/PHASE4.md",
-      ".cursor/PHASE4_ONE_SHOT.md",
+      ".cursor/REVISED-PROJECT-PLAN.md",
+      ".cursor/checklists/launch-checklist.md",
+      ".cursor/guides/email-verification-implementation.md",
       ".cursor/rules/database-schema-reference.mdc"
     ],
-    "currentPhase": "Phase 4: Advanced Features",
+    "currentPhase": "MVP Preparation",
     "remainingFeatures": [
-      "Complete customer reviews system",
-      "Implement wishlist functionality",
-      "Finish email marketing integration",
-      "Build product recommendation engine",
-      "Enhance search with autocomplete"
+      "Implement email verification with Resend",
+      "Complete purchase flow testing",
+      "Finalize custom order process",
+      "Polish mobile responsiveness",
+      "Deploy to production"
     ],
     "completedFeatures": [
-      "Custom email verification with Supabase Auth hooks",
-      "All Phase 3 requirements"
+      "Core e-commerce functionality",
+      "Product management and display",
+      "Shopping cart and checkout",
+      "Basic authentication flow"
     ]
   },
   "phaseConfig": {
-    "reviews": {
-      "priority": 1,
-      "dependencies": ["products", "auth"],
-      "components": ["ReviewForm", "ReviewsList", "RatingStars", "ReviewCard"],
-      "schema": "reviews",
-      "apis": ["GET /api/products/[id]/reviews", "POST /api/reviews"]
-    },
-    "wishlist": {
-      "priority": 2,
-      "dependencies": ["products", "auth"],
-      "components": ["WishlistButton", "WishlistPage", "WishlistItem"],
-      "schema": ["wishlists", "wishlist_items"],
-      "apis": ["GET /api/wishlist", "POST /api/wishlist"]
-    },
     "email": {
+      "priority": 1,
+      "dependencies": ["auth"],
+      "components": ["EmailVerification", "ResetPassword"],
+      "schema": ["auth.users", "profiles"],
+      "apis": ["POST /api/auth/verify", "POST /api/auth/reset-password"]
+    },
+    "checkout": {
+      "priority": 2,
+      "dependencies": ["products", "auth", "cart"],
+      "components": ["CheckoutForm", "OrderConfirmation", "PaymentForm"],
+      "schema": ["orders", "order_items"],
+      "apis": ["POST /api/checkout", "GET /api/orders"]
+    },
+    "customOrders": {
       "priority": 3,
       "dependencies": ["auth"],
-      "components": ["EmailSubscriptionForm", "EmailPreferences", "AdminCampaignEditor"],
-      "schema": ["email_subscribers", "email_campaigns", "email_logs"],
-      "apis": ["POST /api/subscribe", "PUT /api/preferences/email"]
-    },
-    "recommendations": {
-      "priority": 4,
-      "dependencies": ["products"],
-      "components": ["RelatedProducts", "FrequentlyBoughtTogether", "ProductCarousel"],
-      "schema": "product_relations",
-      "apis": ["GET /api/products/[id]/recommended"]
-    },
-    "search": {
-      "priority": 5,
-      "dependencies": ["products"],
-      "components": ["SearchBar", "SearchResults", "SearchFilters", "Autocomplete"],
-      "schema": ["search_logs", "product_search_data"],
-      "apis": ["GET /api/search"]
+      "components": ["CustomOrderForm", "DesignUpload", "OrderTracking"],
+      "schema": ["custom_orders", "design_uploads"],
+      "apis": ["POST /api/custom-orders", "GET /api/custom-orders/[id]"]
     }
   },
   "codeStandards": {
@@ -80,10 +68,21 @@
       "anonymizeData": true
     }
   },
-  "oneShot": {
-    "enabled": true,
-    "logFile": "phase4-progress.log",
-    "outputDir": "phase4-output",
-    "inputHandler": "scripts/phase4-generator.js"
+  "mvpLaunch": {
+    "deadline": "2 weeks",
+    "priorityFeatures": [
+      "Email verification",
+      "Purchase flow",
+      "Custom orders",
+      "Mobile responsiveness"
+    ],
+    "deferredFeatures": [
+      "Reviews system",
+      "Wishlist functionality",
+      "Email marketing",
+      "Product recommendations",
+      "Advanced search"
+    ],
+    "checklistFile": ".cursor/checklists/launch-checklist.md"
   }
 } 

@@ -1,13 +1,17 @@
+import { Database } from './supabase';
+import { Product } from './product';
 
-import { Database } from '@/types/supabase';
-import { Product } from '@/types/product';
-
-export interface SearchHistory extends Database['public']['Tables']['search_history']['Row'] {
-  // Base type from Supabase schema
-}
-
-export interface PopularSearch extends Database['public']['Tables']['popular_searches']['Row'] {
-  // Base type from Supabase schema
+export interface SearchParams {
+  query?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  material?: Database['public']['Enums']['grillz_material'];
+  style?: Database['public']['Enums']['grillz_style'];
+  inStock?: boolean;
+  sortBy?: 'relevance' | 'price_asc' | 'price_desc' | 'newest';
+  page?: number;
+  limit?: number;
 }
 
 export interface SearchResult {
@@ -15,20 +19,22 @@ export interface SearchResult {
   totalCount: number;
 }
 
-export interface SearchFilters {
-  categoryId?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: 'price_asc' | 'price_desc' | 'newest' | 'relevance';
+export interface SearchHistory {
+  id: string;
+  user_id: string;
+  query: string;
+  created_at: string;
+}
+
+export interface PopularSearch {
+  query: string;
+  search_count: number;
+  last_searched_at: string;
 }
 
 export interface AutocompleteResult {
+  id: string;
   term: string;
   count: number;
-}
-
-export interface SearchParams extends SearchFilters {
-  query: string;
-  page?: number;
-  limit?: number;
+  category?: string;
 }

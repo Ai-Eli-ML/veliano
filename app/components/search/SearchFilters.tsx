@@ -1,178 +1,243 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Checkbox } from '../ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Database } from '@/types/supabase';
+import { Input } from '@/components/ui/input';
 
-interface Category {
-  id: string;
-  name: string;
-}
+type Category = Database['public']['Tables']['categories']['Row'];
+type GrillzMaterial = Database['public']['Enums']['grillz_material'];
+type GrillzStyle = Database['public']['Enums']['grillz_style'];
 
 interface SearchFiltersProps {
-  currentCategory: string;
-  currentMinPrice: string;
-  currentMaxPrice: string;
-  currentSort: string;
-  onFilterChange: (name: string, value: string | null) => void;
+  categories: Category[];
+  minPrice: number;
+  maxPrice: number;
+  initialFilters: {
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    material?: GrillzMaterial;
+    style?: GrillzStyle;
+    inStock?: boolean;
+  };
+  onFilterChange: (filters: {
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    material?: GrillzMaterial;
+    style?: GrillzStyle;
+    inStock?: boolean;
+  }) => void;
 }
 
-export default function SearchFilters({
-  currentCategory,
-  currentMinPrice,
-  currentMaxPrice,
-  currentSort,
-  onFilterChange
+export function SearchFilters({
+  categories,
+  minPrice,
+  maxPrice,
+  initialFilters,
+  onFilterChange,
 }: SearchFiltersProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [priceRange, setPriceRange] = useState<number[]>([
-    parseInt(currentMinPrice || '0', 10),
-    parseInt(currentMaxPrice || '1000', 10)
-  ]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        
-        if (data.success) {
-          setCategories(data.data || []);
-        } else {
-          console.error('Error fetching categories:', data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      } finally {
-        setIsLoading(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [filters, setFilters] = useState({
+    category: initialFilters?.category || '',
+    minPrice: initialFilters?.minPrice || minPrice,
+    maxPrice: initialFilters?.maxPrice || maxPrice,
+    material: initialFilters?.material || undefined,
+    style: initialFilters?.style || undefined,
+    inStock: initialFilters?.inStock || false,
+  });
+
+  const handleFilterChange = useCallback((newFilters: Partial<typeof filters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    onFilterChange(updatedFilters);
+
+    // Update URL params
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
       }
+    });
+    router.push('?' + params.toString());
+  }, [filters, onFilterChange, router, searchParams]);
+
+  const handlePriceChange = useCallback(([min, max]: [number, number]) => {
+    handleFilterChange({ minPrice: min, maxPrice: max });
+  }, [handleFilterChange]);
+
+  const handleReset = useCallback(() => {
+    const defaultFilters = {
+      category: '',
+      minPrice,
+      maxPrice,
+      material: undefined,
+      style: undefined,
+      inStock: false,
     };
-    
-    fetchCategories();
-  }, []);
-  
-  // Update price range when props change
-  useEffect(() => {
-    setPriceRange([
-      parseInt(currentMinPrice || '0', 10),
-      parseInt(currentMaxPrice || '1000', 10)
-    ]);
-  }, [currentMinPrice, currentMaxPrice]);
-  
-  const handlePriceRangeChange = (values: number[]) => {
-    setPriceRange(values);
-  };
-  
-  const applyPriceRange = () => {
-    onFilterChange('min', priceRange[0].toString());
-    onFilterChange('max', priceRange[1].toString());
-  };
-  
-  const handleCategoryChange = (category: string, checked: boolean) => {
-    onFilterChange('category', checked ? category : null);
-  };
-  
-  const handleSortChange = (value: string) => {
-    onFilterChange('sort', value);
-  };
-  
-  const clearAllFilters = () => {
-    onFilterChange('category', null);
-    onFilterChange('min', null);
-    onFilterChange('max', null);
-    onFilterChange('sort', 'relevance');
-  };
-  
+    setFilters(defaultFilters);
+    onFilterChange(defaultFilters);
+    router.push(window.location.pathname);
+  }, [minPrice, maxPrice, onFilterChange, router]);
+
+  const handleCategoryChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...initialFilters,
+        category: value || undefined,
+      });
+    },
+    [initialFilters, onFilterChange]
+  );
+
+  const handleMaterialChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...initialFilters,
+        material: (value as GrillzMaterial) || undefined,
+      });
+    },
+    [initialFilters, onFilterChange]
+  );
+
+  const handleStyleChange = useCallback(
+    (value: string) => {
+      onFilterChange({
+        ...initialFilters,
+        style: (value as GrillzStyle) || undefined,
+      });
+    },
+    [initialFilters, onFilterChange]
+  );
+
+  const handleInStockChange = useCallback(
+    (checked: boolean) => {
+      onFilterChange({
+        ...initialFilters,
+        inStock: checked,
+      });
+    },
+    [initialFilters, onFilterChange]
+  );
+
   return (
-    <div className="sticky top-24 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Filters</h2>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={clearAllFilters}
+    <Card className="p-6 space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Filters</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleReset}
+          className="mb-4"
         >
-          Clear all
+          Reset Filters
         </Button>
       </div>
-      
+
       <div className="space-y-4">
         <div>
-          <h3 className="mb-2 text-sm font-medium">Sort By</h3>
-          <Select value={currentSort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sort by" />
+          <Label>Category</Label>
+          <Select
+            value={filters.category}
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="relevance">Relevance</SelectItem>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="">All categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-        
-        <Accordion type="single" collapsible defaultValue="categories">
-          <AccordionItem value="categories">
-            <AccordionTrigger>Categories</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-2">
-                {isLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading categories...</p>
-                ) : categories.length > 0 ? (
-                  categories.map((category) => (
-                    <div key={category.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`category-${category.id}`}
-                        checked={currentCategory === category.id}
-                        onCheckedChange={(checked) => 
-                          handleCategoryChange(category.id, checked === true)
-                        }
-                      />
-                      <label 
-                        htmlFor={`category-${category.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {category.name}
-                      </label>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No categories found</p>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          
-          <AccordionItem value="price">
-            <AccordionTrigger>Price Range</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4">
-                <Slider
-                  defaultValue={priceRange}
-                  max={5000}
-                  step={10}
-                  value={priceRange}
-                  onValueChange={handlePriceRangeChange}
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">${priceRange[0]}</span>
-                  <span className="text-sm">${priceRange[1]}</span>
-                </div>
-                <Button onClick={applyPriceRange} size="sm" className="w-full">
-                  Apply Price Range
-                </Button>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+
+        <div>
+          <Label>Price Range</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="number"
+              placeholder="Min"
+              value={filters.minPrice.toString()}
+              onChange={(e) => handlePriceChange([Number(e.target.value), filters.maxPrice])}
+              min={minPrice}
+              max={maxPrice}
+            />
+            <Input
+              type="number"
+              placeholder="Max"
+              value={filters.maxPrice.toString()}
+              onChange={(e) => handlePriceChange([filters.minPrice, Number(e.target.value)])}
+              min={minPrice}
+              max={maxPrice}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label>Material</Label>
+          <Select
+            value={filters.material || ''}
+            onValueChange={handleMaterialChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Any material" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any material</SelectItem>
+              <SelectItem value="gold">Gold</SelectItem>
+              <SelectItem value="silver">Silver</SelectItem>
+              <SelectItem value="platinum">Platinum</SelectItem>
+              <SelectItem value="rainbow_gold">Rainbow Gold</SelectItem>
+              <SelectItem value="diamond_encrusted">Diamond Encrusted</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label>Style</Label>
+          <Select
+            value={filters.style || ''}
+            onValueChange={handleStyleChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Any style" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any style</SelectItem>
+              <SelectItem value="full_set">Full Set</SelectItem>
+              <SelectItem value="top_only">Top Only</SelectItem>
+              <SelectItem value="bottom_only">Bottom Only</SelectItem>
+              <SelectItem value="fangs">Fangs</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="in-stock"
+            checked={filters.inStock}
+            onCheckedChange={handleInStockChange}
+          />
+          <Label htmlFor="in-stock">In Stock Only</Label>
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }

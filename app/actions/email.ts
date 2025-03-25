@@ -1,353 +1,214 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
+import { z } from 'zod';
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { Database } from '@/types/supabase';
+import { EmailRepository } from '@/repositories/EmailRepository';
 
-// Schema validation
 const subscriptionSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().email(),
   firstName: z.string().optional(),
-  marketingConsent: z.boolean().default(true)
-})
+});
 
-type SubscriptionInput = z.infer<typeof subscriptionSchema>
+const campaignSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  subject: z.string().min(1, 'Subject is required'),
+  content: z.string().min(1, 'Content is required'),
+  targetAudience: z.enum(['all', 'marketing', 'product_updates']),
+  scheduledFor: z.string().optional(),
+});
 
-interface ActionResponse {
-  success: boolean
-  message?: string
-  error?: string
-}
+export async function subscribeToNewsletter(data: z.infer<typeof subscriptionSchema>) {
+  const supabase = createServerActionClient({ cookies });
+  const emailRepository = new EmailRepository(supabase);
 
-/**
- * Subscribe a user to the newsletter
- */
-export async function subscribeToNewsletter(formData: SubscriptionInput): Promise<ActionResponse> {
   try {
-    // Validate input
-    const validated = subscriptionSchema.safeParse(formData)
-    if (!validated.success) {
-      return {
-        success: false,
-        error: 'Invalid form data: ' + JSON.stringify(validated.error.format())
-      }
+    const validatedData = subscriptionSchema.parse(data);
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    await emailRepository.createSubscriber({
+      email: validatedData.email,
+      first_name: validatedData.firstName,
+      user_id: session?.user?.id,
+    });
+
+    if (session?.user) {
+      await emailRepository.updateUserEmailPreferences(session.user.id, {
+        marketing_emails: true,
+        product_updates: true,
+        order_updates: true,
+      });
     }
-    
-    const { email, firstName, marketingConsent } = validated.data
-    
-    // Initialize Supabase client
-    const supabase = createServerActionClient({ cookies })
-    
-    // Check if email already exists
-    const { data: existingSubscriber } = await supabase
-      .from('email_subscribers')
-      .select('id, status, user_id')
-      .eq('email', email)
-      .single()
-    
-    // If already subscribed with active status, return success
-    if (existingSubscriber && existingSubscriber.status === 'active') {
-      return {
-        success: true,
-        message: 'You are already subscribed to our newsletter!'
-      }
-    }
-    
-    // Get current user if authenticated
-    const { data: { session } } = await supabase.auth.getSession()
-    const userId = session?.user?.id
-    
-    const timestamp = new Date().toISOString()
-    
-    // If subscriber exists but is unsubscribed, update their record
-    if (existingSubscriber) {
-      const { error } = await supabase
-        .from('email_subscribers')
-        .update({
-          first_name: firstName || null,
-          status: 'active',
-          preferences: { marketing: marketingConsent },
-          updated_at: timestamp,
-          user_id: userId || existingSubscriber.user_id
-        })
-        .eq('id', existingSubscriber.id)
-      
-      if (error) {
-        console.error('Error updating subscriber:', error)
-        return {
-          success: false,
-          error: 'Failed to update subscription. Please try again.'
-        }
-      }
-      
-      // Log the resubscription event
-      await supabase
-        .from('email_logs')
-        .insert({
-          subscriber_id: existingSubscriber.id,
-          event_type: 'resubscribe',
-          metadata: { 
-            source: 'website',
-            user_agent: 'server_action'
-          }
-        })
-        
-        return { 
-          success: true, 
-        message: 'Welcome back! You have been resubscribed to our newsletter.'
-      }
-    }
-    
-    // Otherwise create a new subscriber
-    const { data: newSubscriber, error } = await supabase
-      .from('email_subscribers')
-      .insert({
-        email,
-        first_name: firstName || null,
-        status: 'active',
-        source: 'website',
-        preferences: { marketing: marketingConsent },
-        user_id: userId,
-        created_at: timestamp,
-        updated_at: timestamp
-      })
-      .select('id')
-      .single()
-    
-    if (error) {
-      console.error('Error creating subscriber:', error)
-      return {
-        success: false,
-        error: 'Failed to subscribe. Please try again.'
-      }
-    }
-    
-    // Log the subscription event
-    await supabase
-      .from('email_logs')
-      .insert({
-        subscriber_id: newSubscriber.id,
-        event_type: 'subscribe',
-        metadata: {
-          source: 'website',
-          user_agent: 'server_action'
-        }
-      })
-    
-    // Revalidate paths that might show subscription status
-    revalidatePath('/account/preferences')
-    
-    return { 
-      success: true, 
-      message: 'Thank you! You have been subscribed to our newsletter.'
-    }
+
+    return { success: true };
   } catch (error) {
-    console.error('Subscription error:', error)
-    return { 
-      success: false, 
-      error: 'An unexpected error occurred. Please try again.'
-    }
+    console.error('Newsletter subscription error:', error);
+    throw new Error('Failed to subscribe to newsletter');
   }
 }
 
-/**
- * Update a user's email preferences
- */
 export async function updateEmailPreferences(
   preferences: { 
-    marketing?: boolean
-    transactional?: boolean 
-    productUpdates?: boolean
+    marketing_emails?: boolean;
+    product_updates?: boolean;
+    order_updates?: boolean;
   }
-): Promise<ActionResponse> {
-  try {
-    // Initialize Supabase client
-    const supabase = createServerActionClient({ cookies })
-    
-    // Get current user
-    const { data: { session } } = await supabase.auth.getSession()
+) {
+  const supabase = createServerActionClient({ cookies });
+  const emailRepository = new EmailRepository(supabase);
+  const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.user) {
-      return { 
-        success: false, 
-        error: 'You must be logged in to update email preferences'
-      }
-    }
-    
-    const email = session.user.email
-    
-    if (!email) {
-      return {
-        success: false,
-        error: 'No email associated with this account'
-      }
-    }
-    
-    // Find the subscriber record
-    const { data: subscriber } = await supabase
-      .from('email_subscribers')
-      .select('id, preferences')
-      .eq('email', email)
-      .single()
-    
-    if (!subscriber) {
-      // If no subscriber record exists, create one with the user's preferences
-      const { error } = await supabase
-        .from('email_subscribers')
-        .insert({
-          email,
-          user_id: session.user.id,
-          status: 'active',
-          source: 'account_preferences',
-          preferences: {
-            marketing: preferences.marketing ?? false,
-            transactional: preferences.transactional ?? true,
-            product_updates: preferences.productUpdates ?? false
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-      
-      if (error) {
-        console.error('Error creating subscriber with preferences:', error)
-        return {
-          success: false,
-          error: 'Failed to update preferences. Please try again.'
-        }
-      }
-      
-      revalidatePath('/account/preferences')
-      return {
-        success: true,
-        message: 'Email preferences saved successfully.'
-      }
-    }
-    
-    // Update existing preferences
-    const updatedPreferences = {
-      ...subscriber.preferences,
-      marketing: preferences.marketing !== undefined ? preferences.marketing : subscriber.preferences?.marketing,
-      transactional: preferences.transactional !== undefined ? preferences.transactional : subscriber.preferences?.transactional,
-      product_updates: preferences.productUpdates !== undefined ? preferences.productUpdates : subscriber.preferences?.product_updates
-    }
-    
-    const { error } = await supabase
-      .from('email_subscribers')
-      .update({
-        preferences: updatedPreferences,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', subscriber.id)
-    
-    if (error) {
-      console.error('Error updating preferences:', error)
-      return {
-        success: false,
-        error: 'Failed to update preferences. Please try again.'
-      }
-    }
-    
-    // Log the preference update
-    await supabase
-      .from('email_logs')
-      .insert({
-        subscriber_id: subscriber.id,
-        event_type: 'preference_update',
-        metadata: {
-          previous_preferences: subscriber.preferences,
-          new_preferences: updatedPreferences
-        }
-      })
-    
-    revalidatePath('/account/preferences')
-    
-    return { 
-      success: true, 
-      message: 'Email preferences updated successfully.'
-    }
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    await emailRepository.updateUserEmailPreferences(session.user.id, preferences);
+    return { success: true };
   } catch (error) {
-    console.error('Preference update error:', error)
-    return { 
-      success: false, 
-      error: 'An unexpected error occurred. Please try again.'
-    }
+    console.error('Update email preferences error:', error);
+    throw new Error('Failed to update email preferences');
   }
 }
 
-/**
- * Unsubscribe from all marketing emails
- */
-export async function unsubscribeFromEmails(email: string): Promise<ActionResponse> {
+export async function unsubscribeFromNewsletter(token: string) {
+  const supabase = createServerActionClient({ cookies });
+  const emailRepository = new EmailRepository(supabase);
+
   try {
-    // Validate email
-    if (!email || !email.includes('@')) {
-      return {
-        success: false,
-        error: 'Invalid email address'
-      }
-    }
-    
-    // Initialize Supabase client
-    const supabase = createServerActionClient({ cookies })
-    
-    // Find the subscriber
-    const { data: subscriber } = await supabase
-      .from('email_subscribers')
-      .select('id, preferences')
-      .eq('email', email)
-      .single()
+    const subscriber = await emailRepository.getSubscriberByToken(token);
     
     if (!subscriber) {
-      return {
-        success: false,
-        error: 'Email not found in our system'
-      }
+      throw new Error('Invalid unsubscribe token');
     }
-    
-    // Update subscriber status to unsubscribed and disable marketing preferences
-    const { error } = await supabase
-      .from('email_subscribers')
-      .update({
-        status: 'unsubscribed',
-        preferences: {
-          ...subscriber.preferences,
-          marketing: false,
-          product_updates: false
-        },
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', subscriber.id)
-    
-    if (error) {
-      console.error('Error unsubscribing:', error)
-      return {
-        success: false,
-        error: 'Failed to unsubscribe. Please try again.'
-      }
+
+    if (subscriber.user_id) {
+      await emailRepository.updateUserEmailPreferences(subscriber.user_id, {
+        marketing_emails: false,
+        product_updates: false,
+        order_updates: true,
+      });
     }
-    
-    // Log the unsubscribe event
-    await supabase
-      .from('email_logs')
-      .insert({
-        subscriber_id: subscriber.id,
-        event_type: 'unsubscribe',
-        metadata: {
-          source: 'unsubscribe_link',
-          previous_preferences: subscriber.preferences
-        }
-      })
-    
-    return { 
-      success: true,
-      message: 'You have been successfully unsubscribed from marketing emails.'
-    }
+
+    await emailRepository.updateSubscriber(subscriber.id, {
+      is_subscribed: false,
+      unsubscribed_at: new Date().toISOString(),
+    });
+
+    await emailRepository.logEmailEvent({
+      type: 'unsubscribe',
+      subscriber_id: subscriber.id,
+      metadata: { token },
+    });
+
+    return { success: true };
   } catch (error) {
-    console.error('Unsubscribe error:', error)
-    return { 
-      success: false, 
-      error: 'An unexpected error occurred. Please try again.'
+    console.error('Newsletter unsubscribe error:', error);
+    throw new Error('Failed to unsubscribe from newsletter');
+  }
+}
+
+export async function createCampaign(data: z.infer<typeof campaignSchema>) {
+  const supabase = createServerActionClient({ cookies });
+  const emailRepository = new EmailRepository(supabase);
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    const validatedData = campaignSchema.parse(data);
+    
+    const campaign = await emailRepository.createCampaign({
+      title: validatedData.title,
+      subject: validatedData.subject,
+      content: validatedData.content,
+      target_audience: validatedData.targetAudience,
+      scheduled_for: validatedData.scheduledFor,
+      created_by: session.user.id,
+    });
+
+    await emailRepository.logEmailEvent({
+      type: 'campaign_created',
+      campaign_id: campaign.id,
+      metadata: { target_audience: validatedData.targetAudience },
+    });
+
+    return { success: true, campaign };
+  } catch (error) {
+    console.error('Create campaign error:', error);
+    throw new Error('Failed to create campaign');
+  }
+}
+
+export async function sendCampaign(campaignId: string) {
+  const supabase = createServerActionClient({ cookies });
+  const emailRepository = new EmailRepository(supabase);
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    throw new Error('Unauthorized');
+  }
+
+  // Check if user has admin role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    const campaign = await emailRepository.getCampaign(campaignId);
+    
+    if (!campaign) {
+      throw new Error('Campaign not found');
     }
+
+    if (campaign.status !== 'draft') {
+      throw new Error('Campaign is not in draft status');
+    }
+
+    // Update campaign status to sending
+    await emailRepository.updateCampaign(campaignId, {
+      status: 'sending',
+    });
+
+    // Get subscribers based on target audience
+    const subscribers = await emailRepository.getSubscribersByAudience(
+      campaign.target_audience
+    );
+
+    // TODO: Integrate with email service provider to send emails
+    // For now, just log the event and update status
+    await emailRepository.logEmailEvent({
+      type: 'campaign_sent',
+      campaign_id: campaignId,
+        metadata: {
+        recipient_count: subscribers.length,
+      },
+    });
+
+    // Update campaign status to sent
+    await emailRepository.updateCampaign(campaignId, {
+      status: 'sent',
+      sent_at: new Date().toISOString(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Send campaign error:', error);
+
+    // Update campaign status to failed
+    await emailRepository.updateCampaign(campaignId, {
+      status: 'failed',
+    });
+
+    throw new Error('Failed to send campaign');
   }
 }

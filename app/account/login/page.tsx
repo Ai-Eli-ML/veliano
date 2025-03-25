@@ -1,16 +1,10 @@
 "use client"
 
-import { Metadata } from "next";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoginForm from "@/components/auth/login-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "Login | Veliano Jewelry",
-  description: "Login to your Veliano account to access your profile, orders, and more.",
-};
 
 export default function LoginPage() {
   const searchParams = useSearchParams();

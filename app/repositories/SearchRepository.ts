@@ -1,5 +1,6 @@
-
-import { createClient } from '@/lib/supabase/server';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/supabase';
+import { v4 as uuidv4 } from 'uuid';
 import { 
   type SearchHistory, 
   type PopularSearch,
@@ -9,8 +10,20 @@ import {
 } from '@/types/search';
 import { type Product } from '@/types/product';
 
+interface SearchFilters {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  material?: string;
+  style?: string;
+  inStock?: boolean;
+}
+
 export class SearchRepository {
-  private supabase = createClient();
+  private supabase = createClientComponentClient<Database>();
+  private readonly AUTOCOMPLETE_LIMIT = 5;
+  private readonly SEARCH_RESULTS_LIMIT = 20;
+  private readonly defaultLimit = 12;
 
   /**
    * Search products with full-text search and filters
@@ -21,157 +34,263 @@ export class SearchRepository {
       categoryId,
       minPrice,
       maxPrice,
+      material,
+      style,
+      inStock,
       sortBy = 'relevance',
       page = 1,
-      limit = 12
+      limit = this.defaultLimit,
     } = params;
 
-    // Calculate pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    // Prepare search query - replace spaces with '&' for tsquery
-    const searchQuery = query
-      .trim()
-      .split(/\\s+/)
-      .filter(Boolean)
-      .map(term => term.replace(/[^a-zA-Z0-9]/g, '') + ':*')
-      .join(' & ');
-
-    if (!searchQuery) {
-      return { products: [], totalCount: 0 };
-    }
-
-    // Start with the RPC call for full-text search
-    let productsQuery = this.supabase
-      .rpc('search_products', { search_term: searchQuery })
+    let queryBuilder = this.supabase
+      .rpc('search_products', {
+        search_query: query || '',
+        category_id: categoryId || null,
+        min_price: minPrice || 0,
+        max_price: maxPrice || null,
+        material_filter: material || null,
+        style_filter: style || null,
+        in_stock_only: inStock || false,
+      })
       .select('*');
-
-    // Apply filters
-    if (categoryId) {
-      productsQuery = productsQuery.eq('category_id', categoryId);
-    }
-
-    if (minPrice !== undefined) {
-      productsQuery = productsQuery.gte('price', minPrice);
-    }
-
-    if (maxPrice !== undefined) {
-      productsQuery = productsQuery.lte('price', maxPrice);
-    }
 
     // Apply sorting
     switch (sortBy) {
       case 'price_asc':
-        productsQuery = productsQuery.order('price', { ascending: true });
+        queryBuilder = queryBuilder.order('price', { ascending: true });
         break;
       case 'price_desc':
-        productsQuery = productsQuery.order('price', { ascending: false });
+        queryBuilder = queryBuilder.order('price', { ascending: false });
         break;
       case 'newest':
-        productsQuery = productsQuery.order('created_at', { ascending: false });
+        queryBuilder = queryBuilder.order('created_at', { ascending: false });
         break;
-      case 'relevance':
       default:
-        productsQuery = productsQuery.order('rank', { ascending: false });
+        // For 'relevance', the ordering is handled by the search_products function
         break;
     }
 
-    // Get count before pagination
-    const { count, error: countError } = await productsQuery.count();
-
-    if (countError) throw countError;
-
     // Apply pagination
-    productsQuery = productsQuery.range(from, to);
+    const start = (page - 1) * limit;
+    queryBuilder = queryBuilder.range(start, start + limit - 1);
 
-    // Execute query
-    const { data: products, error } = await productsQuery;
+    const { data: products, error, count } = await queryBuilder;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error searching products:', error);
+      throw error;
+    }
+
+    // Log search for analytics
+    await this.logSearch({
+      query: query || '',
+      filters: {
+        categoryId,
+        minPrice,
+        maxPrice,
+        material,
+        style,
+        inStock,
+      },
+      sortBy,
+      resultsCount: count || 0,
+    });
 
     return {
-      products: products as unknown as Product[],
-      totalCount: count || 0
+      products: products as Product[],
+      totalCount: count || 0,
     };
   }
 
   /**
    * Log a search query
    */
-  async logSearch(query: string, userId: string | null, resultCount: number): Promise<void> {
-    await this.supabase
-      .from('search_history')
-      .insert({
-        user_id: userId,
-        search_query: query,
-        result_count: resultCount
-      });
+  async logSearch(params: {
+    query: string;
+    filters: {
+      categoryId?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      material?: Database['public']['Enums']['grillz_material'];
+      style?: Database['public']['Enums']['grillz_style'];
+      inStock?: boolean;
+    };
+    sortBy?: SearchParams['sortBy'];
+    resultsCount: number;
+  }) {
+    const { data: session } = await this.supabase.auth.getSession();
+    const userId = session?.session?.user?.id;
+
+    const { error } = await this.supabase.from('search_logs').insert({
+      user_id: userId,
+      query: params.query,
+      filters: params.filters,
+      sort_by: params.sortBy,
+      results_count: params.resultsCount,
+    });
+
+    if (error) {
+      console.error('Error logging search:', error);
+    }
   }
 
   /**
-   * Get autocomplete suggestions based on previous searches
+   * Performs a full-text search with filtering and sorting
    */
-  async getAutocompleteSuggestions(prefix: string, limit: number = 5): Promise<AutocompleteResult[]> {
-    if (!prefix || prefix.length < 2) {
+  async search(
+    query: string,
+    filters?: SearchFilters,
+    page: number = 1,
+    sortBy: 'relevance' | 'price_asc' | 'price_desc' = 'relevance'
+  ): Promise<{ results: SearchResult[]; total: number }> {
+    try {
+      let searchQuery = this.supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          description,
+          price,
+          slug,
+          category_id,
+          is_available,
+          inventory_quantity,
+          categories!inner(name)
+        `, { count: 'exact' })
+        .textSearch('name', query, { type: 'websearch' })
+        .order('name', { ascending: true });
+
+      // Apply filters
+      if (filters) {
+        if (filters.category) {
+          searchQuery = searchQuery.eq('category_id', filters.category);
+        }
+        if (filters.minPrice !== undefined) {
+          searchQuery = searchQuery.gte('price', filters.minPrice);
+        }
+        if (filters.maxPrice !== undefined) {
+          searchQuery = searchQuery.lte('price', filters.maxPrice);
+        }
+        if (filters.material) {
+          searchQuery = searchQuery.eq('material', filters.material);
+        }
+        if (filters.style) {
+          searchQuery = searchQuery.eq('style', filters.style);
+        }
+        if (filters.inStock) {
+          searchQuery = searchQuery.gt('inventory_quantity', 0);
+        }
+      }
+
+      // Apply sorting
+      if (sortBy === 'price_asc') {
+        searchQuery = searchQuery.order('price', { ascending: true });
+      } else if (sortBy === 'price_desc') {
+        searchQuery = searchQuery.order('price', { ascending: false });
+      }
+
+      // Apply pagination
+      const offset = (page - 1) * this.SEARCH_RESULTS_LIMIT;
+      searchQuery = searchQuery
+        .range(offset, offset + this.SEARCH_RESULTS_LIMIT - 1);
+
+      const { data: results, count, error } = await searchQuery;
+
+      if (error) {
+        console.error('Error performing search:', error);
+        throw new Error('Failed to perform search');
+      }
+
+      // Track search query
+      await this.trackSearchQuery(query, results?.length || 0);
+
+      return {
+        results: results?.map(result => ({
+          ...result,
+          score: this.calculateRelevanceScore(query, result)
+        })) || [],
+        total: count || 0
+      };
+    } catch (error) {
+      console.error('Error in search:', error);
+      throw new Error('Failed to perform search');
+    }
+  }
+
+  /**
+   * Gets autocomplete suggestions based on partial input
+   */
+  async getAutocompleteSuggestions(
+    partial: string
+  ): Promise<AutocompleteResult[]> {
+    if (!partial || partial.length < 2) {
       return [];
     }
 
-    // First try to get matches from popular searches
-    const { data: popularData, error: popularError } = await this.supabase
-      .from('popular_searches')
-      .select('search_term, search_count')
-      .ilike('search_term', \`\${prefix}%\`)
-      .order('search_count', { ascending: false })
-      .limit(limit);
+    try {
+      const { data: results, error } = await this.supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          slug,
+          price,
+          categories(name)
+        `)
+        .ilike('name', `${partial}%`)
+        .limit(this.AUTOCOMPLETE_LIMIT);
 
-    if (popularError) throw popularError;
-
-    // If we have enough popular results, return them
-    if (popularData.length >= limit) {
-      return popularData.map(item => ({
-        term: item.search_term,
-        count: item.search_count
-      }));
-    }
-
-    // Otherwise, supplement with recent search history
-    const { data: historyData, error: historyError } = await this.supabase
-      .from('search_history')
-      .select('search_query')
-      .ilike('search_query', \`\${prefix}%\`)
-      .order('created_at', { ascending: false })
-      .limit(limit - popularData.length);
-
-    if (historyError) throw historyError;
-
-    // Combine results, count duplicates, and return unique terms
-    const combinedResults = [
-      ...popularData.map(item => ({
-        term: item.search_term,
-        count: item.search_count
-      })),
-      ...historyData.map(item => ({
-        term: item.search_query,
-        count: 1
-      }))
-    ];
-
-    // Deduplicate and aggregate counts
-    const uniqueResults = combinedResults.reduce((acc, item) => {
-      const existing = acc.find(x => x.term === item.term);
-      if (existing) {
-        existing.count += item.count;
-      } else {
-        acc.push(item);
+      if (error) {
+        console.error('Error getting autocomplete suggestions:', error);
+        throw new Error('Failed to get suggestions');
       }
-      return acc;
-    }, [] as AutocompleteResult[]);
 
-    // Sort by count and return top N
-    return uniqueResults
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
+      return results.map(result => ({
+        id: result.id,
+        name: result.name,
+        slug: result.slug,
+        category: result.categories?.name || null,
+        price: result.price
+      }));
+    } catch (error) {
+      console.error('Error in autocomplete:', error);
+      throw new Error('Failed to get suggestions');
+    }
+  }
+
+  /**
+   * Tracks search queries for analytics
+   */
+  private async trackSearchQuery(
+    query: string,
+    resultCount: number
+  ): Promise<void> {
+    try {
+      await this.supabase
+        .from('search_logs')
+        .insert({
+          query,
+          result_count: resultCount,
+          session_id: uuidv4(),
+          created_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error tracking search query:', error);
+    }
+  }
+
+  /**
+   * Calculates relevance score for search results
+   */
+  private calculateRelevanceScore(query: string, result: any): number {
+    const nameMatch = result.name.toLowerCase().includes(query.toLowerCase());
+    const descriptionMatch = result.description?.toLowerCase().includes(query.toLowerCase());
+    
+    let score = 0;
+    if (nameMatch) score += 10;
+    if (descriptionMatch) score += 5;
+    
+    return score;
   }
 
   /**

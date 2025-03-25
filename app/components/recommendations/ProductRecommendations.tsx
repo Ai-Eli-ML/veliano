@@ -1,183 +1,114 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ShoppingCart, Heart, Loader2 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
-import { trackRecommendationClick } from '@/lib/analytics'
+import { useEffect, useState } from 'react';
+import { getProductRecommendations, trackRecommendationClick } from '@/actions/recommendations';
+import { RecommendationContext } from '@/types/recommendations';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { formatCurrency } from '@/lib/utils';
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  images: string[]
-  category: {
-    id: string
-    name: string
-  }
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  description: string;
+  inventory_count: number;
 }
 
-export default function ProductRecommendations() {
-  const [activeTab, setActiveTab] = useState('based-on-history')
-  const [recommendations, setRecommendations] = useState<{
-    history: Product[]
-    popular: Product[]
-    similar: Product[]
-  }>({
-    history: [],
-    popular: [],
-    similar: []
-  })
-  const [isLoading, setIsLoading] = useState(true)
+interface ProductRecommendationsProps {
+  context: RecommendationContext;
+  title?: string;
+  maxItems?: number;
+}
+
+export function ProductRecommendations({
+  context,
+  title = 'Recommended for You',
+  maxItems = 4,
+}: ProductRecommendationsProps) {
+  const [recommendations, setRecommendations] = useState<(Product & { score: number })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      setIsLoading(true)
+    async function loadRecommendations() {
       try {
-        const response = await fetch('/api/products/recommended')
-        const data = await response.json()
-        
-        if (data.success) {
-          setRecommendations({
-            history: data.data.basedOnHistory || [],
-            popular: data.data.popular || [],
-            similar: data.data.similar || []
-          })
-        }
+        setLoading(true);
+        const { recommendations: items } = await getProductRecommendations(context);
+        setRecommendations(items.slice(0, maxItems));
       } catch (error) {
-        console.error('Error fetching recommendations:', error)
+        console.error('Error loading recommendations:', error);
       } finally {
-        setIsLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchRecommendations()
-  }, [])
+    loadRecommendations();
+  }, [context, maxItems]);
 
-  const handleProductClick = (productId: string, recommendationType: string) => {
-    trackRecommendationClick(productId, recommendationType as any)
+  const handleProductClick = async (productId: string, score: number) => {
+    try {
+      await trackRecommendationClick(productId, score);
+      router.push(`/products/${productId}`);
+    } catch (error) {
+      console.error('Error tracking recommendation click:', error);
+      router.push(`/products/${productId}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">{title}</h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: maxItems }).map((_, i) => (
+            <Skeleton key={i} className="h-[350px] w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading recommendations...</span>
-      </div>
-    )
-  }
-
-  const hasRecommendations = 
-    recommendations.history.length > 0 || 
-    recommendations.popular.length > 0 || 
-    recommendations.similar.length > 0
-
-  if (!hasRecommendations) {
-    return (
-      <div className="flex h-96 flex-col items-center justify-center text-center">
-        <h3 className="text-lg font-medium">No recommendations available yet</h3>
-        <p className="mt-2 text-muted-foreground max-w-md">
-          Browse more products to get personalized recommendations based on your interests.
-        </p>
-        <Button asChild className="mt-6">
-          <Link href="/products">Browse Products</Link>
-        </Button>
-      </div>
-    )
+  if (recommendations.length === 0) {
+    return null;
   }
 
   return (
-    <div>
-      <Tabs defaultValue="based-on-history" onValueChange={setActiveTab}>
-        <TabsList className="mb-8">
-          <TabsTrigger value="based-on-history">Based on Browsing</TabsTrigger>
-          <TabsTrigger value="popular">Popular Items</TabsTrigger>
-          <TabsTrigger value="similar-to-cart">Similar to Cart</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="based-on-history">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {recommendations.history.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onClick={() => handleProductClick(product.id, 'recently_viewed')} 
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="popular">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {recommendations.popular.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onClick={() => handleProductClick(product.id, 'popular')} 
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="similar-to-cart">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {recommendations.similar.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onClick={() => handleProductClick(product.id, 'similar')} 
-              />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
-
-function ProductCard({ product, onClick }: { product: Product; onClick: () => void }) {
-  return (
-    <Card className="group overflow-hidden transition-all hover:shadow-md">
-      <CardContent className="p-3">
-        <Link 
-          href={`/products/${product.id}`}
-          onClick={onClick}
-          className="block"
-        >
-          <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
-            {product.images?.[0] && (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold">{title}</h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {recommendations.map((product) => (
+          <div
+            key={product.id}
+            onClick={() => handleProductClick(product.id, product.score)}
+            className="group relative overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md"
+          >
+            <div className="aspect-square overflow-hidden">
               <Image
                 src={product.images[0]}
                 alt={product.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                width={400}
+                height={400}
+                className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />
-            )}
+            </div>
+            <div className="p-4">
+              <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+              <p className="mt-1 text-sm text-gray-500 line-clamp-2">{product.description}</p>
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-lg font-semibold text-gray-900">
+                  {formatCurrency(product.price)}
+                </p>
+                {product.inventory_count === 0 && (
+                  <span className="text-sm text-red-600">Out of Stock</span>
+                )}
+              </div>
+            </div>
           </div>
-          
-          <div className="mt-3 space-y-1">
-            <h3 className="font-medium">{product.name}</h3>
-            <p className="text-sm text-muted-foreground">{product.category?.name}</p>
-            <p className="font-semibold">{formatCurrency(product.price)}</p>
-          </div>
-        </Link>
-        
-        <div className="mt-4 flex items-center justify-between">
-          <Button size="sm" className="w-full gap-1">
-            <ShoppingCart className="h-4 w-4" />
-            Add to Cart
-          </Button>
-          <Button variant="ghost" size="icon" className="ml-2">
-            <Heart className="h-4 w-4" />
-            <span className="sr-only">Add to wishlist</span>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+        ))}
+      </div>
+    </div>
+  );
 }

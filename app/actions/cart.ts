@@ -1,11 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import { cartRepository } from '@/lib/repositories/cart-repository';
 import { Database } from '@/types/supabase';
+import { CartItem } from '@/types/cart';
+import { EmailService } from '@/services';
+import { getCookie, setCookie } from '@/lib/utils/cookies';
 
 const CART_ID_COOKIE = 'veliano_cart_id';
 const SESSION_ID_COOKIE = 'veliano_session_id';
@@ -20,16 +23,13 @@ export async function initializeCart() {
   const { data: { user } } = await supabase.auth.getUser();
   
   // Check for existing cart ID in cookies
-  const cookieStore = cookies();
-  let cartId = cookieStore.get(CART_ID_COOKIE)?.value;
-  let sessionId = cookieStore.get(SESSION_ID_COOKIE)?.value;
+  const cartId = await getCookie(CART_ID_COOKIE);
+  const sessionId = await getCookie(SESSION_ID_COOKIE);
   
   // Create session ID if it doesn't exist
+  const newSessionId = sessionId || uuidv4();
   if (!sessionId) {
-    sessionId = uuidv4();
-    cookieStore.set({
-      name: SESSION_ID_COOKIE,
-      value: sessionId,
+    await setCookie(SESSION_ID_COOKIE, newSessionId, {
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
       sameSite: 'lax',
@@ -44,19 +44,17 @@ export async function initializeCart() {
     
     // If user just logged in and has an anonymous cart, merge it
     if (cartId && !cart?.userId) {
-      await cartRepository.mergeAnonymousCartIntoUserCart(user.id, sessionId);
+      await cartRepository.mergeAnonymousCartIntoUserCart(user.id, newSessionId);
       cart = await cartRepository.getCartByUserId(user.id);
     }
   } else {
     // Use session-based cart for anonymous users
-    cart = await cartRepository.getCartBySessionId(sessionId);
+    cart = await cartRepository.getCartBySessionId(newSessionId);
   }
   
   if (cart && cart.id !== cartId) {
     // Update the cart ID cookie if it changed
-    cookieStore.set({
-      name: CART_ID_COOKIE,
-      value: cart.id,
+    await setCookie(CART_ID_COOKIE, cart.id, {
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
       sameSite: 'lax',
@@ -70,8 +68,7 @@ export async function initializeCart() {
  * Get the current cart for the user or session
  */
 export async function getCurrentCart() {
-  const cookieStore = cookies();
-  const cartId = cookieStore.get(CART_ID_COOKIE)?.value;
+  const cartId = await getCookie(CART_ID_COOKIE);
   
   if (!cartId) {
     const cart = await initializeCart();
@@ -183,4 +180,45 @@ export async function getCartItems() {
   if (!cart) return [];
   
   return await cartRepository.getCartItems(cart.id);
+}
+
+export async function handleAbandonedCart(userId: string, cartItems: CartItem[]) {
+  const supabase = createServerActionClient({ cookies });
+  const emailService = new EmailService();
+
+  try {
+    // Get user details
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('email, first_name, email_preferences')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user:', userError);
+      return;
+    }
+
+    // Check if user allows marketing emails
+    if (!user.email_preferences?.marketing_emails) {
+      return;
+    }
+
+    // Send abandoned cart email
+    await emailService.sendAbandonedCartReminder(
+      user.email,
+      user.first_name || '',
+      cartItems
+    );
+
+    // Log the abandoned cart event
+    await supabase.from('cart_events').insert({
+      user_id: userId,
+      type: 'abandoned',
+      items: cartItems,
+      reminder_sent: true,
+    });
+  } catch (error) {
+    console.error('Error handling abandoned cart:', error);
+  }
 } 

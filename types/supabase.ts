@@ -708,12 +708,492 @@ export type Database = {
           }
         ]
       }
+      recommendation_views: {
+        Row: {
+          id: string
+          product_id: string
+          user_id: string | null
+          session_id: string
+          source: string
+          recommendation_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          user_id?: string | null
+          session_id: string
+          source: string
+          recommendation_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          user_id?: string | null
+          session_id?: string
+          source?: string
+          recommendation_type?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_views_product_id_fkey"
+            columns: ["product_id"]
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_views_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      recommendation_clicks: {
+        Row: {
+          id: string
+          product_id: string
+          recommended_product_id: string
+          user_id: string | null
+          session_id: string
+          recommendation_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          recommended_product_id: string
+          user_id?: string | null
+          session_id: string
+          recommendation_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          recommended_product_id?: string
+          user_id?: string | null
+          session_id?: string
+          recommendation_type?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_clicks_product_id_fkey"
+            columns: ["product_id"]
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_clicks_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_clicks_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      recommendation_conversions: {
+        Row: {
+          id: string
+          product_id: string
+          recommended_product_id: string
+          user_id: string | null
+          session_id: string
+          order_id: string
+          recommendation_type: string
+          revenue: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          recommended_product_id: string
+          user_id?: string | null
+          session_id: string
+          order_id: string
+          recommendation_type: string
+          revenue: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          recommended_product_id?: string
+          user_id?: string | null
+          session_id?: string
+          order_id?: string
+          recommendation_type?: string
+          revenue?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_conversions_product_id_fkey"
+            columns: ["product_id"]
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_conversions_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_conversions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_conversions_order_id_fkey"
+            columns: ["order_id"]
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ab_test_assignments: {
+        Row: {
+          id: string
+          test_id: string
+          user_id: string | null
+          session_id: string
+          variant: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          test_id: string
+          user_id?: string | null
+          session_id: string
+          variant: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          test_id?: string
+          user_id?: string | null
+          session_id?: string
+          variant?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_assignments_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ab_test_conversions: {
+        Row: {
+          id: string
+          test_id: string
+          user_id: string | null
+          session_id: string
+          variant: string
+          revenue: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          test_id: string
+          user_id?: string | null
+          session_id: string
+          variant: string
+          revenue: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          test_id?: string
+          user_id?: string | null
+          session_id?: string
+          variant?: string
+          revenue?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_conversions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      search_logs: {
+        Row: {
+          id: string
+          query: string
+          result_count: number
+          session_id: string
+          user_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          query: string
+          result_count: number
+          session_id: string
+          user_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          query?: string
+          result_count?: number
+          session_id?: string
+          user_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_logs_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      email_campaigns: {
+        Row: {
+          id: string
+          title: string
+          subject: string
+          content: string
+          target_audience: 'all' | 'marketing' | 'product_updates'
+          status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_for: string | null
+          sent_at: string | null
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          subject: string
+          content: string
+          target_audience: 'all' | 'marketing' | 'product_updates'
+          status?: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_for?: string | null
+          sent_at?: string | null
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          subject?: string
+          content?: string
+          target_audience?: 'all' | 'marketing' | 'product_updates'
+          status?: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_for?: string | null
+          sent_at?: string | null
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      email_logs: {
+        Row: {
+          id: string
+          type: 'subscribe' | 'unsubscribe' | 'campaign_created' | 'campaign_sent' | 'email_opened' | 'link_clicked'
+          subscriber_id: string | null
+          campaign_id: string | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          type: 'subscribe' | 'unsubscribe' | 'campaign_created' | 'campaign_sent' | 'email_opened' | 'link_clicked'
+          subscriber_id?: string | null
+          campaign_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          type?: 'subscribe' | 'unsubscribe' | 'campaign_created' | 'campaign_sent' | 'email_opened' | 'link_clicked'
+          subscriber_id?: string | null
+          campaign_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+      }
+      email_subscribers: {
+        Row: {
+          id: string
+          email: string
+          first_name: string | null
+          user_id: string | null
+          is_subscribed: boolean
+          subscribed_at: string
+          unsubscribed_at: string | null
+          unsubscribe_token: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          first_name?: string | null
+          user_id?: string | null
+          is_subscribed?: boolean
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          unsubscribe_token?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          first_name?: string | null
+          user_id?: string | null
+          is_subscribed?: boolean
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          unsubscribe_token?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      users: {
+        Row: {
+          id: string
+          email: string
+          first_name: string | null
+          last_name: string | null
+          role: 'user' | 'admin'
+          marketing_emails: boolean
+          product_updates: boolean
+          order_updates: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: 'user' | 'admin'
+          marketing_emails?: boolean
+          product_updates?: boolean
+          order_updates?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: 'user' | 'admin'
+          marketing_emails?: boolean
+          product_updates?: boolean
+          order_updates?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
-      [_ in never]: never
+      recommendation_analytics: {
+        Row: {
+          product_id: string
+          recommended_product_id: string
+          recommendation_type: string
+          view_count: number
+          click_count: number
+          conversion_count: number
+          unique_viewers: number
+          unique_clickers: number
+          unique_converters: number
+          total_revenue: number
+          click_through_rate: number
+          conversion_rate: number
+          average_order_value: number
+        }
+      }
+      search_analytics: {
+        Row: {
+          query: string
+          search_count: number
+          avg_results: number
+          unique_searchers: number
+          last_searched_at: string
+          relevance_score: number
+        }
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_ab_test_results: {
+        Args: {
+          test_id: string
+        }
+        Returns: {
+          variant: string
+          assignments: number
+          conversions: number
+          total_revenue: number
+          conversion_rate: number
+          average_revenue: number
+        }[]
+      }
+      get_popular_searches: {
+        Args: {
+          time_window?: string
+          limit_count?: number
+        }
+        Returns: {
+          query: string
+          search_count: number
+          avg_results: number
+          unique_searchers: number
+        }[]
+      }
+      get_search_suggestions: {
+        Args: {
+          partial_query: string
+          limit_count?: number
+        }
+        Returns: {
+          query: string
+          search_count: number
+          last_searched_at: string
+        }[]
+      }
+      search_products: {
+        Args: {
+          search_query: string
+          category_filter?: string
+          min_price?: number
+          max_price?: number
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          price: number
+          category_id: string
+          rank: number
+        }[]
+      }
     }
     Enums: {
       grillz_material:
@@ -733,7 +1213,7 @@ export type Database = {
       teeth_position: "top" | "bottom" | "both"
     }
     CompositeTypes: {
-      [_ in never]: never
+      [_ in string]: never
     }
   }
 }
